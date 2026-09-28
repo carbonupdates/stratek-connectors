@@ -129,6 +129,12 @@ built.
 | [Make](https://www.make.com/en/help/tools/webhooks) | Send sale to Make | Make webhook URL | Coming soon |
 
 New integrations arrive with connector updates (**Update connector** in Stratek).
+
+Planned in Stratek: an **online store** per shop (`strateknepal.com/store/<shop>`,
+see the POS repo's `docs/proposals/online-store.md`). Payment integrations
+(Fonepay dynamic QR, Khalti, eSewa, Stripe...) would confirm online orders
+automatically, and delivery ones (Pathao, Yango...) would add "Send with..." to
+them. So those are built first: Webhook, payments and delivery, then the store.
 To build one, see [docs/adding-an-integration.md](docs/adding-an-integration.md).
 
 ## Updates

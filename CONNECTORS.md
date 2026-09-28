@@ -82,7 +82,7 @@ CORS: only `Origin: <STRATEK_URL>` is allowed.
 
 ```json
 { "success": true, "data": {
-  "connector": { "version": "0.2.0", "connectorId": "...", "owner": { "type": "merchant", "id": "1", "name": "Chyau" } },
+  "connector": { "version": "0.3.0", "connectorId": "...", "owner": { "type": "merchant", "id": "1", "name": "Chyau" } },
   "integrations": [
     { "id": "yango", "name": "Yango Delivery", "category": "delivery", "description": "...",
       "status": "available", "docsUrl": "https://...", "ready": true, "setup": true, "missingSecrets": [],
