@@ -38,14 +38,19 @@ New integrations arrive with connector updates -- nothing to reinstall.
 ## Updates
 
 The Deploy button creates a **copy** of this repo in the deployer's GitHub
-account. The copy includes a GitHub Action (**Update connector**) that pulls
-the latest version from this repo every day and pushes it; Cloudflare then
-redeploys. To update right away: your copy on GitHub -> **Actions -> Update
+account. To keep a copy up to date automatically, add the update job once:
+
+1. Open [`extras/update-connector.yml`](extras/update-connector.yml) and copy its contents.
+2. In your copy on GitHub: **Add file -> Create new file**, name it
+   `.github/workflows/update-connector.yml`, paste, **Commit changes**.
+
+From then on it pulls the latest version from this repo every day and
+Cloudflare redeploys. To update right away: your copy -> **Actions -> Update
 connector -> Run workflow**. Stratek's Integrations tab shows when an update is
 available. Don't edit shop copies by hand -- keys belong in Cloudflare.
 
-If a copy's Actions are disabled, enable them once under the copy's
-**Actions** tab.
+(The job isn't included automatically because Cloudflare's Deploy button can't
+create GitHub workflow files; a copy that contained one would fail to set up.)
 
 ## Security
 

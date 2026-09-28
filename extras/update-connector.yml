@@ -1,5 +1,11 @@
 # Keeps a shop's copy of this connector up to date.
 #
+# OPTIONAL -- not active until you copy it into your copy's
+# .github/workflows/ folder (GitHub web: Add file -> Create new file ->
+# name it .github/workflows/update-connector.yml -> paste this -> Commit).
+# It lives outside .github/ in this repo because Cloudflare's Deploy button
+# cannot create workflow files when it makes your copy.
+#
 # The "Deploy to Cloudflare" button creates a COPY of this repo in the
 # deployer's GitHub account (not a fork). This job runs only in those copies:
 # once a day (or when you press "Run workflow") it pulls the latest release
