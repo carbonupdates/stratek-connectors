@@ -34,7 +34,11 @@ Stratek installs the connector itself -- no terminal, no GitHub:
    step 1.3 below. Knowing the install secret proves the caller just deployed
    this Worker, so `/connect/auto` may re-pair a connected connector.
    A brand-new `workers.dev` address can take a minute to go live; Stratek
-   retries for ~15 s, then offers **Finish connecting** (a new code, same secret).
+   retries for ~15 s; the Integrations tab then shows step 2 "Connect to
+   Stratek", retries `POST .../connectors/finish` (a new code, same secret)
+   every 15 s for ~3 minutes, and offers the manual pairing below
+   (`<connector>/connect`) as a fallback. After a manual pairing the connector
+   redirects back to `admin.html#integrations` / `dashboard.html#integrations`.
 5. **Update connector** repeats 1-3 with a fresh token; if the address matches
    the active connector, the pairing (kept in the Durable Object) is untouched.
 

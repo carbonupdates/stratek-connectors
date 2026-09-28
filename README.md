@@ -28,6 +28,12 @@ shop; admin panel for Stratek HQ):
    into that Cloudflare account, turns on its `stratek-connector.<name>.workers.dev`
    address and connects it. The token is used once and never stored -- you can
    delete it in Cloudflare afterwards.
+   **Step 2, Connect to Stratek**, normally happens by itself. A brand-new
+   address can take a minute or two to go live: the tab keeps trying, or press
+   **Connect now**. If it still won't connect, press **Connect on the connector
+   page** -- it opens the connector, which sends you back to Stratek to approve
+   (*Connect for Stratek HQ (admin)* or *Connect to my shop*) and then returns you
+   to the Integrations tab.
 4. **Set up integrations.** In the same tab, press **Set up** next to an
    integration. A page from the shop's own connector opens; enter the keys and
    press **Save keys**. Back in Stratek it shows **Ready** and its buttons

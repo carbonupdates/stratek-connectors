@@ -39,7 +39,7 @@ export function homePage({ pairing, version, stratekUrl }) {
       <p><a class="btn" href="/connect">Connect to Stratek</a></p>
       <p><small>You'll be asked to sign in to Stratek and approve. Version ${esc(version)}.</small></p>`);
   }
-  const back = pairing.ownerType === 'admin' ? `${stratekUrl}/admin.html` : `${stratekUrl}/dashboard.html`;
+  const back = pairing.ownerType === 'admin' ? `${stratekUrl}/admin.html#integrations` : `${stratekUrl}/dashboard.html#integrations`;
   return page('Connected', `
     <h1>Connected</h1>
     <p class="ok">This connector belongs to <strong>${esc(pairing.ownerName || pairing.ownerType)}</strong> on Stratek.</p>
@@ -53,12 +53,13 @@ export function messagePage(title, text, kind = 'err', status = 400) {
 }
 
 export function connectedPage(pairing, stratekUrl) {
-  const back = pairing.ownerType === 'admin' ? `${stratekUrl}/admin.html` : `${stratekUrl}/dashboard.html`;
+  // Straight back to Stratek's Integrations tab (step 3: Set up integrations).
+  const back = pairing.ownerType === 'admin' ? `${stratekUrl}/admin.html#integrations` : `${stratekUrl}/dashboard.html#integrations`;
   return page('Connected', `
     <h1>All set</h1>
     <p class="ok">Connected to <strong>${esc(pairing.ownerName || pairing.ownerType)}</strong>.</p>
-    <p>Go back to Stratek &rarr; <strong>Integrations</strong> and press <strong>Set up</strong> on the integrations you use.</p>
-    <p><a class="btn" href="${esc(back)}">Back to Stratek</a></p>`);
+    <p>Taking you back to Stratek &rarr; <strong>Integrations</strong>, where you press <strong>Set up</strong> on the integrations you use&hellip;</p>
+    <p><a class="btn" href="${esc(back)}">Back to Stratek now</a></p>`, 200, { Refresh: `3; url=${back}` });
 }
 
 /**
