@@ -15,16 +15,27 @@ keys; Stratek never sees them. When an integration's keys are set, its buttons
 
 ## Set up (about 3 minutes)
 
-1. **Activate.** In Stratek, open **Integrations** and press **Activate connector**
-   (or use the button at the top of this page). Sign in to the shop's Cloudflare
-   account and press **Deploy**. There is nothing to fill in.
-2. **Connect.** When Cloudflare shows the connector's address
-   (`https://stratek-connector.<account>.workers.dev`), open it and press
-   **Connect to Stratek**. Sign in to Stratek if asked, then approve.
+1. **Deploy** into the shop's Cloudflare account (or Stratek's, for Stratek HQ). Either:
+   - **From a computer (most reliable):** clone this repo, then in its folder run
+     ```
+     npm install
+     npx wrangler deploy
+     ```
+     (`npx wrangler login` first if asked; pick the shop's account). It prints the
+     connector's address, `https://stratek-connector.<account>.workers.dev`.
+   - **One click:** the Deploy button above, or **Activate connector** in Stratek.
+     If Cloudflare's copy of the repo on GitHub only contains `wrangler.jsonc`,
+     or the build sits at "Initializing build environment", use the computer
+     route instead.
+2. **Connect.** In Stratek -> **Integrations**, paste the connector's address and
+   press **Connect**, then approve. (Or open the address and press
+   **Connect to Stratek**.)
 3. **Turn on integrations.** In Cloudflare: **Workers & Pages -> stratek-connector ->
    Settings -> Variables and Secrets -> Add** -- add the keys for an integration as
    **Secrets** (names below). Within a minute its buttons appear in Stratek, and
    Stratek's Integrations tab shows it as **Ready**.
+
+To update a connector deployed from a computer: `git pull` then `npx wrangler deploy`.
 
 ## Integrations
 
