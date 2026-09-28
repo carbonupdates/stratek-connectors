@@ -1,0 +1,26 @@
+{
+  "name": "stratek-connectors",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Stratek connector: runs in your own Cloudflare account, holds your integration keys (Pathao, payments...) and adds their buttons to the Stratek POS.",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "node --test test/connector.test.js"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  },
+  "cloudflare": {
+    "bindings": {
+      "STATE": {
+        "description": "Where the connector remembers which Stratek account it is connected to. Created for you -- nothing to change."
+      },
+      "STRATEK_URL": {
+        "description": "Your Stratek POS address. Leave as **https://strateknepal.com** unless you run your own Stratek."
+      }
+    }
+  }
+}

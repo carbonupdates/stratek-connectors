@@ -1,0 +1,21 @@
+// Stratek connector -- one Worker per shop (or one for Stratek HQ).
+// Deployed with the "Deploy to Cloudflare" button; nothing here needs editing.
+// Integration keys (e.g. PATHAO_CLIENT_ID) are added later as Secrets in the
+// Cloudflare dashboard: Workers & Pages -> this Worker -> Settings -> Variables and Secrets.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "stratek-connector",
+  "main": "src/index.js",
+  "compatibility_date": "2025-09-01",
+  "workers_dev": true,
+  "observability": { "enabled": true },
+  "vars": {
+    "STRATEK_URL": "https://strateknepal.com"
+  },
+  // Remembers the pairing (which Stratek account this connector belongs to).
+  // SQLite-backed Durable Objects are on Cloudflare's free plan and need no ID.
+  "durable_objects": {
+    "bindings": [{ "name": "STATE", "class_name": "ConnectorState" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["ConnectorState"] }]
+}

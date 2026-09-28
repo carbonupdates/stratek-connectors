@@ -1,0 +1,41 @@
+# Keeps a shop's copy of this connector up to date.
+#
+# The "Deploy to Cloudflare" button creates a COPY of this repo in the
+# deployer's GitHub account (not a fork). This job runs only in those copies:
+# once a day (or when you press "Run workflow") it pulls the latest release
+# from the public repo and pushes it; Cloudflare then redeploys automatically.
+# Shop copies are never edited by hand -- keys live in Cloudflare, not here.
+
+name: Update connector
+
+on:
+  schedule:
+    - cron: '17 21 * * *'   # daily, ~03:00 Nepal time
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    if: github.repository != 'carbonupdates/stratek-connectors'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Pull the latest connector release
+        run: |
+          git config user.name "stratek-connector-updater"
+          git config user.email "updater@users.noreply.github.com"
+          git remote add upstream https://github.com/carbonupdates/stratek-connectors.git
+          git fetch upstream main
+          BEFORE=$(git rev-parse HEAD)
+          # Copies are not customised, so the public repo always wins.
+          git merge --no-edit --allow-unrelated-histories -X theirs upstream/main
+          if [ "$(git rev-parse HEAD)" != "$BEFORE" ]; then
+            git push origin HEAD:${GITHUB_REF_NAME}
+            echo "Updated -- Cloudflare will redeploy."
+          else
+            echo "Already up to date."
+          fi
