@@ -91,3 +91,66 @@ test('auto-pairing after Stratek installs the connector', async () => {
   const env2 = makeEnv();
   assert.equal((await go(env2, '/connect/auto', { method: 'POST', body: JSON.stringify({ code: 'a'.repeat(64), secret: '' }) })).status, 403);
 });
+
+test('Set up form: keys saved in the connector, masked, session passes only', async () => {
+  const { INTEGRATIONS } = await import('../src/registry.js');
+  let seen = null;
+  INTEGRATIONS.push({
+    id: 'demo', name: 'Demo', category: 'automation', status: 'available', description: 'test',
+    secrets: [{ name: 'DEMO_KEY', label: 'Demo key' }, { name: 'DEMO_OPT', label: 'Optional', optional: true }],
+    actions: [{ id: 'go', label: 'Go', placement: ['transaction'], fields: [], async run({ env }) { seen = env.DEMO_KEY; return { type: 'message', text: 'ok' }; } }],
+  });
+  const env = makeEnv({ INSTALL_SECRET: 'i' });
+  await go(env, '/connect/auto', { method: 'POST', body: JSON.stringify({ code: 'a'.repeat(64), secret: 'i' }) });
+  const now = Math.floor(Date.now() / 1000);
+  const base = { iss: STRATEK, aud: 'conn-1', sub: 'merchant:1', iat: now, exp: now + 3600 };
+  const session = await pass({ ...base, src: 'session', actor: 'bio@gmail.com' });
+  const apiKey = await pass({ ...base, src: 'api_key' });
+  const H = (t) => ({ Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' });
+
+  const page = await go(env, '/setup/demo');
+  assert.equal(page.status, 200);
+  assert.match(page.headers.get('content-security-policy'), /connect-src 'self'/);
+  assert.match(await page.text(), /Set up Demo/);
+  assert.equal((await go(env, '/setup/stripe')).status, 409, 'planned integration has no form yet');
+  assert.equal((await go(env, '/setup/nope')).status, 404);
+
+  let m = (await (await go(env, '/manifest', { headers: H(session) })).json()).data.integrations;
+  const demo = m.find((i) => i.id === 'demo');
+  assert.equal(demo.ready, false); assert.equal(demo.setup, true); assert.deepEqual(demo.missingSecrets, ['DEMO_KEY']);
+  const stripe = m.find((i) => i.id === 'stripe');
+  assert.equal(stripe.status, 'planned'); assert.equal(stripe.ready, false); assert.equal(stripe.setup, false); assert.equal(stripe.category, 'payments');
+  assert.equal((await go(env, '/actions/demo/go', { method: 'POST', headers: H(session), body: '{}' })).status, 409, 'not ready');
+  assert.equal((await go(env, '/actions/stripe/payment_link', { method: 'POST', headers: H(session), body: '{}' })).status, 409, 'planned');
+
+  assert.equal((await go(env, '/secrets/demo', { method: 'POST', headers: H(apiKey), body: JSON.stringify({ values: { DEMO_KEY: 'x' } }) })).status, 403, 'API-key pass cannot set keys');
+  assert.equal((await go(env, '/secrets/demo', { method: 'POST', headers: H(session), body: JSON.stringify({ values: { OTHER: 'x' } }) })).status, 400, 'unknown key name');
+  assert.equal((await go(env, '/secrets/demo', { method: 'POST', headers: H(session), body: JSON.stringify({ values: { DEMO_KEY: 'x' } }) })).status, 200);
+  const secret = 'sk_live_1234567890abcdefWXYZ';
+  let r = await (await go(env, '/secrets/demo', { method: 'POST', headers: H(session), body: JSON.stringify({ values: { DEMO_KEY: secret } }) })).json();
+  assert.equal(r.data.ready, true);
+  assert.equal(r.data.secrets[0].masked, 'sk_…WXYZ');
+  assert.ok(!JSON.stringify(r).includes(secret), 'full key never returned');
+  r = await (await go(env, '/secrets/demo', { headers: H(apiKey) })).json();
+  assert.equal(r.data.secrets[0].set, true, 'masked status readable with any pass');
+  assert.ok(!JSON.stringify(r).includes(secret));
+  m = (await (await go(env, '/manifest', { headers: H(session) })).json()).data.integrations;
+  assert.equal(m.find((i) => i.id === 'demo').ready, true);
+  assert.ok(!JSON.stringify(m).includes(secret), 'manifest never has values');
+  assert.equal((await go(env, '/actions/demo/go', { method: 'POST', headers: H(session), body: '{}' })).status, 200);
+  assert.equal(seen, secret, 'action gets the key as env.DEMO_KEY');
+
+  // Browsers on the Stratek site may not call the key endpoints (no CORS).
+  const cors = await go(env, '/secrets/demo', { headers: { ...H(session), Origin: STRATEK } });
+  assert.equal(cors.headers.get('access-control-allow-origin'), null);
+
+  // Cloudflare Secret used when nothing saved in the form; the form wins.
+  const env2 = makeEnv({ INSTALL_SECRET: 'i', DEMO_KEY: 'from-cloudflare' });
+  await go(env2, '/connect/auto', { method: 'POST', body: JSON.stringify({ code: 'a'.repeat(64), secret: 'i' }) });
+  r = await (await go(env2, '/secrets/demo', { headers: H(session) })).json();
+  assert.equal(r.data.secrets[0].source, 'cloudflare');
+  // remove
+  r = await (await go(env, '/secrets/demo', { method: 'POST', headers: H(session), body: JSON.stringify({ remove: ['DEMO_KEY'] }) })).json();
+  assert.equal(r.data.ready, false);
+  INTEGRATIONS.pop();
+});

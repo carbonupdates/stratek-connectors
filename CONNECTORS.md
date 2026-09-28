@@ -67,6 +67,7 @@ The browser asks Stratek: `POST /api/v1/merchant/connectors/pass` (or admin) ->
 | `aud` | `connectorId` |
 | `sub` | `merchant:<id>` or `admin:hq` (must match the pairing) |
 | `owner_name`, `actor` | shop name, who is signed in |
+| `src` | `session` (a person signed in to Stratek) or `api_key` (API key / AI agent). Only `session` passes may change keys. |
 | `iat`, `exp`, `jti` | issued / expires (1 hour) / unique id |
 
 Connectors send it as `Authorization: Bearer <token>`. On an unknown `kid` the
@@ -79,14 +80,22 @@ CORS: only `Origin: <STRATEK_URL>` is allowed.
 { "success": true, "data": {
   "connector": { "version": "0.2.0", "connectorId": "...", "owner": { "type": "merchant", "id": "1", "name": "Chyau" } },
   "integrations": [
-    { "id": "pathao", "name": "Pathao", "description": "...", "ready": true, "missingSecrets": [],
+    { "id": "yango", "name": "Yango Delivery", "category": "delivery", "description": "...",
+      "status": "available", "docsUrl": "https://...", "ready": true, "setup": true, "missingSecrets": [],
+      "secrets": [ { "name": "YANGO_API_TOKEN", "label": "Yango Delivery API token", "optional": false, "set": true } ],
       "actions": [
-        { "id": "create_delivery", "label": "Send with Pathao", "placement": ["transaction"],
+        { "id": "create_delivery", "label": "Send with Yango", "placement": ["transaction"],
           "fields": [ { "name": "recipientName", "label": "Recipient name", "type": "text", "required": true } ] } ] } ] } }
 ```
 
-- `ready` = every secret the integration needs is set. Stratek only shows
+- `status`: `available` (built) or `planned` (scaffold -- Stratek lists it as
+  "Coming soon", shows no buttons and no Set up; its actions answer 409).
+- `category`: `system` | `payments` | `delivery` | `messaging` | `accounting` |
+  `commerce` | `marketing` | `automation` -- Stratek groups the list by it.
+- `ready` = available and every non-optional key is set. Stratek only shows
   buttons for ready integrations; `missingSecrets` lists names (never values).
+- `setup` = Stratek shows a **Set up** / **Change keys** button.
+- `secrets[].set` says whether each key is present -- never its value.
 - `placement` -- where the button appears:
   - `transaction`: a sale's Details panel (merchant Transactions tab)
   - `charge`: under the payment QR right after charging
@@ -110,7 +119,29 @@ Response: `{ "success": true, "data": { "result": <result> } }`, where `result` 
 Errors: `{ "success": false, "error": { "message", "code" } }` -- the message is
 shown to the person.
 
-## 5. Other routes
+## 5. Keys -- the Set up form
+
+Keys (API keys, client secrets...) are entered on the connector's **own** page,
+never in Stratek:
+
+- Stratek opens `GET <connector>/setup/<integration>#pass=<pass>` in a new tab.
+  The pass is in the fragment (not sent to any server); the page removes it
+  from the address bar, then calls the connector (same origin) with it:
+- `GET /secrets/<integration>` (pass) -> `{ id, name, ready, missing: [labels],
+  secrets: [ { name, label, hint, optional, set, masked, source } ] }` --
+  `masked` like `sk_…4f2a`, `source` = `connector` (Set up form) or `cloudflare`
+  (a Cloudflare Secret of the same name).
+- `POST /secrets/<integration>` (pass with `src: "session"`) `{ values: { NAME:
+  "value" }, remove: [ "NAME" ] }` -> same shape. Only the integration's own key
+  names are accepted; empty values mean "keep"; `remove` only clears keys saved
+  by the form. Values are at most 4096 characters and never logged.
+- The key endpoints send no CORS headers, so Stratek's pages can't read or
+  write them. The Set up page has a strict CSP (`connect-src 'self'`).
+- Keys are stored in the Durable Object (`secrets`), survive updates and
+  disconnects, and are passed to actions as `env.<NAME>` (form value wins over a
+  Cloudflare Secret).
+
+## 6. Other routes
 
 - `POST /connect/auto` -- `{ code, secret }`, used right after Stratek installs
   the connector (section 0). 403 without the right install secret.

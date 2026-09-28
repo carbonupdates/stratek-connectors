@@ -1,4 +1,4 @@
-// pathao -- Book and track Pathao courier deliveries for a sale.
+// dhl -- International shipping labels and tracking with DHL Express.
 //
 // STATUS: planned (scaffold). Stratek lists it as "Coming soon"; no buttons
 // and no key form yet. The key fields and buttons below are a first draft --
@@ -8,39 +8,30 @@
 import { notBuilt } from './_scaffold.js';
 
 export default {
-  id: "pathao",
-  name: "Pathao",
+  id: "dhl",
+  name: "DHL Express",
   category: "delivery",
   status: 'planned',
-  description: "Book and track Pathao courier deliveries for a sale.",
-  docsUrl: "https://merchant.pathao.com/",
+  description: "International shipping labels and tracking with DHL Express.",
+  docsUrl: "https://developer.dhl.com/",
   secrets: [
     {
-      name: "PATHAO_CLIENT_ID",
-      label: "Pathao client ID",
-      hint: "Pathao Merchant -> Developers API."
+      name: "DHL_API_KEY",
+      label: "DHL API key"
     },
     {
-      name: "PATHAO_CLIENT_SECRET",
-      label: "Pathao client secret"
+      name: "DHL_API_SECRET",
+      label: "DHL API secret"
     },
     {
-      name: "PATHAO_USERNAME",
-      label: "Pathao merchant login email"
-    },
-    {
-      name: "PATHAO_PASSWORD",
-      label: "Pathao merchant password"
-    },
-    {
-      name: "PATHAO_STORE_ID",
-      label: "Pathao store ID"
+      name: "DHL_ACCOUNT_NUMBER",
+      label: "DHL account number"
     }
   ],
   actions: [
     {
-      id: "create_delivery",
-      label: "Send with Pathao",
+      id: "create_shipment",
+      label: "Ship with DHL",
       placement: [
         "transaction"
       ],
@@ -62,30 +53,18 @@ export default {
           label: "Delivery address",
           type: "text",
           required: true
-        },
-        {
-          name: "codAmount",
-          label: "Cash to collect (0 if paid)",
-          type: "number",
-          required: true,
-          default: 0
-        },
-        {
-          name: "note",
-          label: "Note for rider",
-          type: "text"
         }
       ],
-      run: notBuilt("Pathao"),
+      run: notBuilt("DHL Express"),
     },
     {
       id: "track",
-      label: "Track Pathao delivery",
+      label: "Track DHL shipment",
       placement: [
         "transaction"
       ],
       fields: [],
-      run: notBuilt("Pathao"),
+      run: notBuilt("DHL Express"),
     },
   ],
 };

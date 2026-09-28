@@ -2,13 +2,16 @@
 
 A **connector** is a small Cloudflare Worker that runs in **your own Cloudflare
 account** and connects the [Stratek POS](https://strateknepal.com) to other
-services -- delivery (Pathao), payments, and more. It holds your integration
-keys; Stratek never sees them. When an integration's keys are set, its buttons
-(e.g. **Send with Pathao**) appear in Stratek automatically.
+services: payments, delivery, messaging, accounting and tax, online stores,
+marketing and automation. It holds your integration keys; Stratek never sees
+them. When an integration is set up, its buttons (e.g. **Pay by card**,
+**Send with a courier**, **Send receipt on WhatsApp**) appear in Stratek
+automatically.
 
 - One connector per shop, in the shop's Cloudflare account (free plan is fine).
 - Stratek HQ runs its own connector for Stratek's own needs.
-- Same code for everyone. What a shop gets depends only on which keys are added.
+- Same code for everyone. What a shop gets depends only on which integrations
+  are set up (i.e. what was bought with the POS) -- there's no per-shop code.
 - Public code: anyone can check exactly what it does. No keys are ever stored here.
 
 ## Set up (about 2 minutes, no terminal)
@@ -25,10 +28,12 @@ shop; admin panel for Stratek HQ):
    into that Cloudflare account, turns on its `stratek-connector.<name>.workers.dev`
    address and connects it. The token is used once and never stored -- you can
    delete it in Cloudflare afterwards.
-4. **Turn on integrations.** In Cloudflare: **Workers & Pages -> stratek-connector ->
-   Settings -> Variables and Secrets -> Add** -- add the keys for an integration as
-   **Secrets** (names below). Within a minute its buttons appear in Stratek, and
-   the Integrations tab shows it as **Ready**.
+4. **Set up integrations.** In the same tab, press **Set up** next to an
+   integration. A page from the shop's own connector opens; enter the keys and
+   press **Save keys**. Back in Stratek it shows **Ready** and its buttons
+   appear. Nobody needs to open Cloudflare for this. (Keys can also be added as
+   Cloudflare Secrets with the names in the integration's file; a key saved in
+   the Set up form wins.)
 
 **Developers / by hand:** clone this repo, `npm install`, `npx wrangler deploy`,
 then in Stratek -> Integrations -> "Already deployed a connector yourself?" paste
@@ -41,12 +46,84 @@ and it would need a GitHub account per shop.)
 
 ## Integrations
 
-| Integration | Buttons in Stratek | Secrets to add | Status |
+The catalogue below is what the connector knows. **Available** ones can be set
+up today; **Coming soon** ones are scaffolds (buttons and key fields drafted,
+code not written yet) -- Stratek lists them but shows no buttons until a
+connector update makes them available. Key fields may change when each one is
+built.
+
+### Connector
+
+| Integration | Buttons in Stratek | Keys (Set up form) | Status |
 |---|---|---|---|
-| Connector (built in) | Test connection | -- | Available |
-| Pathao | Send with Pathao (on a sale) | `PATHAO_CLIENT_ID`, `PATHAO_CLIENT_SECRET` | Coming next |
+| Connector | Test connection | -- | Available |
+
+### Payments
+
+| Integration | Buttons in Stratek | Keys (Set up form) | Status |
+|---|---|---|---|
+| [Stripe](https://docs.stripe.com/api) | Pay by card (Stripe), Refund with Stripe | Stripe secret key, Webhook signing secret (optional) | Coming soon |
+| [PayPal](https://developer.paypal.com/api/rest/) | Pay with PayPal, Refund with PayPal | PayPal client ID, PayPal client secret, Mode (optional) | Coming soon |
+| [Khalti](https://docs.khalti.com/) | Pay with Khalti, Check Khalti payment | Khalti live secret key | Coming soon |
+| [eSewa](https://developer.esewa.com.np/) | Pay with eSewa, Check eSewa payment | eSewa merchant (product) code, eSewa secret key | Coming soon |
+| [Fonepay dynamic QR](https://www.fonepay.com/) | Fonepay QR for this amount, Check Fonepay payment | Fonepay merchant code, Fonepay secret key, Fonepay API username (optional), Fonepay API password (optional) | Coming soon |
+| [connectIPS](https://www.connectips.com/) | Pay with connectIPS | Merchant ID, App ID, App name, App password, Private key (PEM) | Coming soon |
+| PayBridgeNP | Pay with PayBridgeNP | PayBridgeNP API key, PayBridgeNP secret (optional) | Coming soon |
+| [Razorpay (UPI)](https://razorpay.com/docs/api/) | Pay with UPI (Razorpay), Refund with Razorpay | Razorpay key ID, Razorpay key secret | Coming soon |
+
+### Delivery & rides
+
+| Integration | Buttons in Stratek | Keys (Set up form) | Status |
+|---|---|---|---|
+| [Pathao](https://merchant.pathao.com/) | Send with Pathao, Track Pathao delivery | Pathao client ID, Pathao client secret, Pathao merchant login email, Pathao merchant password, Pathao store ID | Coming soon |
+| [Yango Delivery](https://yango.com/) | Send with Yango, Track Yango delivery | Yango Delivery API token, Pickup address | Coming soon |
+| [Pick & Drop](https://pickndropnepal.com/) | Send with Pick & Drop | Pick & Drop API key | Coming soon |
+| inDrive | Send with inDrive | inDrive API key | Coming soon |
+| [DHL Express](https://developer.dhl.com/) | Ship with DHL, Track DHL shipment | DHL API key, DHL API secret, DHL account number | Coming soon |
+
+### Messages & notifications
+
+| Integration | Buttons in Stratek | Keys (Set up form) | Status |
+|---|---|---|---|
+| [WhatsApp Business](https://developers.facebook.com/docs/whatsapp/cloud-api) | Send receipt on WhatsApp, Send payment QR on WhatsApp | WhatsApp access token, WhatsApp phone number ID | Coming soon |
+| [Sparrow SMS](https://sparrowsms.com/) | Send receipt by SMS | Sparrow SMS token, Sender ID | Coming soon |
+| [Telegram](https://core.telegram.org/bots/api) | Post sale to Telegram | Telegram bot token, Chat ID | Coming soon |
+| [Slack](https://api.slack.com/messaging/webhooks) | Post sale to Slack | Slack incoming webhook URL | Coming soon |
+
+### Accounting & tax
+
+| Integration | Buttons in Stratek | Keys (Set up form) | Status |
+|---|---|---|---|
+| [Nepal IRD e-billing (CBMS)](https://ird.gov.np/) | Report bill to IRD | IRD CBMS username, IRD CBMS password, Seller PAN | Coming soon |
+| [QuickBooks Online](https://developer.intuit.com/app/developer/qbo/docs/get-started) | Send sale to QuickBooks | Client ID, Client secret, Refresh token, Company (realm) ID | Coming soon |
+| [Xero](https://developer.xero.com/documentation/) | Send sale to Xero | Client ID, Client secret, Refresh token, Tenant ID | Coming soon |
+| [Google Sheets](https://developers.google.com/sheets/api) | Add sale to Google Sheet | Service account key (JSON), Sheet ID | Coming soon |
+
+### Online stores & marketplaces
+
+| Integration | Buttons in Stratek | Keys (Set up form) | Status |
+|---|---|---|---|
+| [Shopify](https://shopify.dev/docs/api/admin-rest) | Sync menu to Shopify, Record sale in Shopify | Store domain, Admin API access token | Coming soon |
+| [WooCommerce](https://woocommerce.github.io/woocommerce-rest-api-docs/) | Sync menu to WooCommerce, Record sale in WooCommerce | Store address, Consumer key, Consumer secret | Coming soon |
+| [Daraz](https://open.daraz.com/) | Sync stock to Daraz | App key, App secret, Access token | Coming soon |
+
+### Customers & marketing
+
+| Integration | Buttons in Stratek | Keys (Set up form) | Status |
+|---|---|---|---|
+| [Mailchimp](https://mailchimp.com/developer/marketing/api/) | Add customer to Mailchimp | Mailchimp API key, Audience ID | Coming soon |
+| [HubSpot](https://developers.hubspot.com/docs/api/overview) | Add customer to HubSpot | Private app access token | Coming soon |
+
+### Automation
+
+| Integration | Buttons in Stratek | Keys (Set up form) | Status |
+|---|---|---|---|
+| Webhook | Send sale to webhook | Webhook address (https://), Signing secret (optional) | Coming soon |
+| [Zapier](https://zapier.com/apps/webhook/integrations) | Send sale to Zapier | Zapier catch hook URL | Coming soon |
+| [Make](https://www.make.com/en/help/tools/webhooks) | Send sale to Make | Make webhook URL | Coming soon |
 
 New integrations arrive with connector updates (**Update connector** in Stratek).
+To build one, see [docs/adding-an-integration.md](docs/adding-an-integration.md).
 
 ## Updates
 
@@ -62,7 +139,15 @@ Releasing a version (maintainers): change `src/`, bump the version in
 
 ## Security
 
-- **Keys** live only in the shop's Cloudflare account (as Secrets).
+- **Keys** live only in the shop's Cloudflare account: saved by the Set up form
+  in the connector's own storage (a Durable Object, encrypted at rest by
+  Cloudflare), or as Cloudflare Secrets. They are never sent to Stratek and
+  never shown again in full -- only masked (e.g. `sk_…4f2a`).
+- **Set up form:** served by the connector itself and opened from Stratek with
+  a one-hour pass in the address `#fragment` (never sent to a server, removed
+  from the address bar at once). Only someone signed in to Stratek can change
+  keys -- passes made with an API key or by an AI agent can't. Stratek's pages
+  can't call the key endpoints at all (no CORS).
 - **Who can use it:** every request needs a pass that Stratek signs (Ed25519)
   for this connector and this shop, valid for one hour. The connector checks it
   with Stratek's public key. Browsers may call it only from the Stratek site.
@@ -73,6 +158,7 @@ Releasing a version (maintainers): change `src/`, bump the version in
   Once connected, a connector can't be re-paired by anyone else; press
   **Disconnect** in Stratek first (or set the variable `ALLOW_REPAIR=true` in
   Cloudflare to recover a connector whose Stratek account is gone).
+  Disconnecting keeps the saved keys (they belong to the shop's account).
 
 ## For developers
 
@@ -82,3 +168,8 @@ Releasing a version (maintainers): change `src/`, bump the version in
   `CLOUDFLARE_ACCOUNT_ID=<shop account id> npx wrangler deploy` (log in with
   `npx wrangler login`, which must have access to that account).
 - Tests: `npm test` (Node 20+).
+- Code map: `src/index.js` (routes), `src/registry.js` (catalogue, readiness,
+  manifest), `src/integrations/*.js` (one file per integration, listed in
+  `catalogue.js`), `src/pages.js` (status and Set up pages), `src/auth.js`
+  (pass checks), `src/state.js` (Durable Object), `scripts/bundle.mjs`
+  (builds `dist/connector.json` for Stratek).

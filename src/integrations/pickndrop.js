@@ -1,4 +1,4 @@
-// pathao -- Book and track Pathao courier deliveries for a sale.
+// pickndrop -- Pick & Drop Nepal courier deliveries.
 //
 // STATUS: planned (scaffold). Stratek lists it as "Coming soon"; no buttons
 // and no key form yet. The key fields and buttons below are a first draft --
@@ -8,39 +8,22 @@
 import { notBuilt } from './_scaffold.js';
 
 export default {
-  id: "pathao",
-  name: "Pathao",
+  id: "pickndrop",
+  name: "Pick & Drop",
   category: "delivery",
   status: 'planned',
-  description: "Book and track Pathao courier deliveries for a sale.",
-  docsUrl: "https://merchant.pathao.com/",
+  description: "Pick & Drop Nepal courier deliveries.",
+  docsUrl: "https://pickndropnepal.com/",
   secrets: [
     {
-      name: "PATHAO_CLIENT_ID",
-      label: "Pathao client ID",
-      hint: "Pathao Merchant -> Developers API."
-    },
-    {
-      name: "PATHAO_CLIENT_SECRET",
-      label: "Pathao client secret"
-    },
-    {
-      name: "PATHAO_USERNAME",
-      label: "Pathao merchant login email"
-    },
-    {
-      name: "PATHAO_PASSWORD",
-      label: "Pathao merchant password"
-    },
-    {
-      name: "PATHAO_STORE_ID",
-      label: "Pathao store ID"
+      name: "PICKNDROP_API_KEY",
+      label: "Pick & Drop API key"
     }
   ],
   actions: [
     {
       id: "create_delivery",
-      label: "Send with Pathao",
+      label: "Send with Pick & Drop",
       placement: [
         "transaction"
       ],
@@ -76,16 +59,7 @@ export default {
           type: "text"
         }
       ],
-      run: notBuilt("Pathao"),
-    },
-    {
-      id: "track",
-      label: "Track Pathao delivery",
-      placement: [
-        "transaction"
-      ],
-      fields: [],
-      run: notBuilt("Pathao"),
+      run: notBuilt("Pick & Drop"),
     },
   ],
 };

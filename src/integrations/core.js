@@ -7,6 +7,8 @@ import { CONNECTOR_VERSION } from '../version.js';
 export default {
   id: 'core',
   name: 'Connector',
+  category: 'system',
+  status: 'available',
   description: 'Built-in checks for the connector itself.',
   secrets: [],
   actions: [
