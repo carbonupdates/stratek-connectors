@@ -73,3 +73,21 @@ test('pairing, passes, manifest and actions', async () => {
   assert.equal((await go(env, '/disconnect', { method: 'POST', headers: { Authorization: `Bearer ${good}` } })).status, 200);
   assert.match(await (await go(env, '/')).text(), /Connect to Stratek/);
 });
+
+test('auto-pairing after Stratek installs the connector', async () => {
+  const env = makeEnv({ INSTALL_SECRET: 's3cret-install' });
+  const auto = (body) => go(env, '/connect/auto', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  assert.equal((await auto({ code: 'a'.repeat(64), secret: 'wrong' })).status, 403, 'wrong install secret');
+  assert.equal((await auto({ code: 'a'.repeat(64) })).status, 403, 'no install secret');
+  assert.equal((await auto({ code: 'nope', secret: 's3cret-install' })).status, 400, 'bad code');
+  assert.equal((await auto({ code: 'b'.repeat(64), secret: 's3cret-install' })).status, 502, 'Stratek rejects the code');
+  const ok = await (await auto({ code: 'a'.repeat(64), secret: 's3cret-install' })).json();
+  assert.equal(ok.data.connected, true);
+  assert.equal(ok.data.ownerName, 'Chyau');
+  assert.match(await (await go(env, '/')).text(), /Connected/);
+  // Re-installing (an update) may pair again with the new install secret.
+  assert.equal((await auto({ code: 'a'.repeat(64), secret: 's3cret-install' })).status, 200);
+  // Without an INSTALL_SECRET binding the route is closed.
+  const env2 = makeEnv();
+  assert.equal((await go(env2, '/connect/auto', { method: 'POST', body: JSON.stringify({ code: 'a'.repeat(64), secret: '' }) })).status, 403);
+});

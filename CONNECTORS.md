@@ -12,7 +12,33 @@ POS change** as long as it uses the result types below.
 | Connector | the shop's (or HQ's) Cloudflare account | integration secrets, pairing (Durable Object `STATE`) |
 | Browser | the Stratek dashboard / admin panel | a 1-hour pass |
 
-## 1. Pairing (once)
+## 0. Install (what "Activate connector" does)
+
+Stratek installs the connector itself -- no terminal, no GitHub:
+
+1. The shop creates a Cloudflare API token from Stratek's prefilled link
+   (*Workers Scripts: Edit*, *Account Settings: Read*) and pastes it into
+   Stratek's Integrations tab. Stratek uses it for one request, never stores it.
+2. Stratek downloads `dist/connector.json` from this repo (built by
+   `npm run bundle`: `{ format: 1, version, mainModule, compatibilityDate,
+   durableObjects, migrations, modules: { "<path>.js": "<source>" } }`).
+3. Cloudflare API: `GET /accounts` -> `GET|PUT /accounts/:id/workers/subdomain`
+   -> `PUT /accounts/:id/workers/scripts/stratek-connector` (multipart: every
+   module + metadata with the `STATE` Durable Object, pending migrations,
+   `STRATEK_URL`, a one-off `INSTALL_SECRET` secret, `keep_bindings:
+   ["secret_text"]` so the shop's integration keys survive updates) ->
+   `POST .../scripts/stratek-connector/subdomain { enabled: true }`.
+4. Stratek stores a one-time code (SHA-256, 60 minutes) and calls
+   `POST <connector>/connect/auto { code, secret }`. The connector checks
+   `secret` against `INSTALL_SECRET` (constant time), then does the claim in
+   step 1.3 below. Knowing the install secret proves the caller just deployed
+   this Worker, so `/connect/auto` may re-pair a connected connector.
+   A brand-new `workers.dev` address can take a minute to go live; Stratek
+   retries for ~15 s, then offers **Finish connecting** (a new code, same secret).
+5. **Update connector** repeats 1-3 with a fresh token; if the address matches
+   the active connector, the pairing (kept in the Durable Object) is untouched.
+
+## 1. Pairing by hand (a connector deployed with `npx wrangler deploy`)
 
 1. `GET <connector>/connect` -> connector stores a random `state` and redirects to
    `<STRATEK_URL>/connect.html?connector=<connector origin>&state=<state>`.
@@ -51,7 +77,7 @@ CORS: only `Origin: <STRATEK_URL>` is allowed.
 
 ```json
 { "success": true, "data": {
-  "connector": { "version": "0.1.0", "connectorId": "...", "owner": { "type": "merchant", "id": "1", "name": "Chyau" } },
+  "connector": { "version": "0.2.0", "connectorId": "...", "owner": { "type": "merchant", "id": "1", "name": "Chyau" } },
   "integrations": [
     { "id": "pathao", "name": "Pathao", "description": "...", "ready": true, "missingSecrets": [],
       "actions": [
@@ -86,6 +112,8 @@ shown to the person.
 
 ## 5. Other routes
 
+- `POST /connect/auto` -- `{ code, secret }`, used right after Stratek installs
+  the connector (section 0). 403 without the right install secret.
 - `GET /` -- status page with **Connect to Stratek** (or "Connected to ...").
 - `GET /health` -- `{ ok, version, connected }` (no pass).
 - `POST /disconnect` (pass) -- forget the pairing; Stratek's Disconnect calls this

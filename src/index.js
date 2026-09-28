@@ -7,6 +7,8 @@
 //   GET  /                     setup / status page
 //   GET  /connect              start pairing -> Stratek approval page
 //   GET  /connect/callback     finish pairing (Stratek sends you back here)
+//   POST /connect/auto         pairing right after Stratek installed this
+//                              connector (needs the INSTALL_SECRET it set)
 //   GET  /health               { ok, version, connected }
 //   GET  /manifest             integrations + actions        (Stratek pass)
 //   POST /actions/:int/:act    run an action                 (Stratek pass)
@@ -41,6 +43,40 @@ const failJson = (env, req, message, status = 400, code = 'BAD_REQUEST') => json
 
 function randomHex(bytes = 24) {
   return [...crypto.getRandomValues(new Uint8Array(bytes))].map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+/** Constant-time comparison of two secrets (via their SHA-256 digests). */
+async function sameSecret(a, b) {
+  const enc = new TextEncoder();
+  const [x, y] = await Promise.all([a, b].map(async (v) => new Uint8Array(await crypto.subtle.digest('SHA-256', enc.encode(v)))));
+  let diff = 0;
+  for (let i = 0; i < x.length; i++) diff |= x[i] ^ y[i];
+  return diff === 0 && a.length > 0;
+}
+
+/** Server-to-server: prove a one-time code with Stratek, then remember who we belong to. */
+async function pairWithStratek(db, base, code, origin) {
+  const res = await fetch(`${base}/api/v1/connectors/claim`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code, url: origin, version: CONNECTOR_VERSION }),
+  });
+  const body = await res.json().catch(() => null);
+  if (!res.ok || !body?.success) throw new Error(body?.error?.message || `Stratek said no (${res.status}).`);
+  const data = body.data;
+  const stratekKey = await fetchStratekKey(base).catch(() => null);
+  if (!stratekKey) throw new Error("Couldn't load Stratek's public key. Try again in a minute.");
+  const pairing = {
+    connectorId: data.connectorId,
+    ownerType: data.ownerType,
+    ownerId: data.ownerId,
+    ownerName: data.ownerName,
+    stratekUrl: base,
+    stratekKey,
+    connectedAt: new Date().toISOString(),
+  };
+  await db.put('pairing', pairing);
+  return pairing;
 }
 
 export async function handle(request, env) {
@@ -83,34 +119,33 @@ export async function handle(request, env) {
       return messagePage('Link expired', 'This connection link is no longer valid. Open the connector again and press Connect to Stratek.');
     }
     if (!/^[0-9a-f]{64}$/.test(code)) return messagePage('Something went wrong', 'Stratek did not send a valid code. Try connecting again.');
-    // Server-to-server: prove the code with Stratek, get who we belong to.
-    let data;
+    let pairing;
     try {
-      const res = await fetch(`${base}/api/v1/connectors/claim`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code, url: url.origin, version: CONNECTOR_VERSION }),
-      });
-      const body = await res.json().catch(() => null);
-      if (!res.ok || !body?.success) throw new Error(body?.error?.message || `Stratek said no (${res.status}).`);
-      data = body.data;
+      pairing = await pairWithStratek(db, base, code, url.origin);
     } catch (err) {
       return messagePage('Could not connect', err.message, 'err', 502);
     }
-    const stratekKey = await fetchStratekKey(base).catch(() => null);
-    if (!stratekKey) return messagePage('Could not connect', "Couldn't load Stratek's public key. Try again in a minute.", 'err', 502);
-    const pairing = {
-      connectorId: data.connectorId,
-      ownerType: data.ownerType,
-      ownerId: data.ownerId,
-      ownerName: data.ownerName,
-      stratekUrl: base,
-      stratekKey,
-      connectedAt: new Date().toISOString(),
-    };
-    await db.put('pairing', pairing);
     await db.delete('pending');
     return connectedPage(pairing, base);
+  }
+
+  // Stratek installed this connector through the Cloudflare API and set a
+  // one-off INSTALL_SECRET with it; knowing that secret proves the caller
+  // just deployed this very Worker, so it may (re)pair it.
+  if (pathname === '/connect/auto' && request.method === 'POST') {
+    const body = await request.json().catch(() => null);
+    const code = String(body?.code || '');
+    if (!env.INSTALL_SECRET || !(await sameSecret(String(body?.secret || ''), env.INSTALL_SECRET))) {
+      return failJson(env, request, 'Not allowed.', 403, 'FORBIDDEN');
+    }
+    if (!/^[0-9a-f]{64}$/.test(code)) return failJson(env, request, 'Invalid pairing code.');
+    try {
+      const pairing = await pairWithStratek(db, base, code, url.origin);
+      await db.delete('pending');
+      return okJson(env, request, { connected: true, ownerName: pairing.ownerName, version: CONNECTOR_VERSION });
+    } catch (err) {
+      return failJson(env, request, err.message, 502, 'PAIR_FAILED');
+    }
   }
 
   // ── API for the Stratek POS (needs a Stratek pass) ────────

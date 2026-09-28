@@ -1,5 +1,6 @@
 // Stratek connector -- one Worker per shop (or one for Stratek HQ).
-// Deployed with the "Deploy to Cloudflare" button; nothing here needs editing.
+// Normally installed by Stratek ("Activate connector"), which uploads
+// dist/connector.json with the same settings; `npx wrangler deploy` also works.
 // Integration keys (e.g. PATHAO_CLIENT_ID) are added later as Secrets in the
 // Cloudflare dashboard: Workers & Pages -> this Worker -> Settings -> Variables and Secrets.
 {
