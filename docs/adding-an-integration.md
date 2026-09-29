@@ -61,7 +61,10 @@ Payment integrations that should confirm sales by themselves: add
 `webhook(...)` (check the provider's signature, then `await emit({ id, type:
 'payment.succeeded', data: { transactionId, amount, currency, provider,
 providerRef } })`), `onKeysSaved(...)` to register the webhook, and for a
-till/kiosk QR `qrProvider: true` plus a `till_qr` action (placement `qr`). See
+till/kiosk QR `qrProvider: true` plus a `till_qr` action (placement `qr`) and
+a `health` action (placement `health`, returns `{ livemode, webhookRegistered,
+webhookId }`) -- the kiosk gate needs it. Include `integration` and `webhookId`
+in the `payment.succeeded` event data. See
 CONNECTORS.md section 6 and `paybridgenp.js`.
 
 ## A brand-new integration

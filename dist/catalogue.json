@@ -1,5 +1,5 @@
 {
- "version": "0.7.0",
+ "version": "0.7.1",
  "categories": {
   "system": "Connector",
   "payments": "Payments",
@@ -136,6 +136,7 @@
    "docsUrl": "https://docs.paybridgenp.com/api-reference/overview",
    "actions": [
     "Test PayBridgeNP",
+    "Payment notifications health",
     "Fonepay QR for the till",
     "Check online payment",
     "Refund online payment"

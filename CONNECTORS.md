@@ -184,7 +184,7 @@ never in Stratek:
   Stratek checks signature, time (5 min), duplicate `id`, that the connector is
   active and the sale belongs to its shop, and the exact amount.
 - **Event `payment.succeeded`** `data: { transactionId, amount (major units),
-  currency, provider, providerRef, method, livemode }` -> Stratek records
+  currency, provider, integration (id), webhookId, providerRef, method, livemode }` -> Stratek records
   `provider_paid_at/name/ref/note` on the sale ("Paid online"). It **never
   settles** the sale -- a person presses Settle. Wrong amount or paid after a
   cancel -> flagged with a note.
@@ -193,6 +193,11 @@ never in Stratek:
   qrPayload, provider, refreshAfterSec, livemode }`; calling it again for the
   same sale refreshes the QR. Stratek calls it from the till (browser pass) or,
   for kiosks, from its server (pass with `src: "server"`, 2 minutes).
+- **Health (kiosk gate):** a `qrProvider` integration also offers a hidden
+  action `health` (placement `health`) returning `{ type: 'health', ready,
+  livemode, webhookRegistered, webhookId }`. Stratek's kiosk needs live mode,
+  a registered webhook, and a proof payment whose event carried the same
+  `webhookId` (so re-saving keys = prove again). Minimum connector: 0.7.1.
 - `color` (e.g. `'#e4202a'`) colours an integration's buttons in Stratek.
 
 ## 7. Catalogue file

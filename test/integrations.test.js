@@ -7,6 +7,7 @@ import pathao from '../src/integrations/pathao.js';
 function memStore() { const m = new Map(); return { get: async (k) => m.get(k), put: async (k, v) => { m.set(k, structuredClone(v)); }, _m: m }; }
 const act = (i, id) => i.actions.find((a) => a.id === id).run;
 const calls = [];
+const pbHooks = [{ id: 'wh_old', url: 'https://c.workers.dev/webhooks/paybridgenp' }, { id: 'wh_other', url: 'https://x.com' }];
 globalThis.fetch = async (url, init = {}) => {
   const u = new URL(url); const body = init.body ? JSON.parse(init.body) : null;
   calls.push({ url: u.href, method: init.method || 'GET', headers: init.headers, body });
@@ -15,9 +16,9 @@ globalThis.fetch = async (url, init = {}) => {
     if (u.pathname === '/v1/account') return Response.json({ merchant: { name: 'Chyau' }, project: { name: 'POS', mode: 'sandbox' } });
     if (u.pathname === '/v1/checkout') return Response.json({ id: 'cs_1', checkout_url: 'https://checkout.paybridgenp.com/checkout/cs_1', livemode: false }, { status: 201 });
     if (u.pathname === '/v1/sessions/cs_1' || u.pathname === '/v1/sessions/cs_q1') return Response.json({ id: 'cs_q1', status: 'success', paymentId: 'pay_q1', amount: 115000, currency: 'NPR', provider: 'fonepay', livemode: false });
-    if (u.pathname === '/v1/webhooks' && (init.method || 'GET') === 'GET') return Response.json({ data: [{ id: 'wh_old', url: 'https://c.workers.dev/webhooks/paybridgenp' }, { id: 'wh_other', url: 'https://x.com' }] });
-    if (u.pathname === '/v1/webhooks/wh_old' && init.method === 'DELETE') return Response.json({ deleted: true });
-    if (u.pathname === '/v1/webhooks' && init.method === 'POST') return Response.json({ id: 'wh_new', url: body.url, signing_secret: 'whsec_1' }, { status: 201 });
+    if (u.pathname === '/v1/webhooks' && (init.method || 'GET') === 'GET') return Response.json({ data: pbHooks });
+    if (u.pathname.startsWith('/v1/webhooks/') && init.method === 'DELETE') { const i = pbHooks.findIndex((h) => u.pathname.endsWith('/' + h.id)); if (i >= 0) pbHooks.splice(i, 1); return Response.json({ deleted: true }); }
+    if (u.pathname === '/v1/webhooks' && init.method === 'POST') { pbHooks.push({ id: 'wh_new', url: body.url }); return Response.json({ id: 'wh_new', url: body.url, signing_secret: 'whsec_1' }, { status: 201 }); }
     if (u.pathname === '/v1/refunds') return Response.json({ id: 'ref_1', status: 'succeeded', amount: body.amount }, { status: 201 });
     if (u.pathname === '/v1/qr/fonepay') return Response.json({ id: 'cs_q1', livemode: false, amount: body.amount, provider: 'fonepay', status: 'initiated', qr_message: '000201010212-FONEPAY-1' }, { status: 201 });
     if (u.pathname === '/v1/qr/cs_q1/refresh') return Response.json({ id: 'cs_q1', livemode: false, qr_message: '000201010212-FONEPAY-2' });
@@ -49,6 +50,9 @@ test('PayBridgeNP: till QR (create, refresh), webhook -> signed event, check, re
   const q2 = await act(paybridge, 'till_qr')({ env, context: ctx, store, claims });
   assert.equal(q2.qrPayload, '000201010212-FONEPAY-2', 'same sale -> refresh');
   await assert.rejects(act(paybridge, 'till_qr')({ env, context: { transaction: { id: 1, amount: 5 } }, store, claims }), /at least Rs 10/);
+  // Health before notifications are set up
+  const h0 = await act(paybridge, 'health')({ env, store });
+  assert.equal(h0.webhookRegistered, false); assert.equal(h0.livemode, false);
   // Saving the key registers the webhook
   const notice = await paybridge.onKeysSaved({ env, store, origin: 'https://c.workers.dev' });
   assert.match(notice, /notifications/);
@@ -71,6 +75,9 @@ test('PayBridgeNP: till QR (create, refresh), webhook -> signed event, check, re
   await assert.rejects(hook(evt, { t: Math.floor(Date.now() / 1000) - 3600 }), /timestamp/);
   const r = await hook(evt);
   assert.equal(r.forwarded, true);
+  const h1 = await act(paybridge, 'health')({ env, store });
+  assert.equal(h1.webhookRegistered, true); assert.equal(h1.webhookId, 'wh_new');
+  assert.equal(emitted[0].data.webhookId, 'wh_new'); assert.equal(emitted[0].data.integration, 'paybridgenp');
   assert.equal(emitted[0].type, 'payment.succeeded'); assert.equal(emitted[0].data.transactionId, '42'); assert.equal(emitted[0].data.amount, 1150); assert.equal(emitted[0].data.providerRef, 'pay_q1');
   assert.equal((await hook({ type: 'payment.failed', data: { session_id: 'cs_q1' } })).ignored, 'payment.failed');
   assert.equal((await hook({ type: 'payment.succeeded', data: { session_id: 'cs_unknown' } })).ignored, 'unknown session');

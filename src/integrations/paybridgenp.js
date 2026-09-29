@@ -108,7 +108,7 @@ export default {
     await emit({
       id: `paybridgenp-${paymentId}`,
       type: 'payment.succeeded',
-      data: { transactionId: String(txId), amount: s.amount / 100, currency: s.currency || 'NPR', provider: 'PayBridgeNP', providerRef: paymentId, method: s.provider || ev.provider || 'fonepay', livemode: s.livemode !== false },
+      data: { transactionId: String(txId), amount: s.amount / 100, currency: s.currency || 'NPR', provider: 'PayBridgeNP', integration: 'paybridgenp', webhookId: hook.id || null, providerRef: paymentId, method: s.provider || ev.provider || 'fonepay', livemode: s.livemode !== false },
     });
     return { received: true, forwarded: true };
   },
@@ -122,6 +122,25 @@ export default {
         const a = await pb(env, 'GET', '/account');
         const mode = a?.project?.mode === 'sandbox' ? 'TEST (sandbox)' : 'LIVE';
         return { type: 'message', title: 'PayBridgeNP is connected', text: `${a?.merchant?.name || 'Account'} -- project "${a?.project?.name || '?'}", ${mode} mode.` };
+      },
+    },
+    {
+      // Hidden action: Stratek asks "is this ready to run a kiosk?" (placement 'health' is never a button).
+      id: 'health',
+      label: 'Payment notifications health',
+      placement: ['health'],
+      fields: [],
+      async run({ env, store }) {
+        const a = await pb(env, 'GET', '/account');
+        const livemode = a?.project?.mode ? a.project.mode !== 'sandbox' : !String(env.PAYBRIDGE_SECRET_KEY || '').startsWith('sk_test_');
+        const hook = await store.get('webhook');
+        let webhookRegistered = false;
+        if (hook?.id) {
+          const list = await pb(env, 'GET', '/webhooks').catch(() => null);
+          const endpoints = Array.isArray(list) ? list : list?.data || list?.endpoints || [];
+          webhookRegistered = endpoints.some((e) => e?.id === hook.id && e.url === hook.url && e.enabled !== false && e.active !== false);
+        }
+        return { type: 'health', ready: true, livemode, webhookRegistered, webhookId: webhookRegistered ? hook.id : null };
       },
     },
     {

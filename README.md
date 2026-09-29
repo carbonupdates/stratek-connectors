@@ -166,7 +166,17 @@ From then on:
 - Not paid within 30 minutes: the sale is cancelled automatically (no money
   moved). Paid late after a cancel, or a wrong amount: flagged "check".
 - If PayBridgeNP can't make a QR (offline, plan, Fonepay not connected) or the
-  amount is under Rs 10, the shop's own QR is shown as before.
+  amount is under Rs 10, the till shows the shop's own QR as before (a kiosk refuses the order instead).
+
+**Kiosk mode needs this.** A kiosk (self-service screen) only works when
+Stratek's checklist is green: live key (`sk_live_`), payment notifications
+registered, and **one real payment received at the till** with the PayBridgeNP
+QR since the key was last saved (Display tab -> Kiosk checklist). Re-saving the
+key or switching the toggle off/on means proving it again. Stratek asks the
+connector's hidden `health` action (key works, live or test, notifications
+still registered at PayBridgeNP). On a kiosk the QR always comes from
+PayBridgeNP -- if it can't make one, the order is refused, never shown with the
+shop's own QR -- and the smallest kiosk order is Rs 10.
 
 On a sale's Details: **Check online payment** (manual look-up) and **Refund
 online payment** (Khalti automatic, eSewa finished in the eSewa portal, Fonepay
