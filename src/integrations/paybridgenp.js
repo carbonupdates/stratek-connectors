@@ -3,8 +3,13 @@
 //
 // Buttons
 //   Test PayBridgeNP (Integrations tab)  GET /v1/account -- shows project + sandbox/live
-//   Pay online (under the payment QR)     POST /v1/checkout -> QR of the checkout link;
-//                                        the customer scans it and picks eSewa/Khalti/Fonepay
+//   Pay online (under the payment QR)     POST /v1/checkout -> QR of the checkout LINK: scan it
+//                                        with the phone CAMERA (it opens a web page), then pick
+//                                        eSewa/Khalti/Fonepay. Wallet-app scanners don't open links.
+//   Fonepay QR (under the payment QR)     POST /v1/qr/fonepay -> a real Fonepay QR that any bank
+//                                        or wallet app scans directly (eSewa too). Refreshes the
+//                                        same session if pressed again (~3 min per QR, 30 min per
+//                                        session). Live needs a PayBridgeNP Pro plan.
 //   Check online payment (sale details)  GET /v1/sessions/:id -> paid / pending / failed
 //   Refund online payment (sale details) POST /v1/refunds (Khalti automatic, eSewa manual
 //                                        in their portal, Fonepay not supported)
@@ -35,6 +40,10 @@ const saleId = (context) => {
   if (!id) throw new Error('Open this from a sale.');
   return String(id);
 };
+
+// Test-mode logins from PayBridgeNP's sandbox guide. The real eSewa/Khalti apps
+// can't pay test payments -- they use the providers' test websites.
+const TEST_NOTE = ' TEST mode: eSewa and Khalti only accept their test accounts here (eSewa ID 9806800001, password Nepal@123, MPIN 1122, OTP 123456; Khalti ID 9800000005, MPIN 1111, OTP 987654) -- the real apps cannot pay test payments. Fonepay in test mode is real money (max Rs 1,000).';
 
 const STATUS = {
   success: ['Paid', 'The customer has paid online. Now press Settle on this sale.'],
@@ -90,8 +99,42 @@ export default {
         return {
           type: 'qr',
           title: `Pay online -- Rs ${(paisa / 100).toFixed(2)}`,
-          text: `Customer scans this to pay with eSewa, Khalti or Fonepay${s.livemode === false ? ' (TEST mode)' : ''}. Then use "Check online payment" on the sale.`,
+          text: `Customer scans this with the phone CAMERA (not a wallet app) -- it opens a payment page where they choose eSewa, Khalti or Fonepay. Then use "Check online payment" on the sale.${s.livemode === false ? TEST_NOTE : ''}`,
           qrPayload: s.checkout_url,
+        };
+      },
+    },
+    {
+      id: 'fonepay_qr',
+      label: 'Fonepay QR (scan in any bank or wallet app)',
+      placement: ['charge'],
+      fields: [],
+      async run({ env, context, store, claims }) {
+        const tx = context?.transaction || {};
+        const id = saleId(context);
+        if (tx.currency && tx.currency !== 'NPR') throw new Error('Fonepay only takes payments in NPR.');
+        const paisa = Math.round(Number(tx.amount) * 100);
+        if (!Number.isFinite(paisa) || paisa < 1000) throw new Error('Online payments need at least Rs 10.');
+        const saved = await store.get(`tx:${id}`);
+        let q;
+        if (saved?.kind === 'fonepay' && saved.amount === paisa) {
+          // Same sale pressed again: fresh QR for the same session (QRs last ~3 minutes).
+          q = await pb(env, 'POST', `/qr/${encodeURIComponent(saved.sessionId)}/refresh`).catch(() => null);
+        }
+        if (!q) {
+          q = await pb(env, 'POST', '/qr/fonepay', {
+            amount: paisa,
+            currency: 'NPR',
+            customer: { name: String(claims.owner_name || 'Customer').slice(0, 100), email: claims.actor && String(claims.actor).includes('@') ? claims.actor : 'customer@example.com' },
+            metadata: { stratek_transaction: id, reference: tx.reference || null },
+          }, `stratek-fonepay-${claims.aud}-${id}-${paisa}-${Date.now() >> 20}`);
+          await store.put(`tx:${id}`, { sessionId: q.id, amount: paisa, kind: 'fonepay', createdAt: new Date().toISOString() });
+        }
+        return {
+          type: 'qr',
+          title: `Fonepay QR -- Rs ${(paisa / 100).toFixed(2)}`,
+          text: `Customer scans this in their bank app or eSewa/Khalti (Fonepay QR). It stays valid about 3 minutes -- press the button again for a fresh one. Then use "Check online payment" on the sale.${q.livemode === false ? ' TEST mode still moves real money for Fonepay (max Rs 1,000).' : ''}`,
+          qrPayload: q.qr_message,
         };
       },
     },

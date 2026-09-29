@@ -77,7 +77,7 @@ built.
 | [eSewa](https://developer.esewa.com.np/) | Pay with eSewa, Check eSewa payment | eSewa merchant (product) code, eSewa secret key | Coming soon |
 | [Fonepay dynamic QR](https://www.fonepay.com/) | Fonepay QR for this amount, Check Fonepay payment | Fonepay merchant code, Fonepay secret key, Fonepay API username (optional), Fonepay API password (optional) | Coming soon |
 | [connectIPS](https://www.connectips.com/) | Pay with connectIPS | Merchant ID, App ID, App name, App password, Private key (PEM) | Coming soon |
-| [PayBridgeNP](https://docs.paybridgenp.com/api-reference/overview) | Test PayBridgeNP, Pay online (eSewa / Khalti / Fonepay), Check online payment, Refund online payment | PayBridgeNP secret key | **Available** |
+| [PayBridgeNP](https://docs.paybridgenp.com/api-reference/overview) | Test PayBridgeNP, Pay online (eSewa / Khalti / Fonepay), Fonepay QR (scan in any bank or wallet app), Check online payment, Refund online payment | PayBridgeNP secret key | **Available** |
 | [Razorpay (UPI)](https://razorpay.com/docs/api/) | Pay with UPI (Razorpay), Refund with Razorpay | Razorpay key ID, Razorpay key secret | Coming soon |
 | [Coinbase (crypto)](https://docs.cdp.coinbase.com/coinbase-business/) | Test Coinbase, Pay with crypto (Coinbase), Check crypto payment, Refund crypto payment | CDP API key ID / name, CDP API private key (Ed25519, base64) | **Available** |
 
@@ -147,9 +147,19 @@ built.
    PayBridgeNP dashboard (`sk_test_...` to try, `sk_live_...` for real money --
    Fonepay has no sandbox, so even test Fonepay payments are real, capped by
    PayBridgeNP). Press **Test PayBridgeNP** to see the project and mode.
-3. At the till, after **Charge total**, press **Pay online** under the QR: a
-   second QR opens PayBridgeNP's checkout where the customer picks eSewa,
-   Khalti or Fonepay (minimum Rs 10).
+3. At the till, after **Charge total**, two buttons appear under the QR:
+   - **Pay online** -- a QR of PayBridgeNP's checkout **link**. The customer
+     scans it with the phone **camera** (wallet-app scanners such as eSewa's
+     don't open web links), then picks eSewa, Khalti or Fonepay. Minimum Rs 10.
+   - **Fonepay QR** -- a real Fonepay QR that **any bank or wallet app scans
+     directly** (eSewa included). Each QR lasts about 3 minutes; press the
+     button again for a fresh one on the same payment. Live use needs a
+     PayBridgeNP Pro plan.
+   **Test mode:** eSewa and Khalti only accept their test accounts on their test
+   websites -- the real apps can't pay a test payment. eSewa: ID `9806800001`,
+   password `Nepal@123`, MPIN `1122`, OTP `123456`. Khalti: ID `9800000005`,
+   MPIN `1111`, OTP `987654`. Fonepay has no test mode: even test payments are
+   real money (max Rs 1,000 each, Rs 5,000 a month).
 4. On the sale's Details: **Check online payment** (Paid / Waiting / Failed...),
    then press **Settle**. **Refund online payment** works for Khalti
    (automatic) and eSewa (finish it in the eSewa portal); Fonepay refunds aren't

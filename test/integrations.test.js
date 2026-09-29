@@ -16,6 +16,8 @@ globalThis.fetch = async (url, init = {}) => {
     if (u.pathname === '/v1/checkout') return Response.json({ id: 'cs_1', checkout_url: 'https://checkout.paybridgenp.com/checkout/cs_1', livemode: false }, { status: 201 });
     if (u.pathname === '/v1/sessions/cs_1') return Response.json({ id: 'cs_1', status: 'success', paymentId: 'pay_1', amount: 115000, provider: 'khalti' });
     if (u.pathname === '/v1/refunds') return Response.json({ id: 'ref_1', status: 'succeeded', amount: body.amount }, { status: 201 });
+    if (u.pathname === '/v1/qr/fonepay') return Response.json({ id: 'cs_q1', livemode: false, amount: body.amount, provider: 'fonepay', status: 'initiated', qr_message: '000201010212-FONEPAY-1' }, { status: 201 });
+    if (u.pathname === '/v1/qr/cs_q1/refresh') return Response.json({ id: 'cs_q1', livemode: false, qr_message: '000201010212-FONEPAY-2' });
   }
   if (u.host === 'pathao.test') {
     if (u.pathname.endsWith('/issue-token')) return body.client_secret === 'sec' ? Response.json({ access_token: 'tok', expires_in: 3600 }) : Response.json({ message: 'Unauthorized' }, { status: 401 });
@@ -43,6 +45,11 @@ test('PayBridgeNP: test, pay online QR, check, refund', async () => {
   assert.equal(c.status, 'Paid'); assert.match(c.text, /khalti/);
   const r = await act(paybridge, 'refund')({ env, context: ctx, store, fields: { amount: 100 } });
   assert.equal(r.status, 'succeeded'); assert.equal(calls.at(-1).body.amount, 10000); assert.equal(calls.at(-1).body.paymentId, 'pay_1');
+  assert.match(q.text, /phone CAMERA/); assert.match(q.text, /9806800001/, 'test-mode logins shown');
+  const f1 = await act(paybridge, 'fonepay_qr')({ env, context: { transaction: { id: 43, amount: 200, currency: 'NPR' } }, store, claims: { aud: 'conn', owner_name: 'Chyau', actor: 'bio@gmail.com' } });
+  assert.equal(f1.qrPayload, '000201010212-FONEPAY-1'); assert.equal(calls.at(-1).body.customer.email, 'bio@gmail.com');
+  const f2 = await act(paybridge, 'fonepay_qr')({ env, context: { transaction: { id: 43, amount: 200, currency: 'NPR' } }, store, claims: { aud: 'conn' } });
+  assert.equal(f2.qrPayload, '000201010212-FONEPAY-2', 'pressing again refreshes the same session');
   const none = await act(paybridge, 'check')({ env, context: { transaction: { id: 9 } }, store });
   assert.match(none.text, /No PayBridgeNP payment/);
 });

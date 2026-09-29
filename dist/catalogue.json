@@ -1,5 +1,5 @@
 {
- "version": "0.6.0",
+ "version": "0.6.1",
  "categories": {
   "system": "Connector",
   "payments": "Payments",
@@ -137,6 +137,7 @@
    "actions": [
     "Test PayBridgeNP",
     "Pay online (eSewa / Khalti / Fonepay)",
+    "Fonepay QR (scan in any bank or wallet app)",
     "Check online payment",
     "Refund online payment"
    ],
