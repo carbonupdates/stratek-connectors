@@ -272,6 +272,22 @@ its Set up page.
   `webhookSetup: { where, what }` so its Set up page shows the callback URL.
 - `color` (e.g. `'#e4202a'`) colours an integration's buttons in Stratek.
 
+## 6b. Storefront (v0.11.0+)
+
+- `POST /storefront` (Stratek pass, `src` session or server) `{ slug, workersDev,
+  hostnames: [...] }` or `{ off: true }`; `GET /storefront` returns it.
+- Requests to a configured hostname (any path), or to `/shop[/...]` on the
+  workers.dev address when `workersDev`, are the store: `/` and
+  `/order/<token>` -> Stratek's `/store/<slug>` page with
+  `window.STRATEK_STORE = { slug, base }` injected; `/api/<rest>` -> Stratek
+  `/api/v1/store/<slug>/<rest>` (GET/POST, 64 KB) with `X-Stratek-Connector`,
+  `X-Store-Client-IP`, `X-Store-Origin` and `X-Stratek-Storefront: t=..,sig=..`
+  (Ed25519 with the event key over `"<t>.<METHOD>.<path+query>.<ip>.<origin>"`);
+  `/js/*`, `/assets/*`, `/media/menu/*` -> Stratek (GET). Everything else on a
+  custom hostname is 404.
+- Stratek attaches the Worker to the hostname with Cloudflare's Workers Custom
+  Domains API using a one-time token from the shop.
+
 ## 7. Catalogue file
 
 `npm run bundle` also writes `dist/catalogue.json` -- `{ version, categories,

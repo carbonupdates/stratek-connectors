@@ -238,3 +238,21 @@ test('Pathao delivery notifications (0.10.0): secret check, 202 + integration he
   assert.equal(stratekEvents.length, 0);
   assert.equal(c.env._map.get('data:pathao:test:tx:42').status, 'delivered');
 });
+
+test('storefront (0.11.0): config via pass only, own domain + workers.dev/shop matching', async () => {
+  const { matchStorefront, cleanStorefront } = await import('../src/storefront.js');
+  assert.throws(() => cleanStorefront({ slug: 'Bad Slug' }));
+  assert.throws(() => cleanStorefront({ slug: 'chyau', hostnames: ['x.workers.dev'] }));
+  const cfg = cleanStorefront({ slug: 'chyau', workersDev: true, hostnames: ['Shop.ChyauBio.com'] });
+  assert.deepEqual(cfg.hostnames, ['shop.chyaubio.com']);
+  assert.equal(matchStorefront(cfg, new URL('https://shop.chyaubio.com/anything')).base, '');
+  assert.equal(matchStorefront(cfg, new URL(`${SELF}/shop/order/abc`)).base, '/shop');
+  assert.equal(matchStorefront(cfg, new URL(`${SELF}/setup/pathao`)), null, 'connector pages untouched on workers.dev');
+  assert.equal(matchStorefront({ ...cfg, workersDev: false }, new URL(`${SELF}/shop/`)), null);
+  const c = await paired();
+  const noPass = await go(c.env, '/storefront', { method: 'POST', body: JSON.stringify({ slug: 'chyau', workersDev: true }) });
+  assert.equal(noPass.status, 401);
+  const r = await (await go(c.env, '/storefront', { method: 'POST', headers: { Authorization: `Bearer ${c.server}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ slug: 'chyau', workersDev: true }) })).json();
+  assert.equal(r.data.slug, 'chyau');
+  assert.equal(c.env._map.get('storefront').workersDev, true);
+});

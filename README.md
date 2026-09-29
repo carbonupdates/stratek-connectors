@@ -309,6 +309,19 @@ see the POS repo's `docs/proposals/online-store.md`), gated on PayBridgeNP
 booking), with pickup or delivery and a test mode that uses the test keys.
 To build one, see [docs/adding-an-integration.md](docs/adding-an-integration.md).
 
+## The online store on your own address (v0.11.0+)
+
+Your connector can also serve your Stratek online store from **your own
+Cloudflare**: a free address `https://<your connector>.workers.dev/shop`, or
+your own domain (e.g. `https://shop.yourbusiness.com`). Everything is done on
+Stratek's Display tab -> Online store -> **Your own web address** (a tick for the
+free address; for a domain: domain in your Cloudflare, **Create token**, paste,
+pick the name). The connector shows Stratek's store page with a small config and
+forwards only the store's own API to Stratek, signed with its event key (so
+Stratek can trust the customer IP and address). Menu, orders and payments stay
+in Stratek. On your own domain nothing else of the connector is reachable
+(Set up pages, webhooks and pairing stay on the workers.dev address).
+
 ## Updates
 
 When a new version is released, Stratek's Integrations tab shows **Update

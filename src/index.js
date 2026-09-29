@@ -32,8 +32,9 @@ import { ConnectorState, store } from './state.js';
 import { verifyPass, fetchStratekKey } from './auth.js';
 import { INTEGRATIONS, isOutbound, manifest, findAction, findIntegration, isReady, statusOf, requiredSecrets, allSecretNames, secretsFor, testInfo, modeOf } from './registry.js';
 import { homePage, messagePage, connectedPage, setupPage } from './pages.js';
+import { matchStorefront, serveStorefront, cleanStorefront } from './storefront.js';
 import { CONNECTOR_VERSION } from './version.js';
-import { publicEventKey, emitEvent } from './events.js';
+import { publicEventKey, emitEvent, keyPair } from './events.js';
 
 export { ConnectorState };
 
@@ -189,6 +190,10 @@ export async function handle(request, env) {
 
   if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors(env, request) });
 
+  // ── Storefront (v0.11.0): the shop's online store on its own domain / workers.dev/shop ──
+  const sf = matchStorefront(await db.get('storefront'), url);
+  if (sf) return serveStorefront(request, { db, pairing: await db.get('pairing'), stratekUrl: base, match: sf, keyPair });
+
   // ── Pages & pairing ───────────────────────────────────────
   if (pathname === '/' && request.method === 'GET') {
     return homePage({ pairing: await db.get('pairing'), version: CONNECTOR_VERSION, stratekUrl: base });
@@ -290,7 +295,7 @@ export async function handle(request, env) {
   }
 
   // ── API for the Stratek POS (needs a Stratek pass) ────────
-  const needsPass = pathname === '/manifest' || pathname === '/disconnect' || pathname.startsWith('/actions/') || pathname.startsWith('/secrets/');
+  const needsPass = pathname === '/manifest' || pathname === '/disconnect' || pathname === '/storefront' || pathname.startsWith('/actions/') || pathname.startsWith('/secrets/');
   if (!needsPass) return failJson(env, request, 'Not found', 404, 'NOT_FOUND');
 
   const pairing = await db.get('pairing');
@@ -308,6 +313,20 @@ export async function handle(request, env) {
       connector: { version: CONNECTOR_VERSION, connectorId: pairing.connectorId, owner: { type: pairing.ownerType, id: pairing.ownerId, name: pairing.ownerName } },
       integrations: manifest((await loadKeys(env, db)).keys, (await loadKeys(env, db, 'test')).keys).filter((i) => allowedInt(i.id)),
     });
+  }
+
+  // Storefront config: set by Stratek (a signed-in person, or Stratek's server acting for them).
+  if (pathname === '/storefront') {
+    if (request.method === 'GET') return okJson(env, request, (await db.get('storefront')) || null);
+    if (request.method === 'POST') {
+      if (claims.src !== 'session' && claims.src !== 'server') return failJson(env, request, 'Only Stratek can change the storefront.', 403, 'FORBIDDEN');
+      const body = await request.json().catch(() => null);
+      if (body?.off) { await db.delete('storefront'); return okJson(env, request, null); }
+      let cfg;
+      try { cfg = cleanStorefront(body); } catch (err) { return failJson(env, request, err.message, err.status || 400, 'BAD_STOREFRONT'); }
+      await db.put('storefront', cfg);
+      return okJson(env, request, cfg);
+    }
   }
 
   const secretsMatch = pathname.match(/^\/secrets\/([a-z0-9_-]+)$/);

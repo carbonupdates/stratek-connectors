@@ -12,7 +12,7 @@
 
 const b64url = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 
-async function keyPair(db) {
+export async function keyPair(db) {
   let kp = await db.get('event_key');
   if (!kp) {
     const k = await crypto.subtle.generateKey({ name: 'Ed25519' }, true, ['sign', 'verify']);
