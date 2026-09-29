@@ -1,5 +1,5 @@
 {
- "version": "0.4.0",
+ "version": "0.5.0",
  "categories": {
   "system": "Connector",
   "payments": "Payments",
@@ -128,17 +128,17 @@
    "id": "paybridgenp",
    "name": "PayBridgeNP",
    "category": "payments",
-   "status": "planned",
-   "description": "eSewa, Khalti and Fonepay in one hosted checkout, confirmed by signed webhooks (Nepal).",
+   "status": "available",
+   "description": "eSewa, Khalti and Fonepay in one online checkout (Nepal).",
    "docsUrl": "https://docs.paybridgenp.com/api-reference/overview",
    "actions": [
+    "Test PayBridgeNP",
     "Pay online (eSewa / Khalti / Fonepay)",
-    "Check PayBridgeNP payment",
-    "Refund with PayBridgeNP"
+    "Check online payment",
+    "Refund online payment"
    ],
    "secrets": [
-    "PayBridgeNP secret key",
-    "Webhook signing secret"
+    "PayBridgeNP secret key"
    ]
   },
   {
@@ -178,19 +178,21 @@
    "id": "pathao",
    "name": "Pathao",
    "category": "delivery",
-   "status": "planned",
+   "status": "available",
    "description": "Book and track Pathao courier deliveries for a sale.",
-   "docsUrl": "https://merchant.pathao.com/",
+   "docsUrl": "https://merchant.pathao.com/courier/developer-api",
    "actions": [
+    "Test Pathao",
     "Send with Pathao",
     "Track Pathao delivery"
    ],
    "secrets": [
-    "Pathao client ID",
-    "Pathao client secret",
+    "Pathao API base URL",
+    "Client ID",
+    "Client secret",
     "Pathao merchant login email",
     "Pathao merchant password",
-    "Pathao store ID"
+    "Store ID"
    ]
   },
   {

@@ -65,7 +65,7 @@ built.
 
 | Integration | Buttons in Stratek | Keys (Set up form) | Status |
 |---|---|---|---|
-| Connector | Test connection | -- | Available |
+| Connector | Test connection | -- | **Available** |
 
 ### Payments
 
@@ -77,7 +77,7 @@ built.
 | [eSewa](https://developer.esewa.com.np/) | Pay with eSewa, Check eSewa payment | eSewa merchant (product) code, eSewa secret key | Coming soon |
 | [Fonepay dynamic QR](https://www.fonepay.com/) | Fonepay QR for this amount, Check Fonepay payment | Fonepay merchant code, Fonepay secret key, Fonepay API username (optional), Fonepay API password (optional) | Coming soon |
 | [connectIPS](https://www.connectips.com/) | Pay with connectIPS | Merchant ID, App ID, App name, App password, Private key (PEM) | Coming soon |
-| [PayBridgeNP](https://docs.paybridgenp.com/api-reference/overview) | Pay online (eSewa / Khalti / Fonepay), Check PayBridgeNP payment, Refund with PayBridgeNP | PayBridgeNP secret key, Webhook signing secret (optional) | Coming soon |
+| [PayBridgeNP](https://docs.paybridgenp.com/api-reference/overview) | Test PayBridgeNP, Pay online (eSewa / Khalti / Fonepay), Check online payment, Refund online payment | PayBridgeNP secret key | **Available** |
 | [Razorpay (UPI)](https://razorpay.com/docs/api/) | Pay with UPI (Razorpay), Refund with Razorpay | Razorpay key ID, Razorpay key secret | Coming soon |
 | [Coinbase (crypto)](https://docs.cdp.coinbase.com/) | Pay with crypto (Coinbase), Check crypto payment | CDP API key name / ID, CDP API private key, Webhook secret (optional) | Coming soon |
 
@@ -85,7 +85,7 @@ built.
 
 | Integration | Buttons in Stratek | Keys (Set up form) | Status |
 |---|---|---|---|
-| [Pathao](https://merchant.pathao.com/) | Send with Pathao, Track Pathao delivery | Pathao client ID, Pathao client secret, Pathao merchant login email, Pathao merchant password, Pathao store ID | Coming soon |
+| [Pathao](https://merchant.pathao.com/courier/developer-api) | Test Pathao, Send with Pathao, Track Pathao delivery | Pathao API base URL, Client ID, Client secret, Pathao merchant login email, Pathao merchant password, Store ID (optional) | **Available** |
 | [Yango Delivery](https://yango.com/) | Send with Yango, Track Yango delivery | Yango Delivery API token, Pickup address | Coming soon |
 | [Pick & Drop](https://pickndropnepal.com/) | Send with Pick & Drop | Pick & Drop API key | Coming soon |
 | inDrive | Send with inDrive | inDrive API key | Coming soon |
@@ -139,6 +139,35 @@ built.
 | Webhook | Send sale to webhook | Webhook address (https://), Signing secret (optional) | Coming soon |
 | [Zapier](https://zapier.com/apps/webhook/integrations) | Send sale to Zapier | Zapier catch hook URL | Coming soon |
 | [Make](https://www.make.com/en/help/tools/webhooks) | Send sale to Make | Make webhook URL | Coming soon |
+
+### Using PayBridgeNP (available)
+
+1. Stratek admin enables PayBridgeNP for the shop (Availability, NPR).
+2. Integrations -> PayBridgeNP -> **Set up**: paste the secret key from the
+   PayBridgeNP dashboard (`sk_test_...` to try, `sk_live_...` for real money --
+   Fonepay has no sandbox, so even test Fonepay payments are real, capped by
+   PayBridgeNP). Press **Test PayBridgeNP** to see the project and mode.
+3. At the till, after **Charge total**, press **Pay online** under the QR: a
+   second QR opens PayBridgeNP's checkout where the customer picks eSewa,
+   Khalti or Fonepay (minimum Rs 10).
+4. On the sale's Details: **Check online payment** (Paid / Waiting / Failed...),
+   then press **Settle**. **Refund online payment** works for Khalti
+   (automatic) and eSewa (finish it in the eSewa portal); Fonepay refunds aren't
+   supported by PayBridgeNP.
+
+Automatic "paid" (signed webhooks -> Stratek) comes with the next update.
+
+### Using Pathao (available)
+
+1. Stratek admin enables Pathao for the shop (Availability, NPR).
+2. Integrations -> Pathao -> **Set up**: the **API base URL**, Client ID and
+   Client secret from Pathao Merchant -> Developer API (Merchant API
+   Credentials), plus your Pathao merchant login email and password.
+3. Press **Test Pathao**: it signs in and lists your Pathao stores with their
+   IDs. Put the right **Store ID** in Set up.
+4. On a sale's Details: **Send with Pathao** (recipient, phone, address, cash to
+   collect, weight, note) books the delivery; **Track Pathao delivery** shows
+   its status.
 
 New integrations arrive with connector updates (**Update connector** in Stratek).
 

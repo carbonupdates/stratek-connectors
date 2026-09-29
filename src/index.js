@@ -135,6 +135,10 @@ export async function handle(request, env) {
   if (pathname === '/' && request.method === 'GET') {
     return homePage({ pairing: await db.get('pairing'), version: CONNECTOR_VERSION, stratekUrl: base });
   }
+  // Where online payment pages send the customer back to.
+  if (pathname === '/paid' && request.method === 'GET') {
+    return messagePage('Thank you', 'Your payment was submitted. Please show this screen to the shop -- they will confirm it on their side.', 'ok', 200);
+  }
   if (pathname === '/health' && request.method === 'GET') {
     return okJson(env, request, { ok: true, version: CONNECTOR_VERSION, connected: !!(await db.get('pairing')) });
   }
@@ -280,7 +284,12 @@ export async function handle(request, env) {
     }
     try {
       // Integrations read their keys from env as usual; Set up form keys are merged in.
-      const result = await found.action.run({ env: { ...env, ...keys }, claims, fields, context: body?.context || {} });
+      // `store`: a small per-integration memory (e.g. which payment session belongs to which sale).
+      const store = {
+        get: (k) => db.get(`data:${found.integration.id}:${k}`),
+        put: (k, v) => db.put(`data:${found.integration.id}:${k}`, v),
+      };
+      const result = await found.action.run({ env: { ...env, ...keys }, claims, fields, context: body?.context || {}, origin: url.origin, store });
       return okJson(env, request, { result });
     } catch (err) {
       console.error(`action ${m[1]}/${m[2]} failed:`, err);

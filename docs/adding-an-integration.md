@@ -29,7 +29,8 @@ export default {
     label: 'Do the thing',       // button text in Stratek
     placement: ['transaction'],  // transaction | charge | settings
     fields: [{ name: 'note', label: 'Note', type: 'text' }],
-    async run({ env, fields, context, claims }) {
+    async run({ env, fields, context, claims, origin, store }) {
+      // origin = this connector's address; store = small memory for this integration
       // env.EXAMPLE_API_KEY is the shop's key. context.transaction is the sale.
       const res = await fetch('https://api.example.com/things', {
         method: 'POST',
@@ -49,6 +50,12 @@ export default {
 4. After release, a Stratek admin switches it on for the right shops in
    Admin -> Integrations -> **Availability for merchants** (per shop currency,
    with a note). Until then no shop sees it.
+
+Tips: add a `settings` action without fields named "Test <name>" that checks
+the keys (Stratek shows it on the Integrations tab); keep ids of remote objects
+in `store` keyed by sale (`tx:<id>`); use idempotency keys when the API has
+them; see `src/integrations/paybridgenp.js` and `pathao.js` for complete examples,
+and `test/integrations.test.js` for testing against a stand-in API.
 
 ## A brand-new integration
 

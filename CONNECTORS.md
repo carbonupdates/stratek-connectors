@@ -126,6 +126,18 @@ Response: `{ "success": true, "data": { "result": <result> } }`, where `result` 
 Errors: `{ "success": false, "error": { "message", "code" } }` -- the message is
 shown to the person.
 
+### What an action's `run` receives
+
+`run({ env, claims, fields, context, origin, store })` -- `env` has the shop's
+keys (`env.<NAME>`), `claims` the pass, `fields` the form values, `context.transaction`
+the sale, `origin` the connector's own address (e.g. for return URLs; the
+connector serves a simple `GET /paid` "thank you" page), and `store` a small
+per-integration memory (`await store.get(k)`, `await store.put(k, v)`) kept in
+the Durable Object -- e.g. which payment session or consignment belongs to which sale.
+
+Settings actions without fields (e.g. "Test PayBridgeNP") appear as buttons on
+Stratek's Integrations tab once the integration is ready.
+
 ## 5. Keys -- the Set up form
 
 Keys (API keys, client secrets...) are entered on the connector's **own** page,
