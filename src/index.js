@@ -212,6 +212,7 @@ export async function handle(request, env) {
     const store = integrationStore(db, integration, mode);
     try {
       const out = await integration.webhook({ request, rawBody, env: { ...env, ...keys, STRATEK_MODE: mode }, store, mode, emit: (event) => emitEvent(db, { ...event, mode }) });
+      if (out instanceof Response) return out; // e.g. Pathao needs 202 + its own header
       return okJson(env, request, out || { received: true });
     } catch (err) {
       console.error(`webhook ${integration.id}:`, err?.message);
@@ -285,7 +286,7 @@ export async function handle(request, env) {
     const integration = findIntegration(setupMatch[1]);
     if (!integration || !(integration.secrets || []).length) return messagePage('Not found', 'There is no such integration on this connector.', 'err', 404);
     if (statusOf(integration) !== 'available') return messagePage('Coming soon', `${integration.name} is not available in this connector version yet.`, 'err', 409);
-    return setupPage(integration);
+    return setupPage(integration, url.origin);
   }
 
   // ── API for the Stratek POS (needs a Stratek pass) ────────

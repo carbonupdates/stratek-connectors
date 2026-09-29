@@ -1,6 +1,6 @@
 {
   "name": "stratek-connectors",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "private": true,
   "description": "Stratek connector: runs in your own Cloudflare account, holds your integration keys (Pathao, payments...) and adds their buttons to the Stratek POS.",
   "type": "module",

@@ -83,7 +83,10 @@ test: {
 
 In `run`, `env` already holds the keys of the chosen mode; branch on
 `env.STRATEK_MODE === 'test'` only when the provider needs a different address
-(PayPal sandbox). Webhook integrations register `/webhooks/<id>` for live and
+(PayPal sandbox). Providers where the merchant pastes the callback URL by hand
+(e.g. Pathao) set `webhookSetup: { where, what }` so the Set up page shows
+`/webhooks/<id>` and `/webhooks/<id>/test`; `webhook()` may return a `Response`
+when the provider wants a special status or header. Webhook integrations register `/webhooks/<id>` for live and
 `/webhooks/<id>/test` for test in `onKeysSaved({ mode })`. Add a case to
 `test/modes.test.js`.
 

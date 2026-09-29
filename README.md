@@ -115,7 +115,7 @@ keys once afterwards so both live and test payment notifications are registered.
 
 | Integration | Buttons in Stratek | Keys (Set up form) | Test mode | Status |
 |---|---|---|---|---|
-| [Pathao](https://merchant.pathao.com/courier/developer-api) | Test Pathao, Send with Pathao (needs a person), Track Pathao delivery | Pathao API base URL, Client ID, Client secret, Pathao merchant login email, Pathao merchant password, Store ID (optional) | Test keys | **Available** |
+| [Pathao](https://merchant.pathao.com/courier/developer-api) | Test Pathao, Send with Pathao (needs a person), Track Pathao delivery | Pathao API base URL, Client ID, Client secret, Pathao merchant login email, Pathao merchant password, Store ID (optional), Webhook secret (optional, delivery notifications) | Test keys | **Available** |
 | [Yango Delivery](https://yango.com/) | Send with Yango, Track Yango delivery | Yango Delivery API token, Pickup address | -- | Coming soon |
 | [Pick & Drop](https://pickndropnepal.com/) | Send with Pick & Drop | Pick & Drop API key | -- | Coming soon |
 | inDrive | Send with inDrive | inDrive API key | -- | Coming soon |
@@ -241,9 +241,20 @@ and kiosk always use the live key.
    total**, and on every sale's Details: recipient, phone, address, cash to
    collect, weight, note -> books the delivery. **Track Pathao delivery** (sale
    Details) shows its status.
-5. For the online store (coming next), Stratek uses Pathao's own city -> zone
-   -> area lists (cached for a day) and Pathao's price for each address, and
-   books with that exact location.
+5. For the online store, Stratek uses Pathao's own city -> zone -> area lists
+   (cached for a day) and Pathao's price for each address, and books with that
+   exact location.
+6. **Delivery notifications (v0.10.0+):** make up a long random **Webhook
+   secret** and save it in Set up (Live keys and/or Test keys). The Set up page
+   shows the **callback URL** (`<connector>/webhooks/pathao`, or
+   `.../webhooks/pathao/test` for sandbox keys). In Pathao Merchant ->
+   Developer API -> Webhook, paste that URL and the same secret. Pathao checks
+   it (we answer `202` with Pathao's integration header). From then on every
+   status change -- picked up, in transit, delivered, returned, failed -- goes
+   to Stratek as a signed `delivery.status` event: the online order moves to
+   **Out for delivery** and, once delivered and the payment is settled,
+   **Completed**. Returns and failures are flagged for a person. Nothing moves
+   money. Only deliveries this connector booked (same consignment) are passed on.
 
 ### Using Stripe, PayPal and Coinbase (available)
 

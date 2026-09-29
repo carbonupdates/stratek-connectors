@@ -8,6 +8,14 @@
 //   Send with Pathao (till, after Charge total; and sale details)  create a delivery order (cash to collect = sale total by default)
 //   Track Pathao delivery (sale)       order status
 //
+// Delivery notifications (0.10.0): in Pathao Merchant -> Developer API ->
+// Webhook, paste the callback URL shown on this connector's Set up page
+// (<connector>/webhooks/pathao, or .../pathao/test for sandbox keys) and the
+// same webhook secret you saved here. Pathao sends X-PATHAO-Signature = that
+// secret; we answer 202 with Pathao's integration header. Each status change
+// (picked, in transit, delivered, returned...) goes to Stratek as a signed
+// "delivery.status" event -- it only updates the order, never moves money.
+//
 // Hidden actions (placement 'delivery', never buttons) used by the online store:
 //   cities, zones {cityId}, areas {zoneId}   Pathao's own location lists
 //   quote {cityId, zoneId, weight}           Pathao's delivery price for this store
@@ -16,6 +24,27 @@
 // The access token is cached in the connector and renewed when it expires.
 
 const P = '/aladdin/api/v1';
+
+// Pathao checks this response header when you add the webhook in its panel.
+const PATHAO_INTEGRATION_HEADER = 'X-Pathao-Merchant-Webhook-Integration-Secret';
+const PATHAO_INTEGRATION_VALUE = 'f3992ecc-59da-4cbe-a049-a13da2018d51';
+// Pathao event -> short status Stratek understands.
+export const PATHAO_EVENTS = {
+  'order.created': 'created', 'order.updated': 'updated', 'order.pickup-requested': 'pickup_requested',
+  'order.assigned-for-pickup': 'assigned_for_pickup', 'order.picked': 'picked', 'order.pickup-failed': 'pickup_failed',
+  'order.pickup-cancelled': 'pickup_cancelled', 'order.at-the-sorting-hub': 'at_sorting_hub', 'order.in-transit': 'in_transit',
+  'order.received-at-last-mile-hub': 'at_last_mile_hub', 'order.assigned-for-delivery': 'assigned_for_delivery',
+  'order.delivered': 'delivered', 'order.partial-delivery': 'partial_delivery', 'order.returned': 'returned',
+  'order.delivery-failed': 'delivery_failed', 'order.on-hold': 'on_hold', 'order.paid-return': 'paid_return',
+  'order.exchanged': 'exchanged', 'order.paid': 'paid_to_merchant',
+};
+const accepted = (body) => new Response(JSON.stringify(body), { status: 202, headers: { 'Content-Type': 'application/json', [PATHAO_INTEGRATION_HEADER]: PATHAO_INTEGRATION_VALUE } });
+function sameSecret(a, b) {
+  a = String(a || ''); b = String(b || '');
+  let diff = a.length === b.length ? 0 : 1;
+  for (let i = 0; i < b.length; i++) diff |= b.charCodeAt(i) ^ (a.charCodeAt(i) || 0);
+  return !diff && b.length > 0;
+}
 
 function base(env) {
   const b = String(env.PATHAO_BASE_URL || '').trim().replace(/\/+$/, '');
@@ -115,7 +144,34 @@ export default {
     { name: 'PATHAO_USERNAME', label: 'Pathao merchant login email' },
     { name: 'PATHAO_PASSWORD', label: 'Pathao merchant password' },
     { name: 'PATHAO_STORE_ID', label: 'Store ID', hint: 'Just the number (e.g. 130903). Press "Test Pathao" on the Integrations tab after saving the other keys to see your store IDs.', optional: true },
+    { name: 'PATHAO_WEBHOOK_SECRET', label: 'Webhook secret (delivery notifications)', hint: 'Make up a long random secret, save it here, and enter the same secret with the callback URL below in Pathao Merchant -> Developer API -> Webhook. Leave empty if you don\'t want automatic delivery updates.', optional: true },
   ],
+  webhookSetup: { where: 'Pathao Merchant -> Developer API -> Webhook (with the webhook secret above)', what: 'Delivery notifications: orders are marked out for delivery / delivered automatically.' },
+  /** POST /webhooks/pathao[/test] -- Pathao says a delivery changed. */
+  async webhook({ request, rawBody, env, store, emit }) {
+    if (!env.PATHAO_WEBHOOK_SECRET) throw Object.assign(new Error('Save a webhook secret in Set up first.'), { status: 409 });
+    if (!sameSecret(request.headers.get('X-PATHAO-Signature'), env.PATHAO_WEBHOOK_SECRET)) throw Object.assign(new Error('Bad signature.'), { status: 401 });
+    let body;
+    try { body = JSON.parse(rawBody); } catch { throw Object.assign(new Error('Invalid JSON.'), { status: 400 }); }
+    const event = String(body.event || '');
+    if (event === 'webhook_integration') return accepted({ received: true, integration: 'ok' });
+    const status = PATHAO_EVENTS[event];
+    const m = String(body.merchant_order_id || '').match(/^STK-(\d+)$/);
+    if (!status || !m) return accepted({ received: true, ignored: event || 'no event' });
+    const txId = m[1];
+    const consignmentId = String(body.consignment_id || '');
+    const saved = await store.get(`tx:${txId}`);
+    // Only deliveries this connector booked, and only for the same consignment.
+    if (!saved?.consignmentId || (consignmentId && String(saved.consignmentId) !== consignmentId)) return accepted({ received: true, ignored: 'unknown delivery' });
+    await store.put(`tx:${txId}`, { ...saved, status, statusAt: new Date().toISOString() });
+    const at = String(body.updated_at || body.timestamp || '').replace(/[^\w:.-]/g, '').slice(0, 40);
+    await emit({
+      id: `pathao-${saved.consignmentId}-${status}${at ? `-${at}` : ''}`.slice(0, 120),
+      type: 'delivery.status',
+      data: { transactionId: txId, integration: 'pathao', provider: 'Pathao', consignmentId: String(saved.consignmentId), status, event, deliveryFee: body.delivery_fee !== undefined ? Number(body.delivery_fee) : null },
+    });
+    return accepted({ received: true, forwarded: true });
+  },
   actions: [
     {
       id: 'test',

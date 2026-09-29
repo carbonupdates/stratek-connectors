@@ -42,6 +42,7 @@ const go = (env, path, init) => worker.fetch(new Request(SELF + path, { redirect
 const stratekFetch = globalThis.fetch;
 const seen = [];
 const pbHooks = [];
+const stratekEvents = [];
 globalThis.fetch = async (input, init) => {
   const req = input instanceof Request ? input : new Request(input, init);
   const u = new URL(req.url);
@@ -64,6 +65,7 @@ globalThis.fetch = async (input, init) => {
     if (u.pathname.endsWith('/orders')) return Response.json({ data: { consignment_id: 'NP9', order_status: 'Pending' } });
   }
   if (u.host === 'graph.facebook.com') return Response.json({ events_received: 1 });
+  if (u.href === `${STRATEK}/api/v1/connectors/events`) { const b = await req.json(); stratekEvents.push({ body: b, sig: req.headers.get('X-Stratek-Signature') }); return Response.json({ success: true, data: { recorded: true } }); }
   return stratekFetch(input, init);
 };
 
@@ -202,4 +204,37 @@ test('outbound money actions: refused for API keys / agents, allowed for people 
   // server pass (Stratek, after a person approved) is not blocked by the rule
   const srv = await c.act('paybridgenp', 'refund', { context: { transaction: { id: 1 } }, fields: {} }, c.server);
   assert.notEqual(srv.error?.code, 'APPROVAL_REQUIRED');
+});
+
+test('Pathao delivery notifications (0.10.0): secret check, 202 + integration header, signed delivery.status', async () => {
+  const c = await paired();
+  const keys = { PATHAO_BASE_URL: 'https://pathao-sandbox.test', PATHAO_CLIENT_ID: 'c', PATHAO_CLIENT_SECRET: 's', PATHAO_USERNAME: 'u', PATHAO_PASSWORD: 'p', PATHAO_STORE_ID: '7' };
+  await c.save('pathao', 'test', { ...keys, PATHAO_WEBHOOK_SECRET: 'hook-secret-123' });
+  const setup = await (await go(c.env, '/setup/pathao')).text();
+  assert.match(setup, /webhooks\/pathao\/test/, 'Set up page shows the test callback URL');
+  const hook = (body, sig = 'hook-secret-123', path = '/webhooks/pathao/test') => go(c.env, path, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-PATHAO-Signature': sig }, body: JSON.stringify(body) });
+  let r = await hook({ event: 'webhook_integration' });
+  assert.equal(r.status, 202); assert.equal(r.headers.get('X-Pathao-Merchant-Webhook-Integration-Secret'), 'f3992ecc-59da-4cbe-a049-a13da2018d51');
+  r = await hook({ event: 'webhook_integration' }, 'wrong');
+  assert.equal(r.status, 401, 'wrong secret refused');
+  r = await hook({ event: 'webhook_integration' }, 'hook-secret-123', '/webhooks/pathao');
+  assert.equal(r.status, 409, 'live keys have no webhook secret yet');
+  // book a delivery (test keys) then Pathao reports progress
+  const b = await c.act('pathao', 'create_delivery', { mode: 'test', context: { transaction: { id: 42, items: [] } }, fields: { recipientName: 'S', recipientPhone: '98', recipientAddress: 'KTM', codAmount: 0 } }, c.server);
+  assert.match(b.data.result.text, /NP9/);
+  stratekEvents.length = 0;
+  r = await hook({ event: 'order.delivered', merchant_order_id: 'STK-42', consignment_id: 'NP9', delivery_fee: 110, updated_at: '2026-09-30 10:00:00' });
+  assert.equal(r.status, 202);
+  assert.equal(stratekEvents.length, 1);
+  const ev = stratekEvents[0].body;
+  assert.equal(ev.type, 'delivery.status'); assert.equal(ev.mode, 'test');
+  assert.deepEqual({ tx: ev.data.transactionId, st: ev.data.status, c: ev.data.consignmentId }, { tx: '42', st: 'delivered', c: 'NP9' });
+  assert.match(stratekEvents[0].sig, /^t=\d+,sig=/);
+  // unknown consignment / other shop's order / unknown event: accepted but not forwarded
+  stratekEvents.length = 0;
+  await hook({ event: 'order.delivered', merchant_order_id: 'STK-42', consignment_id: 'OTHER' });
+  await hook({ event: 'order.delivered', merchant_order_id: 'STK-999', consignment_id: 'NP9' });
+  await hook({ event: 'order.something', merchant_order_id: 'STK-42', consignment_id: 'NP9' });
+  assert.equal(stratekEvents.length, 0);
+  assert.equal(c.env._map.get('data:pathao:test:tx:42').status, 'delivered');
 });

@@ -1,5 +1,5 @@
 {
- "version": "0.9.0",
+ "version": "0.10.0",
  "categories": {
   "system": "Connector",
   "payments": "Payments",
@@ -200,7 +200,8 @@
     "Client secret",
     "Pathao merchant login email",
     "Pathao merchant password",
-    "Store ID"
+    "Store ID",
+    "Webhook secret (delivery notifications)"
    ]
   },
   {

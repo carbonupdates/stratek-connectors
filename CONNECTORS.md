@@ -256,6 +256,20 @@ its Set up page.
   livemode, webhookRegistered, webhookId }`. Stratek's kiosk needs live mode,
   a registered webhook, and a proof payment whose event carried the same
   `webhookId` (so re-saving keys = prove again). Minimum connector: 0.7.1.
+- **Delivery notifications (v0.10.0+):** Pathao's webhook
+  (`X-PATHAO-Signature` = the shop's saved `PATHAO_WEBHOOK_SECRET`, compared in
+  constant time; handshake event `webhook_integration`) is answered `202` with
+  `X-Pathao-Merchant-Webhook-Integration-Secret`. A `webhook()` may return a
+  `Response` for providers that need a custom status/header. Events for
+  `merchant_order_id: STK-<saleId>` whose consignment matches the one this
+  connector booked are sent as **`delivery.status`** `data: { transactionId,
+  integration: 'pathao', provider, consignmentId, status, event, deliveryFee }`
+  (`status`: created, pickup_requested, assigned_for_pickup, picked,
+  pickup_failed, pickup_cancelled, at_sorting_hub, in_transit, at_last_mile_hub,
+  assigned_for_delivery, delivered, partial_delivery, returned, delivery_failed,
+  on_hold, paid_return, exchanged, paid_to_merchant). Stratek only updates the
+  online order; it never settles or refunds. An integration can set
+  `webhookSetup: { where, what }` so its Set up page shows the callback URL.
 - `color` (e.g. `'#e4202a'`) colours an integration's buttons in Stratek.
 
 ## 7. Catalogue file

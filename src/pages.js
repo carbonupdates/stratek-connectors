@@ -69,20 +69,22 @@ export function connectedPage(pairing, stratekUrl) {
  * at once. Keys are sent only to this connector (same origin) -- Stratek's
  * page and servers never see them.
  */
-export function setupPage(integration) {
+export function setupPage(integration, origin = '') {
   const csp = "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; form-action 'none'; base-uri 'none'";
   const t = { support: 'sandbox', note: null, ...(integration.test || {}) };
   const testIntro = t.support === 'none'
     ? `<p class="hint">${esc(t.note || `${integration.name} has no test environment, so it runs with live keys only.`)}</p>`
     : `<p class="hint">Used only where Stratek says "test" (e.g. the online store's test mode, or the "(test keys)" buttons on Stratek's Integrations tab). The till, kiosk and live store always use the live keys.${t.note ? ` ${esc(t.note)}` : ''}</p>`;
+  const w = integration.webhookSetup;
+  const hookLine = (mode) => w && origin ? `<p class="hint"><strong>${esc(w.what || 'Notifications')}</strong> Callback URL for ${esc(w.where || integration.name)}: <code>${esc(`${origin}/webhooks/${integration.id}${mode === 'test' ? '/test' : ''}`)}</code></p>` : '';
   return page(`Set up ${integration.name}`, `
     <h1>Set up ${esc(integration.name)}</h1>
     <p>${esc(integration.description || '')}</p>
     <div id="msg"></div>
-    <section class="mode" data-mode="live"><h2>Live keys</h2><p class="hint">Real customers and real money.</p>
+    <section class="mode" data-mode="live"><h2>Live keys</h2><p class="hint">Real customers and real money.</p>${hookLine('live')}
       <form id="f_live" hidden autocomplete="off"><div class="fields"></div><p><button class="btn" type="submit">Save live keys</button></p></form></section>
     <section class="mode" data-mode="test"><h2>Test keys ${t.support === 'none' ? '<small>(not available)</small>' : '<small>(optional)</small>'}</h2>${testIntro}
-      ${t.support === 'none' ? '' : '<form id="f_test" hidden autocomplete="off"><div class="fields"></div><p><button class="btn btn-alt" type="submit">Save test keys</button></p></form>'}</section>
+      ${t.support === 'none' ? '' : hookLine('test')}${t.support === 'none' ? '' : '<form id="f_test" hidden autocomplete="off"><div class="fields"></div><p><button class="btn btn-alt" type="submit">Save test keys</button></p></form>'}</section>
     <p><small>Keys are stored in this connector, in the shop's own Cloudflare account. Stratek never sees them; saved keys are only shown masked.</small></p>
     <style>.mode{border-top:1px solid #e6caca;margin-top:18px;padding-top:6px}h2{font-size:1.1rem;margin:10px 0 2px}.btn-alt{background:#574646}</style>
     <script>
