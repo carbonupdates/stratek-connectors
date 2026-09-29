@@ -19,6 +19,7 @@ export const CATEGORIES = {
   system: 'Connector',
   payments: 'Payments',
   delivery: 'Delivery & rides',
+  fulfilment: 'Manufacturing & fulfilment',
   messaging: 'Messages & notifications',
   accounting: 'Accounting & tax',
   commerce: 'Online stores & marketplaces',

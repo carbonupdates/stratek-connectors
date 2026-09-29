@@ -15,7 +15,7 @@ Stratek lists them as "Coming soon". Building one means filling it in.
 export default {
   id: 'example',                 // lowercase, used in URLs
   name: 'Example',
-  category: 'automation',        // payments | delivery | messaging | accounting | commerce | marketing | automation
+  category: 'automation',        // payments | delivery | fulfilment | messaging | accounting | commerce | marketing | automation
   status: 'available',           // was 'planned'
   description: 'What it does, in one line.',
   docsUrl: 'https://api.example.com/docs',
@@ -46,6 +46,9 @@ export default {
 
 3. Set `status: 'available'`. The Set up form, the Ready badge and the buttons
    in Stratek then work by themselves -- no Stratek change needed.
+4. After release, a Stratek admin switches it on for the right shops in
+   Admin -> Integrations -> **Availability for merchants** (per shop currency,
+   with a note). Until then no shop sees it.
 
 ## A brand-new integration
 
@@ -57,7 +60,7 @@ to the table in `README.md`.
 
 Bump `version` in `package.json` and `CONNECTOR_VERSION` in `src/version.js`
 (same number), run `npm run bundle` (rebuilds `dist/connector.json`, the file
-Stratek installs) and `npm test` (fails if the bundle is out of date). Push.
+Stratek installs, and `dist/catalogue.json`, the list Stratek's admin panel shows) and `npm test` (fails if the bundle is out of date). Push.
 Every shop's Integrations tab then shows "Update available"; **Update
 connector** + a fresh token installs it. Changes pushed without a version bump
 reach only new installs -- always bump when `src/` changes.

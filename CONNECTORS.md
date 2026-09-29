@@ -72,6 +72,7 @@ The browser asks Stratek: `POST /api/v1/merchant/connectors/pass` (or admin) ->
 | `sub` | `merchant:<id>` or `admin:hq` (must match the pairing) |
 | `owner_name`, `actor` | shop name, who is signed in |
 | `src` | `session` (a person signed in to Stratek) or `api_key` (API key / AI agent). Only `session` passes may change keys. |
+| `int` | Integrations this pass may use: `"*"` (Stratek HQ) or an array of ids chosen by Stratek's admins for the shop (per shop currency). `core` is always allowed. Missing = everything (older Stratek). |
 | `iat`, `exp`, `jti` | issued / expires (1 hour) / unique id |
 
 Connectors send it as `Authorization: Bearer <token>`. On an unknown `kid` the
@@ -82,7 +83,7 @@ CORS: only `Origin: <STRATEK_URL>` is allowed.
 
 ```json
 { "success": true, "data": {
-  "connector": { "version": "0.3.0", "connectorId": "...", "owner": { "type": "merchant", "id": "1", "name": "Chyau" } },
+  "connector": { "version": "0.4.0", "connectorId": "...", "owner": { "type": "merchant", "id": "1", "name": "Chyau" } },
   "integrations": [
     { "id": "yango", "name": "Yango Delivery", "category": "delivery", "description": "...",
       "status": "available", "docsUrl": "https://...", "ready": true, "setup": true, "missingSecrets": [],
@@ -92,9 +93,11 @@ CORS: only `Origin: <STRATEK_URL>` is allowed.
           "fields": [ { "name": "recipientName", "label": "Recipient name", "type": "text", "required": true } ] } ] } ] } }
 ```
 
+- Only integrations allowed by the pass's `int` claim are listed; actions and
+  key endpoints of others answer `403 NOT_OFFERED`.
 - `status`: `available` (built) or `planned` (scaffold -- Stratek lists it as
   "Coming soon", shows no buttons and no Set up; its actions answer 409).
-- `category`: `system` | `payments` | `delivery` | `messaging` | `accounting` |
+- `category`: `system` | `payments` | `delivery` | `fulfilment` | `messaging` | `accounting` |
   `commerce` | `marketing` | `automation` -- Stratek groups the list by it.
 - `ready` = available and every non-optional key is set. Stratek only shows
   buttons for ready integrations; `missingSecrets` lists names (never values).
@@ -145,7 +148,15 @@ never in Stratek:
   disconnects, and are passed to actions as `env.<NAME>` (form value wins over a
   Cloudflare Secret).
 
-## 6. Other routes
+## 6. Catalogue file
+
+`npm run bundle` also writes `dist/catalogue.json` -- `{ version, categories,
+integrations: [{ id, name, category, status, description, docsUrl, actions:
+[labels], secrets: [labels] }] }`. Stratek's admin panel reads it from GitHub to
+build the "Availability for merchants" table, so a new integration appears
+there as soon as it is pushed (switched off until an admin enables it).
+
+## 7. Other routes
 
 - `POST /connect/auto` -- `{ code, secret }`, used right after Stratek installs
   the connector (section 0). 403 without the right install secret.

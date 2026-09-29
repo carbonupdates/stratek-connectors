@@ -154,3 +154,30 @@ test('Set up form: keys saved in the connector, masked, session passes only', as
   assert.equal(r.data.ready, false);
   INTEGRATIONS.pop();
 });
+
+test('passes only unlock the integrations Stratek allowed for the shop (claim int)', async () => {
+  const { INTEGRATIONS } = await import('../src/registry.js');
+  INTEGRATIONS.push({
+    id: 'demo2', name: 'Demo2', category: 'automation', status: 'available', description: 't',
+    secrets: [{ name: 'D2_KEY', label: 'k' }],
+    actions: [{ id: 'go', label: 'Go', placement: ['transaction'], fields: [], async run() { return { type: 'message', text: 'ok' }; } }],
+  });
+  const env = makeEnv({ INSTALL_SECRET: 'i', D2_KEY: 'x' });
+  await go(env, '/connect/auto', { method: 'POST', body: JSON.stringify({ code: 'a'.repeat(64), secret: 'i' }) });
+  const now = Math.floor(Date.now() / 1000);
+  const base = { iss: STRATEK, aud: 'conn-1', sub: 'merchant:1', iat: now, exp: now + 3600, src: 'session' };
+  const H = (t) => ({ Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' });
+  const limited = await pass({ ...base, int: ['pathao'] });
+  const all = await pass({ ...base, int: '*' });
+  const legacy = await pass(base);
+  let m = (await (await go(env, '/manifest', { headers: H(limited) })).json()).data.integrations.map((i) => i.id);
+  assert.deepEqual(m.sort(), ['core', 'pathao'], 'only core + allowed');
+  assert.equal((await go(env, '/actions/demo2/go', { method: 'POST', headers: H(limited), body: '{}' })).status, 403);
+  assert.equal((await go(env, '/secrets/demo2', { headers: H(limited) })).status, 403);
+  assert.equal((await go(env, '/actions/core/ping', { method: 'POST', headers: H(limited), body: '{}' })).status, 200, 'core always works');
+  assert.equal((await go(env, '/actions/demo2/go', { method: 'POST', headers: H(all), body: '{}' })).status, 200);
+  assert.equal((await go(env, '/actions/demo2/go', { method: 'POST', headers: H(legacy), body: '{}' })).status, 200, 'old Stratek passes without the claim still work');
+  m = (await (await go(env, '/manifest', { headers: H(all) })).json()).data.integrations;
+  assert.ok(m.find((i) => i.id === 'slant3d' && i.category === 'fulfilment') && m.find((i) => i.id === 'meta_capi') && m.find((i) => i.id === 'coinbase'));
+  INTEGRATIONS.pop();
+});

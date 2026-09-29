@@ -1,0 +1,551 @@
+{
+ "version": "0.4.0",
+ "categories": {
+  "system": "Connector",
+  "payments": "Payments",
+  "delivery": "Delivery & rides",
+  "fulfilment": "Manufacturing & fulfilment",
+  "messaging": "Messages & notifications",
+  "accounting": "Accounting & tax",
+  "commerce": "Online stores & marketplaces",
+  "marketing": "Customers & marketing",
+  "automation": "Automation"
+ },
+ "integrations": [
+  {
+   "id": "core",
+   "name": "Connector",
+   "category": "system",
+   "status": "available",
+   "description": "Built-in checks for the connector itself.",
+   "docsUrl": null,
+   "actions": [
+    "Test connection"
+   ],
+   "secrets": []
+  },
+  {
+   "id": "stripe",
+   "name": "Stripe",
+   "category": "payments",
+   "status": "planned",
+   "description": "Card payments and payment links (international cards, Apple Pay, Google Pay).",
+   "docsUrl": "https://docs.stripe.com/api",
+   "actions": [
+    "Pay by card (Stripe)",
+    "Refund with Stripe"
+   ],
+   "secrets": [
+    "Stripe secret key",
+    "Webhook signing secret"
+   ]
+  },
+  {
+   "id": "paypal",
+   "name": "PayPal",
+   "category": "payments",
+   "status": "planned",
+   "description": "PayPal checkout links for international customers.",
+   "docsUrl": "https://developer.paypal.com/api/rest/",
+   "actions": [
+    "Pay with PayPal",
+    "Refund with PayPal"
+   ],
+   "secrets": [
+    "PayPal client ID",
+    "PayPal client secret",
+    "Mode"
+   ]
+  },
+  {
+   "id": "khalti",
+   "name": "Khalti",
+   "category": "payments",
+   "status": "planned",
+   "description": "Khalti wallet payments (Nepal).",
+   "docsUrl": "https://docs.khalti.com/",
+   "actions": [
+    "Pay with Khalti",
+    "Check Khalti payment"
+   ],
+   "secrets": [
+    "Khalti live secret key"
+   ]
+  },
+  {
+   "id": "esewa",
+   "name": "eSewa",
+   "category": "payments",
+   "status": "planned",
+   "description": "eSewa wallet payments (Nepal).",
+   "docsUrl": "https://developer.esewa.com.np/",
+   "actions": [
+    "Pay with eSewa",
+    "Check eSewa payment"
+   ],
+   "secrets": [
+    "eSewa merchant (product) code",
+    "eSewa secret key"
+   ]
+  },
+  {
+   "id": "fonepay",
+   "name": "Fonepay dynamic QR",
+   "category": "payments",
+   "status": "planned",
+   "description": "Fonepay QR with the exact amount, confirmed automatically (Nepal).",
+   "docsUrl": "https://www.fonepay.com/",
+   "actions": [
+    "Fonepay QR for this amount",
+    "Check Fonepay payment"
+   ],
+   "secrets": [
+    "Fonepay merchant code",
+    "Fonepay secret key",
+    "Fonepay API username",
+    "Fonepay API password"
+   ]
+  },
+  {
+   "id": "connectips",
+   "name": "connectIPS",
+   "category": "payments",
+   "status": "planned",
+   "description": "Bank account payments through connectIPS (Nepal).",
+   "docsUrl": "https://www.connectips.com/",
+   "actions": [
+    "Pay with connectIPS"
+   ],
+   "secrets": [
+    "Merchant ID",
+    "App ID",
+    "App name",
+    "App password",
+    "Private key (PEM)"
+   ]
+  },
+  {
+   "id": "paybridgenp",
+   "name": "PayBridgeNP",
+   "category": "payments",
+   "status": "planned",
+   "description": "eSewa, Khalti and Fonepay in one hosted checkout, confirmed by signed webhooks (Nepal).",
+   "docsUrl": "https://docs.paybridgenp.com/api-reference/overview",
+   "actions": [
+    "Pay online (eSewa / Khalti / Fonepay)",
+    "Check PayBridgeNP payment",
+    "Refund with PayBridgeNP"
+   ],
+   "secrets": [
+    "PayBridgeNP secret key",
+    "Webhook signing secret"
+   ]
+  },
+  {
+   "id": "razorpay",
+   "name": "Razorpay (UPI)",
+   "category": "payments",
+   "status": "planned",
+   "description": "UPI, cards and payment links for customers from India.",
+   "docsUrl": "https://razorpay.com/docs/api/",
+   "actions": [
+    "Pay with UPI (Razorpay)",
+    "Refund with Razorpay"
+   ],
+   "secrets": [
+    "Razorpay key ID",
+    "Razorpay key secret"
+   ]
+  },
+  {
+   "id": "coinbase",
+   "name": "Coinbase (crypto)",
+   "category": "payments",
+   "status": "planned",
+   "description": "Crypto payment links through Coinbase Developer Platform, confirmed by webhook.",
+   "docsUrl": "https://docs.cdp.coinbase.com/",
+   "actions": [
+    "Pay with crypto (Coinbase)",
+    "Check crypto payment"
+   ],
+   "secrets": [
+    "CDP API key name / ID",
+    "CDP API private key",
+    "Webhook secret"
+   ]
+  },
+  {
+   "id": "pathao",
+   "name": "Pathao",
+   "category": "delivery",
+   "status": "planned",
+   "description": "Book and track Pathao courier deliveries for a sale.",
+   "docsUrl": "https://merchant.pathao.com/",
+   "actions": [
+    "Send with Pathao",
+    "Track Pathao delivery"
+   ],
+   "secrets": [
+    "Pathao client ID",
+    "Pathao client secret",
+    "Pathao merchant login email",
+    "Pathao merchant password",
+    "Pathao store ID"
+   ]
+  },
+  {
+   "id": "yango",
+   "name": "Yango Delivery",
+   "category": "delivery",
+   "status": "planned",
+   "description": "Same-day courier deliveries with Yango.",
+   "docsUrl": "https://yango.com/",
+   "actions": [
+    "Send with Yango",
+    "Track Yango delivery"
+   ],
+   "secrets": [
+    "Yango Delivery API token",
+    "Pickup address"
+   ]
+  },
+  {
+   "id": "pickndrop",
+   "name": "Pick & Drop",
+   "category": "delivery",
+   "status": "planned",
+   "description": "Pick & Drop Nepal courier deliveries.",
+   "docsUrl": "https://pickndropnepal.com/",
+   "actions": [
+    "Send with Pick & Drop"
+   ],
+   "secrets": [
+    "Pick & Drop API key"
+   ]
+  },
+  {
+   "id": "indrive",
+   "name": "inDrive",
+   "category": "delivery",
+   "status": "planned",
+   "description": "inDrive courier deliveries.",
+   "docsUrl": null,
+   "actions": [
+    "Send with inDrive"
+   ],
+   "secrets": [
+    "inDrive API key"
+   ]
+  },
+  {
+   "id": "dhl",
+   "name": "DHL Express",
+   "category": "delivery",
+   "status": "planned",
+   "description": "International shipping labels and tracking with DHL Express.",
+   "docsUrl": "https://developer.dhl.com/",
+   "actions": [
+    "Ship with DHL",
+    "Track DHL shipment"
+   ],
+   "secrets": [
+    "DHL API key",
+    "DHL API secret",
+    "DHL account number"
+   ]
+  },
+  {
+   "id": "slant3d",
+   "name": "Slant 3D",
+   "category": "fulfilment",
+   "status": "planned",
+   "description": "3D print-on-demand: price a print, place a print order and track it with Slant 3D.",
+   "docsUrl": "https://slant3dapi.com/documentation/introduction",
+   "actions": [
+    "Get 3D print quote",
+    "Order 3D print (Slant 3D)",
+    "Track Slant 3D order"
+   ],
+   "secrets": [
+    "Slant 3D API key"
+   ]
+  },
+  {
+   "id": "whatsapp",
+   "name": "WhatsApp Business",
+   "category": "messaging",
+   "status": "planned",
+   "description": "Send receipts and payment QRs on WhatsApp (Meta Cloud API).",
+   "docsUrl": "https://developers.facebook.com/docs/whatsapp/cloud-api",
+   "actions": [
+    "Send receipt on WhatsApp",
+    "Send payment QR on WhatsApp"
+   ],
+   "secrets": [
+    "WhatsApp access token",
+    "WhatsApp phone number ID"
+   ]
+  },
+  {
+   "id": "sparrow_sms",
+   "name": "Sparrow SMS",
+   "category": "messaging",
+   "status": "planned",
+   "description": "SMS receipts and alerts (Nepal).",
+   "docsUrl": "https://sparrowsms.com/",
+   "actions": [
+    "Send receipt by SMS"
+   ],
+   "secrets": [
+    "Sparrow SMS token",
+    "Sender ID"
+   ]
+  },
+  {
+   "id": "telegram",
+   "name": "Telegram",
+   "category": "messaging",
+   "status": "planned",
+   "description": "Sale alerts to a Telegram chat or group.",
+   "docsUrl": "https://core.telegram.org/bots/api",
+   "actions": [
+    "Post sale to Telegram"
+   ],
+   "secrets": [
+    "Telegram bot token",
+    "Chat ID"
+   ]
+  },
+  {
+   "id": "slack",
+   "name": "Slack",
+   "category": "messaging",
+   "status": "planned",
+   "description": "Sale alerts to a Slack channel.",
+   "docsUrl": "https://api.slack.com/messaging/webhooks",
+   "actions": [
+    "Post sale to Slack"
+   ],
+   "secrets": [
+    "Slack incoming webhook URL"
+   ]
+  },
+  {
+   "id": "ird_cbms",
+   "name": "Nepal IRD e-billing (CBMS)",
+   "category": "accounting",
+   "status": "planned",
+   "description": "Report bills to the Inland Revenue Department (CBMS).",
+   "docsUrl": "https://ird.gov.np/",
+   "actions": [
+    "Report bill to IRD"
+   ],
+   "secrets": [
+    "IRD CBMS username",
+    "IRD CBMS password",
+    "Seller PAN"
+   ]
+  },
+  {
+   "id": "quickbooks",
+   "name": "QuickBooks Online",
+   "category": "accounting",
+   "status": "planned",
+   "description": "Send sales to QuickBooks as sales receipts.",
+   "docsUrl": "https://developer.intuit.com/app/developer/qbo/docs/get-started",
+   "actions": [
+    "Send sale to QuickBooks"
+   ],
+   "secrets": [
+    "Client ID",
+    "Client secret",
+    "Refresh token",
+    "Company (realm) ID"
+   ]
+  },
+  {
+   "id": "xero",
+   "name": "Xero",
+   "category": "accounting",
+   "status": "planned",
+   "description": "Send sales to Xero as invoices.",
+   "docsUrl": "https://developer.xero.com/documentation/",
+   "actions": [
+    "Send sale to Xero"
+   ],
+   "secrets": [
+    "Client ID",
+    "Client secret",
+    "Refresh token",
+    "Tenant ID"
+   ]
+  },
+  {
+   "id": "google_sheets",
+   "name": "Google Sheets",
+   "category": "accounting",
+   "status": "planned",
+   "description": "Add each sale as a row in a Google Sheet.",
+   "docsUrl": "https://developers.google.com/sheets/api",
+   "actions": [
+    "Add sale to Google Sheet"
+   ],
+   "secrets": [
+    "Service account key (JSON)",
+    "Sheet ID"
+   ]
+  },
+  {
+   "id": "shopify",
+   "name": "Shopify",
+   "category": "commerce",
+   "status": "planned",
+   "description": "Keep a Shopify store in step with the POS menu and sales.",
+   "docsUrl": "https://shopify.dev/docs/api/admin-rest",
+   "actions": [
+    "Sync menu to Shopify",
+    "Record sale in Shopify"
+   ],
+   "secrets": [
+    "Store domain",
+    "Admin API access token"
+   ]
+  },
+  {
+   "id": "woocommerce",
+   "name": "WooCommerce",
+   "category": "commerce",
+   "status": "planned",
+   "description": "Keep a WooCommerce store in step with the POS menu and sales.",
+   "docsUrl": "https://woocommerce.github.io/woocommerce-rest-api-docs/",
+   "actions": [
+    "Sync menu to WooCommerce",
+    "Record sale in WooCommerce"
+   ],
+   "secrets": [
+    "Store address",
+    "Consumer key",
+    "Consumer secret"
+   ]
+  },
+  {
+   "id": "daraz",
+   "name": "Daraz",
+   "category": "commerce",
+   "status": "planned",
+   "description": "Daraz seller orders and stock (Nepal, South Asia).",
+   "docsUrl": "https://open.daraz.com/",
+   "actions": [
+    "Sync stock to Daraz"
+   ],
+   "secrets": [
+    "App key",
+    "App secret",
+    "Access token"
+   ]
+  },
+  {
+   "id": "meta_catalog",
+   "name": "Meta Catalog (Facebook & Instagram Shop)",
+   "category": "commerce",
+   "status": "planned",
+   "description": "Keep a Facebook/Instagram shop catalogue in step with the POS menu.",
+   "docsUrl": "https://developers.facebook.com/docs/marketing-api/catalog",
+   "actions": [
+    "Sync menu to Facebook/Instagram Shop"
+   ],
+   "secrets": [
+    "Catalog ID",
+    "System user access token"
+   ]
+  },
+  {
+   "id": "mailchimp",
+   "name": "Mailchimp",
+   "category": "marketing",
+   "status": "planned",
+   "description": "Add customers to a Mailchimp audience.",
+   "docsUrl": "https://mailchimp.com/developer/marketing/api/",
+   "actions": [
+    "Add customer to Mailchimp"
+   ],
+   "secrets": [
+    "Mailchimp API key",
+    "Audience ID"
+   ]
+  },
+  {
+   "id": "hubspot",
+   "name": "HubSpot",
+   "category": "marketing",
+   "status": "planned",
+   "description": "Save customers and sales in HubSpot CRM.",
+   "docsUrl": "https://developers.hubspot.com/docs/api/overview",
+   "actions": [
+    "Add customer to HubSpot"
+   ],
+   "secrets": [
+    "Private app access token"
+   ]
+  },
+  {
+   "id": "meta_capi",
+   "name": "Meta Conversions API",
+   "category": "marketing",
+   "status": "planned",
+   "description": "Send each sale to Meta (Facebook/Instagram Ads) as a Purchase event so ad results are measured.",
+   "docsUrl": "https://developers.facebook.com/docs/marketing-api/conversions-api",
+   "actions": [
+    "Send sale to Meta Ads"
+   ],
+   "secrets": [
+    "Pixel / dataset ID",
+    "Conversions API access token",
+    "Test event code"
+   ]
+  },
+  {
+   "id": "webhook",
+   "name": "Webhook",
+   "category": "automation",
+   "status": "planned",
+   "description": "Send each sale to any address you choose (for your own systems).",
+   "docsUrl": null,
+   "actions": [
+    "Send sale to webhook"
+   ],
+   "secrets": [
+    "Webhook address (https://)",
+    "Signing secret"
+   ]
+  },
+  {
+   "id": "zapier",
+   "name": "Zapier",
+   "category": "automation",
+   "status": "planned",
+   "description": "Start a Zap for each sale (connects to thousands of apps).",
+   "docsUrl": "https://zapier.com/apps/webhook/integrations",
+   "actions": [
+    "Send sale to Zapier"
+   ],
+   "secrets": [
+    "Zapier catch hook URL"
+   ]
+  },
+  {
+   "id": "make",
+   "name": "Make",
+   "category": "automation",
+   "status": "planned",
+   "description": "Start a Make scenario for each sale.",
+   "docsUrl": "https://www.make.com/en/help/tools/webhooks",
+   "actions": [
+    "Send sale to Make"
+   ],
+   "secrets": [
+    "Make webhook URL"
+   ]
+  }
+ ]
+}

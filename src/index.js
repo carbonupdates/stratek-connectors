@@ -208,10 +208,16 @@ export async function handle(request, env) {
   const { claims, error, status } = await verifyPass(request, pairing, async (key) => db.put('pairing', { ...pairing, stratekKey: key }));
   if (error) return failJson(env, request, error, status, 'UNAUTHORIZED');
 
+  // Which integrations this pass may use: Stratek's admins decide per shop
+  // (claim `int`: '*' or a list of ids). 'core' is always allowed; passes from
+  // older Stratek versions without the claim may use everything.
+  const allowedInt = (id) => id === 'core' || claims.int === undefined || claims.int === '*' || (Array.isArray(claims.int) && claims.int.includes(id));
+  const notOffered = (name) => failJson(env, request, `${name} is not available for your shop. Ask Stratek.`, 403, 'NOT_OFFERED');
+
   if (pathname === '/manifest' && request.method === 'GET') {
     return okJson(env, request, {
       connector: { version: CONNECTOR_VERSION, connectorId: pairing.connectorId, owner: { type: pairing.ownerType, id: pairing.ownerId, name: pairing.ownerName } },
-      integrations: manifest((await loadKeys(env, db)).keys),
+      integrations: manifest((await loadKeys(env, db)).keys).filter((i) => allowedInt(i.id)),
     });
   }
 
@@ -219,6 +225,7 @@ export async function handle(request, env) {
   if (secretsMatch) {
     const integration = findIntegration(secretsMatch[1]);
     if (!integration || !(integration.secrets || []).length) return failJson(env, request, 'Unknown integration.', 404, 'NOT_FOUND');
+    if (!allowedInt(integration.id)) return notOffered(integration.name);
     if (statusOf(integration) !== 'available') return failJson(env, request, `${integration.name} is coming soon -- not in this connector version yet.`, 409, 'NOT_AVAILABLE');
     if (request.method === 'GET') {
       const { keys, source } = await loadKeys(env, db);
@@ -260,6 +267,7 @@ export async function handle(request, env) {
   if (m && request.method === 'POST') {
     const found = findAction(m[1], m[2]);
     if (!found) return failJson(env, request, 'Unknown integration or action.', 404, 'NOT_FOUND');
+    if (!allowedInt(found.integration.id)) return notOffered(found.integration.name);
     if (statusOf(found.integration) !== 'available') return failJson(env, request, `${found.integration.name} is coming soon.`, 409, 'NOT_AVAILABLE');
     const { keys } = await loadKeys(env, db);
     if (!isReady(found.integration, keys)) return failJson(env, request, `${found.integration.name} is not set up yet -- press Set up in Stratek.`, 409, 'NOT_READY');

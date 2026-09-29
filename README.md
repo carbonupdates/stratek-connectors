@@ -52,8 +52,11 @@ and it would need a GitHub account per shop.)
 
 ## Integrations
 
-The catalogue below is what the connector knows. **Available** ones can be set
-up today; **Coming soon** ones are scaffolds (buttons and key fields drafted,
+The catalogue below is what the connector knows. **Which of them a shop can
+use is decided by Stratek's admins** (Admin -> Integrations -> Availability, per
+shop currency -- e.g. NPR for shops in Nepal); a shop only sees and can use
+those, and the connector refuses the rest. **Available** ones can be set up
+today; **Coming soon** ones are scaffolds (buttons and key fields drafted,
 code not written yet) -- Stratek lists them but shows no buttons until a
 connector update makes them available. Key fields may change when each one is
 built.
@@ -74,8 +77,9 @@ built.
 | [eSewa](https://developer.esewa.com.np/) | Pay with eSewa, Check eSewa payment | eSewa merchant (product) code, eSewa secret key | Coming soon |
 | [Fonepay dynamic QR](https://www.fonepay.com/) | Fonepay QR for this amount, Check Fonepay payment | Fonepay merchant code, Fonepay secret key, Fonepay API username (optional), Fonepay API password (optional) | Coming soon |
 | [connectIPS](https://www.connectips.com/) | Pay with connectIPS | Merchant ID, App ID, App name, App password, Private key (PEM) | Coming soon |
-| PayBridgeNP | Pay with PayBridgeNP | PayBridgeNP API key, PayBridgeNP secret (optional) | Coming soon |
+| [PayBridgeNP](https://docs.paybridgenp.com/api-reference/overview) | Pay online (eSewa / Khalti / Fonepay), Check PayBridgeNP payment, Refund with PayBridgeNP | PayBridgeNP secret key, Webhook signing secret (optional) | Coming soon |
 | [Razorpay (UPI)](https://razorpay.com/docs/api/) | Pay with UPI (Razorpay), Refund with Razorpay | Razorpay key ID, Razorpay key secret | Coming soon |
+| [Coinbase (crypto)](https://docs.cdp.coinbase.com/) | Pay with crypto (Coinbase), Check crypto payment | CDP API key name / ID, CDP API private key, Webhook secret (optional) | Coming soon |
 
 ### Delivery & rides
 
@@ -86,6 +90,12 @@ built.
 | [Pick & Drop](https://pickndropnepal.com/) | Send with Pick & Drop | Pick & Drop API key | Coming soon |
 | inDrive | Send with inDrive | inDrive API key | Coming soon |
 | [DHL Express](https://developer.dhl.com/) | Ship with DHL, Track DHL shipment | DHL API key, DHL API secret, DHL account number | Coming soon |
+
+### Manufacturing & fulfilment
+
+| Integration | Buttons in Stratek | Keys (Set up form) | Status |
+|---|---|---|---|
+| [Slant 3D](https://slant3dapi.com/documentation/introduction) | Get 3D print quote, Order 3D print (Slant 3D), Track Slant 3D order | Slant 3D API key | Coming soon |
 
 ### Messages & notifications
 
@@ -112,6 +122,7 @@ built.
 | [Shopify](https://shopify.dev/docs/api/admin-rest) | Sync menu to Shopify, Record sale in Shopify | Store domain, Admin API access token | Coming soon |
 | [WooCommerce](https://woocommerce.github.io/woocommerce-rest-api-docs/) | Sync menu to WooCommerce, Record sale in WooCommerce | Store address, Consumer key, Consumer secret | Coming soon |
 | [Daraz](https://open.daraz.com/) | Sync stock to Daraz | App key, App secret, Access token | Coming soon |
+| [Meta Catalog (Facebook & Instagram Shop)](https://developers.facebook.com/docs/marketing-api/catalog) | Sync menu to Facebook/Instagram Shop | Catalog ID, System user access token | Coming soon |
 
 ### Customers & marketing
 
@@ -119,6 +130,7 @@ built.
 |---|---|---|---|
 | [Mailchimp](https://mailchimp.com/developer/marketing/api/) | Add customer to Mailchimp | Mailchimp API key, Audience ID | Coming soon |
 | [HubSpot](https://developers.hubspot.com/docs/api/overview) | Add customer to HubSpot | Private app access token | Coming soon |
+| [Meta Conversions API](https://developers.facebook.com/docs/marketing-api/conversions-api) | Send sale to Meta Ads | Pixel / dataset ID, Conversions API access token, Test event code (optional) | Coming soon |
 
 ### Automation
 
@@ -155,6 +167,9 @@ Releasing a version (maintainers): change `src/`, bump the version in
   in the connector's own storage (a Durable Object, encrypted at rest by
   Cloudflare), or as Cloudflare Secrets. They are never sent to Stratek and
   never shown again in full -- only masked (e.g. `sk_…4f2a`).
+- **Only what the shop is allowed:** every pass lists the integrations
+  Stratek's admins enabled for that shop (claim `int`); the connector hides and
+  refuses all others.
 - **Set up form:** served by the connector itself and opened from Stratek with
   a one-hour pass in the address `#fragment` (never sent to a server, removed
   from the address bar at once). Only someone signed in to Stratek can change
@@ -184,4 +199,5 @@ Releasing a version (maintainers): change `src/`, bump the version in
   manifest), `src/integrations/*.js` (one file per integration, listed in
   `catalogue.js`), `src/pages.js` (status and Set up pages), `src/auth.js`
   (pass checks), `src/state.js` (Durable Object), `scripts/bundle.mjs`
-  (builds `dist/connector.json` for Stratek).
+  (builds `dist/connector.json`, which Stratek installs, and
+  `dist/catalogue.json`, which Stratek's admin Availability table reads).

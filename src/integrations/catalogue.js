@@ -9,6 +9,10 @@ import fonepay from './fonepay.js';
 import connectips from './connectips.js';
 import paybridgenp from './paybridgenp.js';
 import razorpay from './razorpay.js';
+import coinbase from './coinbase.js';
+import slant3d from './slant3d.js';
+import meta_capi from './meta_capi.js';
+import meta_catalog from './meta_catalog.js';
 import pathao from './pathao.js';
 import yango from './yango.js';
 import pickndrop from './pickndrop.js';
@@ -40,11 +44,13 @@ export const CATALOGUE = [
   connectips,
   paybridgenp,
   razorpay,
+  coinbase,
   pathao,
   yango,
   pickndrop,
   indrive,
   dhl,
+  slant3d,
   whatsapp,
   sparrow_sms,
   telegram,
@@ -56,8 +62,10 @@ export const CATALOGUE = [
   shopify,
   woocommerce,
   daraz,
+  meta_catalog,
   mailchimp,
   hubspot,
+  meta_capi,
   webhook,
   zapier,
   make,

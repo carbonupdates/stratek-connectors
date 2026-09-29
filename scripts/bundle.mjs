@@ -12,6 +12,23 @@ import { dirname, join, relative, sep } from 'node:path';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 export const BUNDLE_PATH = join(root, 'dist', 'connector.json');
+export const CATALOGUE_PATH = join(root, 'dist', 'catalogue.json');
+
+/** dist/catalogue.json -- the integration list Stratek's admin panel reads (Availability for merchants). */
+export async function buildCatalogue() {
+  const { INTEGRATIONS, CATEGORIES } = await import('../src/registry.js');
+  const { CONNECTOR_VERSION } = await import('../src/version.js');
+  return {
+    version: CONNECTOR_VERSION,
+    categories: CATEGORIES,
+    integrations: INTEGRATIONS.map((i) => ({
+      id: i.id, name: i.name, category: i.category || 'system', status: i.status || 'available',
+      description: i.description, docsUrl: i.docsUrl || null,
+      actions: (i.actions || []).map((a) => a.label),
+      secrets: (i.secrets || []).map((x) => x.label),
+    })),
+  };
+}
 
 async function walk(dir) {
   const out = [];
@@ -49,5 +66,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const bundle = await buildBundle();
   await mkdir(dirname(BUNDLE_PATH), { recursive: true });
   await writeFile(BUNDLE_PATH, JSON.stringify(bundle, null, 1) + '\n');
-  console.log(`dist/connector.json: v${bundle.version}, ${Object.keys(bundle.modules).length} files`);
+  const catalogue = await buildCatalogue();
+  await writeFile(CATALOGUE_PATH, JSON.stringify(catalogue, null, 1) + '\n');
+  console.log(`dist/connector.json: v${bundle.version}, ${Object.keys(bundle.modules).length} files; dist/catalogue.json: ${catalogue.integrations.length} integrations`);
 }
