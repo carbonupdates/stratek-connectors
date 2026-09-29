@@ -1,5 +1,5 @@
 {
- "version": "0.5.0",
+ "version": "0.6.0",
  "categories": {
   "system": "Connector",
   "payments": "Payments",
@@ -28,28 +28,31 @@
    "id": "stripe",
    "name": "Stripe",
    "category": "payments",
-   "status": "planned",
+   "status": "available",
    "description": "Card payments and payment links (international cards, Apple Pay, Google Pay).",
    "docsUrl": "https://docs.stripe.com/api",
    "actions": [
+    "Test Stripe",
     "Pay by card (Stripe)",
-    "Refund with Stripe"
+    "Check card payment",
+    "Refund card payment"
    ],
    "secrets": [
-    "Stripe secret key",
-    "Webhook signing secret"
+    "Stripe secret key"
    ]
   },
   {
    "id": "paypal",
    "name": "PayPal",
    "category": "payments",
-   "status": "planned",
-   "description": "PayPal checkout links for international customers.",
+   "status": "available",
+   "description": "PayPal checkout for international customers.",
    "docsUrl": "https://developer.paypal.com/api/rest/",
    "actions": [
+    "Test PayPal",
     "Pay with PayPal",
-    "Refund with PayPal"
+    "Check PayPal payment",
+    "Refund PayPal payment"
    ],
    "secrets": [
     "PayPal client ID",
@@ -161,17 +164,18 @@
    "id": "coinbase",
    "name": "Coinbase (crypto)",
    "category": "payments",
-   "status": "planned",
-   "description": "Crypto payment links through Coinbase Developer Platform, confirmed by webhook.",
-   "docsUrl": "https://docs.cdp.coinbase.com/",
+   "status": "available",
+   "description": "Crypto payments (e.g. USDC) through Coinbase Business checkouts.",
+   "docsUrl": "https://docs.cdp.coinbase.com/coinbase-business/",
    "actions": [
+    "Test Coinbase",
     "Pay with crypto (Coinbase)",
-    "Check crypto payment"
+    "Check crypto payment",
+    "Refund crypto payment"
    ],
    "secrets": [
-    "CDP API key name / ID",
-    "CDP API private key",
-    "Webhook secret"
+    "CDP API key ID / name",
+    "CDP API private key (Ed25519, base64)"
    ]
   },
   {
@@ -260,16 +264,18 @@
    "id": "slant3d",
    "name": "Slant 3D",
    "category": "fulfilment",
-   "status": "planned",
-   "description": "3D print-on-demand: price a print, place a print order and track it with Slant 3D.",
+   "status": "available",
+   "description": "3D print-on-demand: quote a print, order it and track it with Slant 3D.",
    "docsUrl": "https://slant3dapi.com/documentation/introduction",
    "actions": [
-    "Get 3D print quote",
-    "Order 3D print (Slant 3D)",
-    "Track Slant 3D order"
+    "Test Slant 3D",
+    "Quote 3D print (Slant 3D)",
+    "Confirm 3D print order",
+    "Track 3D print"
    ],
    "secrets": [
-    "Slant 3D API key"
+    "Slant 3D API key",
+    "Platform ID"
    ]
   },
   {
@@ -450,15 +456,18 @@
    "id": "meta_catalog",
    "name": "Meta Catalog (Facebook & Instagram Shop)",
    "category": "commerce",
-   "status": "planned",
+   "status": "available",
    "description": "Keep a Facebook/Instagram shop catalogue in step with the POS menu.",
-   "docsUrl": "https://developers.facebook.com/docs/marketing-api/catalog",
+   "docsUrl": "https://developers.facebook.com/docs/marketing-api/catalog-batch/",
    "actions": [
+    "Test Meta Catalog",
     "Sync menu to Facebook/Instagram Shop"
    ],
    "secrets": [
     "Catalog ID",
-    "System user access token"
+    "System user access token",
+    "Shop web address",
+    "Graph API version"
    ]
   },
   {
@@ -494,16 +503,18 @@
    "id": "meta_capi",
    "name": "Meta Conversions API",
    "category": "marketing",
-   "status": "planned",
+   "status": "available",
    "description": "Send each sale to Meta (Facebook/Instagram Ads) as a Purchase event so ad results are measured.",
    "docsUrl": "https://developers.facebook.com/docs/marketing-api/conversions-api",
    "actions": [
+    "Test Meta Conversions API",
     "Send sale to Meta Ads"
    ],
    "secrets": [
     "Pixel / dataset ID",
     "Conversions API access token",
-    "Test event code"
+    "Test event code",
+    "Graph API version"
    ]
   },
   {

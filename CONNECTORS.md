@@ -136,7 +136,11 @@ per-integration memory (`await store.get(k)`, `await store.put(k, v)`) kept in
 the Durable Object -- e.g. which payment session or consignment belongs to which sale.
 
 Settings actions without fields (e.g. "Test PayBridgeNP") appear as buttons on
-Stratek's Integrations tab once the integration is ready.
+Stratek's Integrations tab once the integration is ready. An action can ask
+Stratek for extra data with `context: ['menu']`: Stratek then sends
+`context.menu = { currency, items: [{ id, name, description, price, category,
+available, photo }] }` (photo as an absolute https URL) -- used by "Sync menu to
+Facebook/Instagram Shop".
 
 ## 5. Keys -- the Set up form
 

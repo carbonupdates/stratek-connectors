@@ -71,15 +71,15 @@ built.
 
 | Integration | Buttons in Stratek | Keys (Set up form) | Status |
 |---|---|---|---|
-| [Stripe](https://docs.stripe.com/api) | Pay by card (Stripe), Refund with Stripe | Stripe secret key, Webhook signing secret (optional) | Coming soon |
-| [PayPal](https://developer.paypal.com/api/rest/) | Pay with PayPal, Refund with PayPal | PayPal client ID, PayPal client secret, Mode (optional) | Coming soon |
+| [Stripe](https://docs.stripe.com/api) | Test Stripe, Pay by card (Stripe), Check card payment, Refund card payment | Stripe secret key | **Available** |
+| [PayPal](https://developer.paypal.com/api/rest/) | Test PayPal, Pay with PayPal, Check PayPal payment, Refund PayPal payment | PayPal client ID, PayPal client secret, Mode (optional) | **Available** |
 | [Khalti](https://docs.khalti.com/) | Pay with Khalti, Check Khalti payment | Khalti live secret key | Coming soon |
 | [eSewa](https://developer.esewa.com.np/) | Pay with eSewa, Check eSewa payment | eSewa merchant (product) code, eSewa secret key | Coming soon |
 | [Fonepay dynamic QR](https://www.fonepay.com/) | Fonepay QR for this amount, Check Fonepay payment | Fonepay merchant code, Fonepay secret key, Fonepay API username (optional), Fonepay API password (optional) | Coming soon |
 | [connectIPS](https://www.connectips.com/) | Pay with connectIPS | Merchant ID, App ID, App name, App password, Private key (PEM) | Coming soon |
 | [PayBridgeNP](https://docs.paybridgenp.com/api-reference/overview) | Test PayBridgeNP, Pay online (eSewa / Khalti / Fonepay), Check online payment, Refund online payment | PayBridgeNP secret key | **Available** |
 | [Razorpay (UPI)](https://razorpay.com/docs/api/) | Pay with UPI (Razorpay), Refund with Razorpay | Razorpay key ID, Razorpay key secret | Coming soon |
-| [Coinbase (crypto)](https://docs.cdp.coinbase.com/) | Pay with crypto (Coinbase), Check crypto payment | CDP API key name / ID, CDP API private key, Webhook secret (optional) | Coming soon |
+| [Coinbase (crypto)](https://docs.cdp.coinbase.com/coinbase-business/) | Test Coinbase, Pay with crypto (Coinbase), Check crypto payment, Refund crypto payment | CDP API key ID / name, CDP API private key (Ed25519, base64) | **Available** |
 
 ### Delivery & rides
 
@@ -95,7 +95,7 @@ built.
 
 | Integration | Buttons in Stratek | Keys (Set up form) | Status |
 |---|---|---|---|
-| [Slant 3D](https://slant3dapi.com/documentation/introduction) | Get 3D print quote, Order 3D print (Slant 3D), Track Slant 3D order | Slant 3D API key | Coming soon |
+| [Slant 3D](https://slant3dapi.com/documentation/introduction) | Test Slant 3D, Quote 3D print (Slant 3D), Confirm 3D print order, Track 3D print | Slant 3D API key, Platform ID (optional) | **Available** |
 
 ### Messages & notifications
 
@@ -122,7 +122,7 @@ built.
 | [Shopify](https://shopify.dev/docs/api/admin-rest) | Sync menu to Shopify, Record sale in Shopify | Store domain, Admin API access token | Coming soon |
 | [WooCommerce](https://woocommerce.github.io/woocommerce-rest-api-docs/) | Sync menu to WooCommerce, Record sale in WooCommerce | Store address, Consumer key, Consumer secret | Coming soon |
 | [Daraz](https://open.daraz.com/) | Sync stock to Daraz | App key, App secret, Access token | Coming soon |
-| [Meta Catalog (Facebook & Instagram Shop)](https://developers.facebook.com/docs/marketing-api/catalog) | Sync menu to Facebook/Instagram Shop | Catalog ID, System user access token | Coming soon |
+| [Meta Catalog (Facebook & Instagram Shop)](https://developers.facebook.com/docs/marketing-api/catalog-batch/) | Test Meta Catalog, Sync menu to Facebook/Instagram Shop | Catalog ID, System user access token, Shop web address (optional), Graph API version (optional) | **Available** |
 
 ### Customers & marketing
 
@@ -130,7 +130,7 @@ built.
 |---|---|---|---|
 | [Mailchimp](https://mailchimp.com/developer/marketing/api/) | Add customer to Mailchimp | Mailchimp API key, Audience ID | Coming soon |
 | [HubSpot](https://developers.hubspot.com/docs/api/overview) | Add customer to HubSpot | Private app access token | Coming soon |
-| [Meta Conversions API](https://developers.facebook.com/docs/marketing-api/conversions-api) | Send sale to Meta Ads | Pixel / dataset ID, Conversions API access token, Test event code (optional) | Coming soon |
+| [Meta Conversions API](https://developers.facebook.com/docs/marketing-api/conversions-api) | Test Meta Conversions API, Send sale to Meta Ads | Pixel / dataset ID, Conversions API access token, Test event code (optional), Graph API version (optional) | **Available** |
 
 ### Automation
 
@@ -168,6 +168,46 @@ Automatic "paid" (signed webhooks -> Stratek) comes with the next update.
 4. On a sale's Details: **Send with Pathao** (recipient, phone, address, cash to
    collect, weight, note) books the delivery; **Track Pathao delivery** shows
    its status.
+
+### Using Stripe, PayPal and Coinbase (available)
+
+All three work like PayBridgeNP: **Set up** the keys, press **Test ...** on the
+Integrations tab, then after **Charge total** use **Pay by card (Stripe)**,
+**Pay with PayPal** or **Pay with crypto (Coinbase)** under the QR -- a second QR
+opens their payment page. On the sale: **Check ... payment** (then **Settle**) and
+**Refund ... payment**.
+
+- **Stripe:** secret key (`sk_test_...`/`sk_live_...`, or a restricted `rk_` key
+  with Checkout Sessions + Refunds). Charges in the shop's currency.
+- **PayPal:** client ID + secret from developer.paypal.com; type `sandbox` in
+  *Mode* for test credentials. PayPal only accepts its own currency list (USD,
+  EUR, GBP, AUD, ... -- not NPR); "Check" also captures an approved payment.
+- **Coinbase:** a Coinbase Developer Platform API key created with the
+  **Ed25519** signature algorithm (key ID + private key). Uses Coinbase
+  Business checkouts; currencies are Coinbase's (e.g. USD, EUR, USDC), not NPR.
+
+### Using Slant 3D (available)
+
+Set up the API key (`sl-...`; platform ID optional). On a sale: **Quote 3D print**
+(model file URL, quantity, customer email and shipping address) uploads the
+model and creates a **draft** order with its price -- nothing is charged. **Confirm
+3D print order** pays for it from your Slant 3D account and sends it to
+production; **Track 3D print** shows status and tracking.
+
+### Using Meta (available)
+
+- **Meta Conversions API:** dataset (pixel) ID + Conversions API token (optional
+  test event code while testing). On a sale, **Send sale to Meta Ads** with the
+  customer's email or phone (hashed before sending) reports a Purchase so ads get
+  credit for in-store sales.
+- **Meta Catalog:** catalogue ID + system user token (optional shop web address).
+  **Sync menu to Facebook/Instagram Shop** on the Integrations tab sends every
+  menu item that has a photo (Meta needs one); unavailable items show as out of
+  stock. Stratek passes the menu along with the request.
+
+These integrations follow each provider's published API and were tested
+against stand-in services; please report anything that differs with a real
+account (Pathao especially, and Slant 3D's address fields).
 
 New integrations arrive with connector updates (**Update connector** in Stratek).
 
