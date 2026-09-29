@@ -58,12 +58,17 @@ export default {
   description: 'Fonepay QR at the till and kiosk that detects payment by itself (eSewa, Khalti, Fonepay aggregator, Nepal).',
   docsUrl: 'https://docs.paybridgenp.com/api-reference/overview',
   secrets: [
-    { name: 'PAYBRIDGE_SECRET_KEY', label: 'PayBridgeNP secret key', hint: 'From your PayBridgeNP dashboard (needs permission for payments and webhooks). Starts with sk_live_ (or sk_test_ -- note Fonepay has no sandbox, test payments are real money, max Rs 1,000). Connect your Fonepay merchant account inside PayBridgeNP first.' },
+    { name: 'PAYBRIDGE_SECRET_KEY', label: 'PayBridgeNP secret key', hint: 'From your PayBridgeNP dashboard, live project (starts with sk_live_; needs permission for payments and webhooks). Connect your Fonepay merchant account inside PayBridgeNP first. Live Fonepay QRs need the Pro plan.' },
   ],
+  test: {
+    support: 'real-money',
+    note: 'Fonepay has no sandbox: a test-mode Fonepay QR still moves real money (max Rs 1,000 per payment). Stratek marks these as test payments.',
+    hints: { PAYBRIDGE_SECRET_KEY: 'Your sandbox project key (starts with sk_test_; payments + webhooks permission).' },
+  },
 
   /** After the key is saved: register this connector for payment notifications. */
-  async onKeysSaved({ env, store, origin }) {
-    const url = `${origin}/webhooks/paybridgenp`;
+  async onKeysSaved({ env, store, origin, mode }) {
+    const url = `${origin}/webhooks/paybridgenp${mode === 'test' ? '/test' : ''}`;
     const list = await pb(env, 'GET', '/webhooks').catch(() => null);
     const endpoints = Array.isArray(list) ? list : list?.data || list?.endpoints || [];
     for (const e of endpoints) {

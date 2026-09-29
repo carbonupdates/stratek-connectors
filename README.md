@@ -61,84 +61,105 @@ code not written yet) -- Stratek lists them but shows no buttons until a
 connector update makes them available. Key fields may change when each one is
 built.
 
+### Live keys and test keys (v0.8.0+)
+
+Every integration's **Set up** page has two sections: **Live keys** (real
+customers, real money) and optional **Test keys**. Where each set is used is
+fixed, not a switch you can forget:
+
+- **Live keys:** the till, the kiosk, the live online store -- everything real.
+- **Test keys:** only where Stratek says "test": the online store's test mode
+  and the **"(test keys)"** buttons on Stratek's Integrations tab.
+
+The Integrations tab shows **Test keys ✓** when a test set is saved, or **Live
+only** when the provider has no test environment (Coinbase, Slant 3D). Test
+payments are marked "Test-mode payment" in Stratek and never count as real
+proof (e.g. for the kiosk). PayBridgeNP: Fonepay has no sandbox, so a test-mode
+Fonepay payment still moves real money (capped).
+
+**Updating from an older version:** keys you saved before that are clearly test
+keys (`sk_test_...`, PayPal "sandbox" mode, a Meta test event code) move to
+**Test keys** automatically; everything else stays **Live**. Re-save PayBridgeNP's
+keys once afterwards so both live and test payment notifications are registered.
+
 ### Connector
 
-| Integration | Buttons in Stratek | Keys (Set up form) | Status |
-|---|---|---|---|
-| Connector | Test connection | -- | **Available** |
+| Integration | Buttons in Stratek | Keys (Set up form) | Test mode | Status |
+|---|---|---|---|---|
+| Connector | Test connection | -- | -- | **Available** |
 
 ### Payments
 
-| Integration | Buttons in Stratek | Keys (Set up form) | Status |
-|---|---|---|---|
-| [Stripe](https://docs.stripe.com/api) | Test Stripe, Pay by card (Stripe), Check card payment, Refund card payment | Stripe secret key | **Available** |
-| [PayPal](https://developer.paypal.com/api/rest/) | Test PayPal, Pay with PayPal, Check PayPal payment, Refund PayPal payment | PayPal client ID, PayPal client secret, Mode (optional) | **Available** |
-| [Khalti](https://docs.khalti.com/) | Pay with Khalti, Check Khalti payment | Khalti live secret key | Coming soon |
-| [eSewa](https://developer.esewa.com.np/) | Pay with eSewa, Check eSewa payment | eSewa merchant (product) code, eSewa secret key | Coming soon |
-| [Fonepay dynamic QR](https://www.fonepay.com/) | Fonepay QR for this amount, Check Fonepay payment | Fonepay merchant code, Fonepay secret key, Fonepay API username (optional), Fonepay API password (optional) | Coming soon |
-| [connectIPS](https://www.connectips.com/) | Pay with connectIPS | Merchant ID, App ID, App name, App password, Private key (PEM) | Coming soon |
-| [PayBridgeNP](https://docs.paybridgenp.com/api-reference/overview) | Till & kiosk payment QR (auto-detects payment), Test PayBridgeNP, Check online payment, Refund online payment | PayBridgeNP secret key | **Available** |
-| [Razorpay (UPI)](https://razorpay.com/docs/api/) | Pay with UPI (Razorpay), Refund with Razorpay | Razorpay key ID, Razorpay key secret | Coming soon |
-| [Coinbase (crypto)](https://docs.cdp.coinbase.com/coinbase-business/) | Test Coinbase, Pay with crypto (Coinbase), Check crypto payment, Refund crypto payment | CDP API key ID / name, CDP API private key (Ed25519, base64) | **Available** |
+| Integration | Buttons in Stratek | Keys (Set up form) | Test mode | Status |
+|---|---|---|---|---|
+| [Stripe](https://docs.stripe.com/api) | Test Stripe, Pay by card (Stripe), Check card payment, Refund card payment | Stripe secret key | Test keys | **Available** |
+| [PayPal](https://developer.paypal.com/api/rest/) | Test PayPal, Pay with PayPal, Check PayPal payment, Refund PayPal payment | PayPal client ID, PayPal client secret | Test keys | **Available** |
+| [Khalti](https://docs.khalti.com/) | Pay with Khalti, Check Khalti payment | Khalti live secret key | -- | Coming soon |
+| [eSewa](https://developer.esewa.com.np/) | Pay with eSewa, Check eSewa payment | eSewa merchant (product) code, eSewa secret key | -- | Coming soon |
+| [Fonepay dynamic QR](https://www.fonepay.com/) | Fonepay QR for this amount, Check Fonepay payment | Fonepay merchant code, Fonepay secret key, Fonepay API username (optional), Fonepay API password (optional) | -- | Coming soon |
+| [connectIPS](https://www.connectips.com/) | Pay with connectIPS | Merchant ID, App ID, App name, App password, Private key (PEM) | -- | Coming soon |
+| [PayBridgeNP](https://docs.paybridgenp.com/api-reference/overview) | Till & kiosk payment QR (auto-detects payment), Test PayBridgeNP, Check online payment, Refund online payment | PayBridgeNP secret key | Test keys (Fonepay = real money) | **Available** |
+| [Razorpay (UPI)](https://razorpay.com/docs/api/) | Pay with UPI (Razorpay), Refund with Razorpay | Razorpay key ID, Razorpay key secret | -- | Coming soon |
+| [Coinbase (crypto)](https://docs.cdp.coinbase.com/coinbase-business/) | Test Coinbase, Pay with crypto (Coinbase), Check crypto payment, Refund crypto payment | CDP API key ID / name, CDP API private key (Ed25519, base64) | Live only | **Available** |
 
 ### Delivery & rides
 
-| Integration | Buttons in Stratek | Keys (Set up form) | Status |
-|---|---|---|---|
-| [Pathao](https://merchant.pathao.com/courier/developer-api) | Test Pathao, Send with Pathao, Track Pathao delivery | Pathao API base URL, Client ID, Client secret, Pathao merchant login email, Pathao merchant password, Store ID (optional) | **Available** |
-| [Yango Delivery](https://yango.com/) | Send with Yango, Track Yango delivery | Yango Delivery API token, Pickup address | Coming soon |
-| [Pick & Drop](https://pickndropnepal.com/) | Send with Pick & Drop | Pick & Drop API key | Coming soon |
-| inDrive | Send with inDrive | inDrive API key | Coming soon |
-| [DHL Express](https://developer.dhl.com/) | Ship with DHL, Track DHL shipment | DHL API key, DHL API secret, DHL account number | Coming soon |
+| Integration | Buttons in Stratek | Keys (Set up form) | Test mode | Status |
+|---|---|---|---|---|
+| [Pathao](https://merchant.pathao.com/courier/developer-api) | Test Pathao, Send with Pathao, Track Pathao delivery | Pathao API base URL, Client ID, Client secret, Pathao merchant login email, Pathao merchant password, Store ID (optional) | Test keys | **Available** |
+| [Yango Delivery](https://yango.com/) | Send with Yango, Track Yango delivery | Yango Delivery API token, Pickup address | -- | Coming soon |
+| [Pick & Drop](https://pickndropnepal.com/) | Send with Pick & Drop | Pick & Drop API key | -- | Coming soon |
+| inDrive | Send with inDrive | inDrive API key | -- | Coming soon |
+| [DHL Express](https://developer.dhl.com/) | Ship with DHL, Track DHL shipment | DHL API key, DHL API secret, DHL account number | -- | Coming soon |
 
 ### Manufacturing & fulfilment
 
-| Integration | Buttons in Stratek | Keys (Set up form) | Status |
-|---|---|---|---|
-| [Slant 3D](https://slant3dapi.com/documentation/introduction) | Test Slant 3D, Quote 3D print (Slant 3D), Confirm 3D print order, Track 3D print | Slant 3D API key, Platform ID (optional) | **Available** |
+| Integration | Buttons in Stratek | Keys (Set up form) | Test mode | Status |
+|---|---|---|---|---|
+| [Slant 3D](https://slant3dapi.com/documentation/introduction) | Test Slant 3D, Quote 3D print (Slant 3D), Confirm 3D print order, Track 3D print | Slant 3D API key, Platform ID (optional) | Live only | **Available** |
 
 ### Messages & notifications
 
-| Integration | Buttons in Stratek | Keys (Set up form) | Status |
-|---|---|---|---|
-| [WhatsApp Business](https://developers.facebook.com/docs/whatsapp/cloud-api) | Send receipt on WhatsApp, Send payment QR on WhatsApp | WhatsApp access token, WhatsApp phone number ID | Coming soon |
-| [Sparrow SMS](https://sparrowsms.com/) | Send receipt by SMS | Sparrow SMS token, Sender ID | Coming soon |
-| [Telegram](https://core.telegram.org/bots/api) | Post sale to Telegram | Telegram bot token, Chat ID | Coming soon |
-| [Slack](https://api.slack.com/messaging/webhooks) | Post sale to Slack | Slack incoming webhook URL | Coming soon |
+| Integration | Buttons in Stratek | Keys (Set up form) | Test mode | Status |
+|---|---|---|---|---|
+| [WhatsApp Business](https://developers.facebook.com/docs/whatsapp/cloud-api) | Send receipt on WhatsApp, Send payment QR on WhatsApp | WhatsApp access token, WhatsApp phone number ID | -- | Coming soon |
+| [Sparrow SMS](https://sparrowsms.com/) | Send receipt by SMS | Sparrow SMS token, Sender ID | -- | Coming soon |
+| [Telegram](https://core.telegram.org/bots/api) | Post sale to Telegram | Telegram bot token, Chat ID | -- | Coming soon |
+| [Slack](https://api.slack.com/messaging/webhooks) | Post sale to Slack | Slack incoming webhook URL | -- | Coming soon |
 
 ### Accounting & tax
 
-| Integration | Buttons in Stratek | Keys (Set up form) | Status |
-|---|---|---|---|
-| [Nepal IRD e-billing (CBMS)](https://ird.gov.np/) | Report bill to IRD | IRD CBMS username, IRD CBMS password, Seller PAN | Coming soon |
-| [QuickBooks Online](https://developer.intuit.com/app/developer/qbo/docs/get-started) | Send sale to QuickBooks | Client ID, Client secret, Refresh token, Company (realm) ID | Coming soon |
-| [Xero](https://developer.xero.com/documentation/) | Send sale to Xero | Client ID, Client secret, Refresh token, Tenant ID | Coming soon |
-| [Google Sheets](https://developers.google.com/sheets/api) | Add sale to Google Sheet | Service account key (JSON), Sheet ID | Coming soon |
+| Integration | Buttons in Stratek | Keys (Set up form) | Test mode | Status |
+|---|---|---|---|---|
+| [Nepal IRD e-billing (CBMS)](https://ird.gov.np/) | Report bill to IRD | IRD CBMS username, IRD CBMS password, Seller PAN | -- | Coming soon |
+| [QuickBooks Online](https://developer.intuit.com/app/developer/qbo/docs/get-started) | Send sale to QuickBooks | Client ID, Client secret, Refresh token, Company (realm) ID | -- | Coming soon |
+| [Xero](https://developer.xero.com/documentation/) | Send sale to Xero | Client ID, Client secret, Refresh token, Tenant ID | -- | Coming soon |
+| [Google Sheets](https://developers.google.com/sheets/api) | Add sale to Google Sheet | Service account key (JSON), Sheet ID | -- | Coming soon |
 
 ### Online stores & marketplaces
 
-| Integration | Buttons in Stratek | Keys (Set up form) | Status |
-|---|---|---|---|
-| [Shopify](https://shopify.dev/docs/api/admin-rest) | Sync menu to Shopify, Record sale in Shopify | Store domain, Admin API access token | Coming soon |
-| [WooCommerce](https://woocommerce.github.io/woocommerce-rest-api-docs/) | Sync menu to WooCommerce, Record sale in WooCommerce | Store address, Consumer key, Consumer secret | Coming soon |
-| [Daraz](https://open.daraz.com/) | Sync stock to Daraz | App key, App secret, Access token | Coming soon |
-| [Meta Catalog (Facebook & Instagram Shop)](https://developers.facebook.com/docs/marketing-api/catalog-batch/) | Test Meta Catalog, Sync menu to Facebook/Instagram Shop | Catalog ID, System user access token, Shop web address (optional), Graph API version (optional) | **Available** |
+| Integration | Buttons in Stratek | Keys (Set up form) | Test mode | Status |
+|---|---|---|---|---|
+| [Shopify](https://shopify.dev/docs/api/admin-rest) | Sync menu to Shopify, Record sale in Shopify | Store domain, Admin API access token | -- | Coming soon |
+| [WooCommerce](https://woocommerce.github.io/woocommerce-rest-api-docs/) | Sync menu to WooCommerce, Record sale in WooCommerce | Store address, Consumer key, Consumer secret | -- | Coming soon |
+| [Daraz](https://open.daraz.com/) | Sync stock to Daraz | App key, App secret, Access token | -- | Coming soon |
+| [Meta Catalog (Facebook & Instagram Shop)](https://developers.facebook.com/docs/marketing-api/catalog-batch/) | Test Meta Catalog, Sync menu to Facebook/Instagram Shop | Catalog ID, System user access token, Shop web address (optional), Graph API version (optional) | Test keys | **Available** |
 
 ### Customers & marketing
 
-| Integration | Buttons in Stratek | Keys (Set up form) | Status |
-|---|---|---|---|
-| [Mailchimp](https://mailchimp.com/developer/marketing/api/) | Add customer to Mailchimp | Mailchimp API key, Audience ID | Coming soon |
-| [HubSpot](https://developers.hubspot.com/docs/api/overview) | Add customer to HubSpot | Private app access token | Coming soon |
-| [Meta Conversions API](https://developers.facebook.com/docs/marketing-api/conversions-api) | Test Meta Conversions API, Send sale to Meta Ads | Pixel / dataset ID, Conversions API access token, Test event code (optional), Graph API version (optional) | **Available** |
+| Integration | Buttons in Stratek | Keys (Set up form) | Test mode | Status |
+|---|---|---|---|---|
+| [Mailchimp](https://mailchimp.com/developer/marketing/api/) | Add customer to Mailchimp | Mailchimp API key, Audience ID | -- | Coming soon |
+| [HubSpot](https://developers.hubspot.com/docs/api/overview) | Add customer to HubSpot | Private app access token | -- | Coming soon |
+| [Meta Conversions API](https://developers.facebook.com/docs/marketing-api/conversions-api) | Test Meta Conversions API, Send sale to Meta Ads | Pixel / dataset ID, Conversions API access token, Graph API version (optional) | Test keys | **Available** |
 
 ### Automation
 
-| Integration | Buttons in Stratek | Keys (Set up form) | Status |
-|---|---|---|---|
-| Webhook | Send sale to webhook | Webhook address (https://), Signing secret (optional) | Coming soon |
-| [Zapier](https://zapier.com/apps/webhook/integrations) | Send sale to Zapier | Zapier catch hook URL | Coming soon |
-| [Make](https://www.make.com/en/help/tools/webhooks) | Send sale to Make | Make webhook URL | Coming soon |
+| Integration | Buttons in Stratek | Keys (Set up form) | Test mode | Status |
+|---|---|---|---|---|
+| Webhook | Send sale to webhook | Webhook address (https://), Signing secret (optional) | -- | Coming soon |
+| [Zapier](https://zapier.com/apps/webhook/integrations) | Send sale to Zapier | Zapier catch hook URL | -- | Coming soon |
+| [Make](https://www.make.com/en/help/tools/webhooks) | Send sale to Make | Make webhook URL | -- | Coming soon |
 
 ### Using PayBridgeNP (available) -- the till & kiosk QR that sees payments
 
@@ -182,8 +203,11 @@ On a sale's Details: **Check online payment** (manual look-up) and **Refund
 online payment** (Khalti automatic, eSewa finished in the eSewa portal, Fonepay
 refunds aren't supported by PayBridgeNP).
 
-**Test mode:** Fonepay has no sandbox -- test payments are real money (max Rs
-1,000 each, Rs 5,000 a month).
+**Test keys:** put your sandbox project key (`sk_test_...`) in **Test keys** and
+the live key (`sk_live_...`) in **Live keys**. Each registers its own payment
+notifications. Fonepay has no sandbox -- test-mode payments are real money (max
+Rs 1,000 each, Rs 5,000 a month) and are marked "Test-mode payment". The till
+and kiosk always use the live key.
 
 ### Using Pathao (available)
 
@@ -191,12 +215,20 @@ refunds aren't supported by PayBridgeNP).
 2. Integrations -> Pathao -> **Set up**: the **API base URL**, Client ID and
    Client secret from Pathao Merchant -> Developer API (Merchant API
    Credentials), plus your Pathao merchant login email and password.
-3. Press **Test Pathao**: it signs in and lists your Pathao stores with their
-   IDs. Put the right **Store ID** in Set up.
+3. Press **Test Pathao**: it signs in, lists your Pathao stores with their
+   IDs, and checks what the online store needs -- Pathao's city list and one
+   sample delivery price ("live quotes work"). Put the right **Store ID** in
+   Set up.
+   **Test keys:** Pathao's sandbox API address and test credentials; press
+   **Test Pathao (test keys)** to check them. Test bookings go to Pathao's
+   sandbox -- no rider is sent.
 4. **Send with Pathao** (red button) appears at the till right after **Charge
    total**, and on every sale's Details: recipient, phone, address, cash to
    collect, weight, note -> books the delivery. **Track Pathao delivery** (sale
    Details) shows its status.
+5. For the online store (coming next), Stratek uses Pathao's own city -> zone
+   -> area lists (cached for a day) and Pathao's price for each address, and
+   books with that exact location.
 
 ### Using Stripe, PayPal and Coinbase (available)
 
@@ -206,14 +238,16 @@ Integrations tab, then after **Charge total** use **Pay by card (Stripe)**,
 opens their payment page. On the sale: **Check ... payment** (then **Settle**) and
 **Refund ... payment**.
 
-- **Stripe:** secret key (`sk_test_...`/`sk_live_...`, or a restricted `rk_` key
-  with Checkout Sessions + Refunds). Charges in the shop's currency.
-- **PayPal:** client ID + secret from developer.paypal.com; type `sandbox` in
-  *Mode* for test credentials. PayPal only accepts its own currency list (USD,
+- **Stripe:** live secret key (`sk_live_...`, or a restricted `rk_live_` key
+  with Checkout Sessions + Refunds) in Live keys; `sk_test_...` in Test keys.
+  Charges in the shop's currency.
+- **PayPal:** client ID + secret from developer.paypal.com: the Live app in Live
+  keys, the Sandbox app in Test keys (the old *Mode* field is gone). PayPal only accepts its own currency list (USD,
   EUR, GBP, AUD, ... -- not NPR); "Check" also captures an approved payment.
 - **Coinbase:** a Coinbase Developer Platform API key created with the
   **Ed25519** signature algorithm (key ID + private key). Uses Coinbase
   Business checkouts; currencies are Coinbase's (e.g. USD, EUR, USDC), not NPR.
+  Live only (no test environment).
 
 ### Using Slant 3D (available)
 
@@ -221,18 +255,21 @@ Set up the API key (`sl-...`; platform ID optional). On a sale: **Quote 3D print
 (model file URL, quantity, customer email and shipping address) uploads the
 model and creates a **draft** order with its price -- nothing is charged. **Confirm
 3D print order** pays for it from your Slant 3D account and sends it to
-production; **Track 3D print** shows status and tracking.
+production; **Track 3D print** shows status and tracking. Live only (Slant 3D
+has no test environment) -- quotes are free, confirming costs money.
 
 ### Using Meta (available)
 
-- **Meta Conversions API:** dataset (pixel) ID + Conversions API token (optional
-  test event code while testing). On a sale, **Send sale to Meta Ads** with the
+- **Meta Conversions API:** dataset (pixel) ID + Conversions API token. Test
+  keys = the same two plus the **test event code** (events then show only in
+  Events Manager -> Test events). On a sale, **Send sale to Meta Ads** with the
   customer's email or phone (hashed before sending) reports a Purchase so ads get
   credit for in-store sales.
 - **Meta Catalog:** catalogue ID + system user token (optional shop web address).
   **Sync menu to Facebook/Instagram Shop** on the Integrations tab sends every
   menu item that has a photo (Meta needs one); unavailable items show as out of
-  stock. Stratek passes the menu along with the request.
+  stock. Stratek passes the menu along with the request. Test keys: the ID of a
+  separate test catalogue.
 
 These integrations follow each provider's published API and were tested
 against stand-in services; please report anything that differs with a real
@@ -240,11 +277,10 @@ account (Pathao especially, and Slant 3D's address fields).
 
 New integrations arrive with connector updates (**Update connector** in Stratek).
 
-Planned in Stratek: an **online store** per shop (`strateknepal.com/store/<shop>`,
-see the POS repo's `docs/proposals/online-store.md`). Payment integrations
-(Fonepay dynamic QR, Khalti, eSewa, Stripe...) would confirm online orders
-automatically, and delivery ones (Pathao, Yango...) would add "Send with..." to
-them. So those are built first: Webhook, payments and delivery, then the store.
+Next in Stratek: an **online store** per shop (`strateknepal.com/store/<shop>`,
+see the POS repo's `docs/proposals/online-store.md`), gated on PayBridgeNP
+(Fonepay QR on the order page, confirmed automatically) + Pathao (live quotes,
+booking), with pickup or delivery and a test mode that uses the test keys.
 To build one, see [docs/adding-an-integration.md](docs/adding-an-integration.md).
 
 ## Updates

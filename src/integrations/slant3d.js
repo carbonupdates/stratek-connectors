@@ -48,6 +48,7 @@ export default {
   status: 'available',
   description: '3D print-on-demand: quote a print, order it and track it with Slant 3D.',
   docsUrl: 'https://slant3dapi.com/documentation/introduction',
+  test: { support: 'none', note: 'Slant 3D has no test environment -- orders are real prints. Live keys only; use "quote" to try it safely.' },
   secrets: [
     { name: 'SLANT3D_API_KEY', label: 'Slant 3D API key', hint: 'From your Slant 3D dashboard; starts with sl-.' },
     { name: 'SLANT3D_PLATFORM_ID', label: 'Platform ID', hint: 'Leave empty to use your first platform ("Test Slant 3D" lists them).', optional: true },

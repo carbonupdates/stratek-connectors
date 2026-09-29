@@ -71,52 +71,65 @@ export function connectedPage(pairing, stratekUrl) {
  */
 export function setupPage(integration) {
   const csp = "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; form-action 'none'; base-uri 'none'";
+  const t = { support: 'sandbox', note: null, ...(integration.test || {}) };
+  const testIntro = t.support === 'none'
+    ? `<p class="hint">${esc(t.note || `${integration.name} has no test environment, so it runs with live keys only.`)}</p>`
+    : `<p class="hint">Used only where Stratek says "test" (e.g. the online store's test mode, or the "(test keys)" buttons on Stratek's Integrations tab). The till, kiosk and live store always use the live keys.${t.note ? ` ${esc(t.note)}` : ''}</p>`;
   return page(`Set up ${integration.name}`, `
     <h1>Set up ${esc(integration.name)}</h1>
     <p>${esc(integration.description || '')}</p>
     <div id="msg"></div>
-    <form id="f" hidden autocomplete="off"><div id="fields"></div>
-      <p><button class="btn" type="submit" id="save">Save keys</button></p>
-    </form>
+    <section class="mode" data-mode="live"><h2>Live keys</h2><p class="hint">Real customers and real money.</p>
+      <form id="f_live" hidden autocomplete="off"><div class="fields"></div><p><button class="btn" type="submit">Save live keys</button></p></form></section>
+    <section class="mode" data-mode="test"><h2>Test keys ${t.support === 'none' ? '<small>(not available)</small>' : '<small>(optional)</small>'}</h2>${testIntro}
+      ${t.support === 'none' ? '' : '<form id="f_test" hidden autocomplete="off"><div class="fields"></div><p><button class="btn btn-alt" type="submit">Save test keys</button></p></form>'}</section>
     <p><small>Keys are stored in this connector, in the shop's own Cloudflare account. Stratek never sees them; saved keys are only shown masked.</small></p>
+    <style>.mode{border-top:1px solid #e6caca;margin-top:18px;padding-top:6px}h2{font-size:1.1rem;margin:10px 0 2px}.btn-alt{background:#574646}</style>
     <script>
     (function () {
       var id = ${JSON.stringify(integration.id)};
       var m = location.hash.match(/pass=([A-Za-z0-9._-]+)/);
       var pass = m ? m[1] : '';
       history.replaceState(null, '', location.pathname);
-      var msg = document.getElementById('msg'), form = document.getElementById('f'), box = document.getElementById('fields');
+      var msg = document.getElementById('msg');
       function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
-      function say(text, kind) { msg.innerHTML = text ? '<p class="' + (kind || 'err') + '">' + esc(text) + '</p>' : ''; }
+      function say(text, kind) { msg.innerHTML = text ? '<p class="' + (kind || 'err') + '">' + esc(text) + '</p>' : ''; msg.scrollIntoView({ block: 'nearest' }); }
       if (!pass) { say('Open this page from Stratek: Integrations -> Set up.'); return; }
-      function api(method, body) {
-        return fetch('/secrets/' + id, { method: method, headers: { Authorization: 'Bearer ' + pass, 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined })
+      function api(method, mode, body) {
+        return fetch('/secrets/' + id + (method === 'GET' ? '?mode=' + mode : ''), { method: method, headers: { Authorization: 'Bearer ' + pass, 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined })
           .then(function (r) { return r.json().then(function (j) { if (!r.ok || !j.success) throw new Error((j.error && j.error.message) || ('Error ' + r.status)); return j.data; }); });
       }
-      function render(d) {
-        box.innerHTML = d.secrets.map(function (s) {
-          var saved = s.set ? '<div class="saved">Saved: ' + esc(s.masked) + (s.source === 'cloudflare' ? ' (set in Cloudflare)' : '') + ' -- leave empty to keep</div>' : '';
-          var rm = s.set && s.source === 'connector' ? '<label class="rm"><input type="checkbox" data-remove="' + esc(s.name) + '"> remove</label>' : '';
-          return '<label for="k_' + esc(s.name) + '">' + esc(s.label) + (s.optional ? ' <small>(optional)</small>' : '') + rm + '</label>' +
-            '<input type="password" id="k_' + esc(s.name) + '" data-name="' + esc(s.name) + '" spellcheck="false" autocomplete="new-password">' +
-            (s.hint ? '<div class="hint">' + esc(s.hint) + '</div>' : '') + saved;
-        }).join('');
-        form.hidden = false;
+      function setup(mode) {
+        var form = document.getElementById('f_' + mode); if (!form) return;
+        var box = form.querySelector('.fields');
+        function render(d) {
+          box.innerHTML = d.secrets.map(function (s) {
+            var fid = 'k_' + mode + '_' + s.name;
+            var saved = s.set ? '<div class="saved">Saved: ' + esc(s.masked) + (s.source === 'cloudflare' ? ' (set in Cloudflare)' : '') + ' -- leave empty to keep</div>' : '';
+            var rm = s.set && s.source === 'connector' ? '<label class="rm"><input type="checkbox" data-remove="' + esc(s.name) + '"> remove</label>' : '';
+            return '<label for="' + esc(fid) + '">' + esc(s.label) + (s.optional ? ' <small>(optional)</small>' : '') + rm + '</label>' +
+              '<input type="password" id="' + esc(fid) + '" data-name="' + esc(s.name) + '" spellcheck="false" autocomplete="new-password">' +
+              (s.hint ? '<div class="hint">' + esc(s.hint) + '</div>' : '') + saved;
+          }).join('');
+          form.hidden = false;
+        }
+        api('GET', mode).then(render).catch(function (e) { say(e.message); });
+        form.addEventListener('submit', function (ev) {
+          ev.preventDefault();
+          var values = {}, remove = [];
+          box.querySelectorAll('input[data-name]').forEach(function (i) { if (i.value.trim()) values[i.dataset.name] = i.value.trim(); });
+          box.querySelectorAll('input[data-remove]:checked').forEach(function (i) { remove.push(i.dataset.remove); });
+          var btn = form.querySelector('button'); btn.disabled = true;
+          var label = mode === 'test' ? 'Test keys' : 'Live keys';
+          api('POST', mode, { mode: mode, values: values, remove: remove }).then(function (d) {
+            render(d);
+            if (!d.ready) say(label + ' saved. Still missing: ' + d.missing.join(', ') + '.', 'err');
+            else if (d.warning) say(label + ' saved, but: ' + d.warning, 'err');
+            else say(label + ' saved. ' + d.name + ' is ready' + (mode === 'test' ? ' in test mode' : '') + (d.notice ? ' -- ' + d.notice : '') + '. Go back to Stratek, it updates by itself.', 'ok');
+          }).catch(function (e) { say(e.message); }).then(function () { btn.disabled = false; });
+        });
       }
-      api('GET').then(render).catch(function (e) { say(e.message); });
-      form.addEventListener('submit', function (ev) {
-        ev.preventDefault();
-        var values = {}, remove = [];
-        box.querySelectorAll('input[data-name]').forEach(function (i) { if (i.value.trim()) values[i.dataset.name] = i.value.trim(); });
-        box.querySelectorAll('input[data-remove]:checked').forEach(function (i) { remove.push(i.dataset.remove); });
-        var btn = document.getElementById('save'); btn.disabled = true;
-        api('POST', { values: values, remove: remove }).then(function (d) {
-          render(d);
-          if (!d.ready) say('Saved. Still missing: ' + d.missing.join(', ') + '.', 'err');
-          else if (d.warning) say('Saved, but: ' + d.warning, 'err');
-          else say('Saved. ' + d.name + ' is ready' + (d.notice ? ' -- ' + d.notice : '') + '. Go back to Stratek, it updates by itself.', 'ok');
-        }).catch(function (e) { say(e.message); }).then(function () { btn.disabled = false; });
-      });
+      setup('live'); setup('test');
     })();
     </script>`, 200, { 'Content-Security-Policy': csp });
 }

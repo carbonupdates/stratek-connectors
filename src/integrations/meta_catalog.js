@@ -29,6 +29,7 @@ export default {
   status: 'available',
   description: 'Keep a Facebook/Instagram shop catalogue in step with the POS menu.',
   docsUrl: 'https://developers.facebook.com/docs/marketing-api/catalog-batch/',
+  test: { support: 'sandbox', note: 'Meta has no catalogue sandbox: put the ID of a separate test catalogue in Test keys.', hints: { META_CATALOG_ID: 'ID of a separate TEST catalogue (Commerce Manager -> create a catalogue just for testing).' } },
   secrets: [
     { name: 'META_CATALOG_ID', label: 'Catalog ID', hint: 'Commerce Manager -> your catalogue -> Settings.' },
     { name: 'META_SYSTEM_USER_TOKEN', label: 'System user access token', hint: 'Business Settings -> System users -> Generate token with catalog_management.' },

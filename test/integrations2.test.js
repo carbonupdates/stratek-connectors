@@ -81,7 +81,7 @@ test('Stripe: test, checkout QR (cents, form-encoded), check, refund', async () 
 });
 
 test('PayPal: sandbox, currency check, order QR, capture on check, refund', async () => {
-  const env = { PAYPAL_CLIENT_ID: 'id', PAYPAL_CLIENT_SECRET: 's', PAYPAL_MODE: 'sandbox' }; const store = memStore();
+  const env = { PAYPAL_CLIENT_ID: 'id', PAYPAL_CLIENT_SECRET: 's', STRATEK_MODE: 'test' }; const store = memStore();
   assert.match((await act(paypal, 'test')({ env, store })).text, /SANDBOX/);
   await assert.rejects(act(paypal, 'payment_link')({ env, context: { transaction: { id: 1, amount: 10, currency: 'NPR' } }, origin: 'x', store, claims: {} }), /does not accept NPR/);
   const q = await act(paypal, 'payment_link')({ env, context: ctxUSD, origin: 'https://c.dev', store, claims: { aud: 'a' } });

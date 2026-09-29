@@ -83,10 +83,11 @@ CORS: only `Origin: <STRATEK_URL>` is allowed.
 
 ```json
 { "success": true, "data": {
-  "connector": { "version": "0.4.0", "connectorId": "...", "owner": { "type": "merchant", "id": "1", "name": "Chyau" } },
+  "connector": { "version": "0.8.0", "connectorId": "...", "owner": { "type": "merchant", "id": "1", "name": "Chyau" } },
   "integrations": [
     { "id": "yango", "name": "Yango Delivery", "category": "delivery", "description": "...",
-      "status": "available", "docsUrl": "https://...", "ready": true, "setup": true, "missingSecrets": [],
+      "status": "available", "docsUrl": "https://...", "ready": true, "testReady": false,
+      "test": { "support": "sandbox", "note": null }, "setup": true, "missingSecrets": [], "testSecrets": [],
       "secrets": [ { "name": "YANGO_API_TOKEN", "label": "Yango Delivery API token", "optional": false, "set": true } ],
       "actions": [
         { "id": "create_delivery", "label": "Send with Yango", "placement": ["transaction"],
@@ -99,20 +100,31 @@ CORS: only `Origin: <STRATEK_URL>` is allowed.
   "Coming soon", shows no buttons and no Set up; its actions answer 409).
 - `category`: `system` | `payments` | `delivery` | `fulfilment` | `messaging` | `accounting` |
   `commerce` | `marketing` | `automation` -- Stratek groups the list by it.
-- `ready` = available and every non-optional key is set. Stratek only shows
+- `ready` = available and every non-optional **live** key is set. Stratek only shows
   buttons for ready integrations; `missingSecrets` lists names (never values).
+- `testReady` = the **test** keys are complete (v0.8.0+); `test: { support, note }`
+  with `support` = `sandbox` | `real-money` (test keys exist but some payments
+  are still real, e.g. Fonepay) | `none` (live only); `testSecrets[]` like
+  `secrets[]` for the test set. See section 5b.
 - `setup` = Stratek shows a **Set up** / **Change keys** button.
 - `secrets[].set` says whether each key is present -- never its value.
 - `placement` -- where the button appears:
   - `transaction`: a sale's Details panel (merchant Transactions tab)
   - `charge`: under the payment QR right after charging
   - `settings`: only on the Integrations tab (e.g. Test connection)
+  - hidden (never buttons; called by Stratek itself): `qr` (till/kiosk QR),
+    `health` (kiosk gate), `delivery` (Pathao `cities`, `zones`, `areas`, `quote`
+    for the online store)
 - `fields[].type`: `text` | `tel` | `email` | `number`. A field named
   `codAmount` is pre-filled with the sale total.
 
 ## 4. Actions -- `POST /actions/<integration>/<action>` (pass required)
 
-Request: `{ "fields": { ... }, "context": { "transaction": { "id", "amount", "currency", "reference", "items", "bill", "createdAt" } } }`
+Request: `{ "fields": { ... }, "context": { "transaction": { "id", "amount", "currency", "reference", "items", "bill", "createdAt" } }, "mode": "live" | "test" }`
+
+`mode` (v0.8.0+, default `live`) picks the key set. `test` on an integration
+with `support: none` answers `409 NO_TEST_MODE`; missing keys for the chosen
+mode answer `409 NOT_READY`. Results of test-mode calls carry `testMode: true`.
 
 Response: `{ "success": true, "data": { "result": <result> } }`, where `result` is one of
 
@@ -122,18 +134,25 @@ Response: `{ "success": true, "data": { "result": <result> } }`, where `result` 
 | `link` | `title?`, `text?`, `url` (https), `linkLabel?` | a link (tracking page, payment page...) |
 | `qr` | `title?`, `text?`, `qrPayload` | a QR code to scan |
 | `status` | `title?`, `status`, `text?` | a status line |
+| `list` | `items: [{ id, name, ... }]` | (hidden actions) e.g. Pathao cities / zones / areas |
+| `quote` | `price`, `currency` | (hidden) e.g. Pathao delivery price for `context: { cityId, zoneId, weight }` |
+| `health` | `ready`, `livemode`, `webhookRegistered`, `webhookId` | (hidden) kiosk gate |
+
+Pathao's `create_delivery` also accepts `context.delivery = { cityId, zoneId, areaId }`
+(from the online store) and sends them as `recipient_city/zone/area`.
 
 Errors: `{ "success": false, "error": { "message", "code" } }` -- the message is
 shown to the person.
 
 ### What an action's `run` receives
 
-`run({ env, claims, fields, context, origin, store })` -- `env` has the shop's
-keys (`env.<NAME>`), `claims` the pass, `fields` the form values, `context.transaction`
+`run({ env, claims, fields, context, origin, store, mode })` -- `env` has the shop's
+keys for the chosen mode (`env.<NAME>`) plus `env.STRATEK_MODE` (`live`|`test`), `claims` the pass, `fields` the form values, `context.transaction`
 the sale, `origin` the connector's own address (e.g. for return URLs; the
 connector serves a simple `GET /paid` "thank you" page), and `store` a small
 per-integration memory (`await store.get(k)`, `await store.put(k, v)`) kept in
 the Durable Object -- e.g. which payment session or consignment belongs to which sale.
+Live and test have separate memories (`data:<id>:...` and `data:<id>:test:...`).
 
 Settings actions without fields (e.g. "Test PayBridgeNP") appear as buttons on
 Stratek's Integrations tab once the integration is ready. An action can ask
@@ -164,9 +183,37 @@ never in Stratek:
   disconnects, and are passed to actions as `env.<NAME>` (form value wins over a
   Cloudflare Secret).
 
+## 5b. Test and live keys (v0.8.0+)
+
+Every integration has two key sets, shown as **Live keys** and **Test keys** on
+its Set up page.
+
+- `GET /secrets/<integration>?mode=test` / `POST ... { mode: "test", values, remove }`;
+  without `mode` = live. Views include `mode` and `test: { support, note }`.
+- Stored separately: `secrets` (live) and `secrets_test`; Cloudflare Secret
+  fallback for test keys uses the `TEST_` prefix (`TEST_STRIPE_SECRET_KEY`).
+- Which set is used is decided by the caller, never guessed: Stratek sends
+  `mode: "test"` only for test contexts (online store test mode, the "(test keys)"
+  buttons on its Integrations tab). Till, kiosk and live store = live.
+- An integration describes its test environment with
+  `test: { support, note, omit: [names], extraSecrets: [...], hints: { NAME: '...' } }`
+  (default `{ support: 'sandbox' }` with the same key names). Examples: PayPal
+  switches to `api-m.sandbox.paypal.com` in test; Meta CAPI's test set adds a
+  required `META_TEST_EVENT_CODE`; Coinbase and Slant 3D are `none`.
+- `onKeysSaved({ env, store, origin, mode })` runs per mode (PayBridgeNP
+  registers `/webhooks/paybridgenp` for live and `/webhooks/paybridgenp/test`
+  for test, each with its own signing secret).
+- **Migration (one time, on first use of 0.8.0):** saved keys that are clearly
+  test keys (`sk_test_`/`pk_test_`/`rk_test_`, PayPal `Mode = sandbox`, a Meta test
+  event code) and none that look live are moved to the test set, with the
+  integration's webhook record; webhooks registered before at the old address
+  keep working as test. Other keys stay live. Recorded as `keys_v2` in the
+  Durable Object.
+
 ## 6. Payments that report themselves -- webhooks and signed events
 
-- **Provider -> connector:** `POST <connector>/webhooks/<integration>` (no pass).
+- **Provider -> connector:** `POST <connector>/webhooks/<integration>` (live keys)
+  or `.../webhooks/<integration>/test` (test keys) (no pass).
   The integration's `webhook({ request, rawBody, env, store, emit })` checks
   the provider's own signature (PayBridgeNP: `X-PayBridgeNP-Signature: t=..,v1=..`,
   HMAC-SHA256 over `"<t>.<raw body>"`, 5-minute window) and re-checks with the
@@ -175,7 +222,8 @@ never in Stratek:
   run when its keys become complete in the Set up form -- PayBridgeNP registers
   `<connector>/webhooks/paybridgenp` there and keeps the signing secret. Its
   return text / error is shown on the Set up page.
-- **Connector -> Stratek:** `emit({ id, type, data })` sends
+- **Connector -> Stratek:** `emit({ id, type, data })` (the connector adds
+  `mode: "live" | "test"`) sends
   `POST <STRATEK_URL>/api/v1/connectors/events` with `X-Stratek-Connector:
   <connectorId>` and `X-Stratek-Signature: t=<unix>,sig=<base64url Ed25519 over
   "<t>.<body>">`. The connector's key pair lives in its Durable Object; the
@@ -187,7 +235,8 @@ never in Stratek:
   currency, provider, integration (id), webhookId, providerRef, method, livemode }` -> Stratek records
   `provider_paid_at/name/ref/note` on the sale ("Paid online"). It **never
   settles** the sale -- a person presses Settle. Wrong amount or paid after a
-  cancel -> flagged with a note.
+  cancel -> flagged with a note. `livemode: false` or event `mode: "test"` ->
+  noted "Test-mode payment" and never counts as the kiosk's proof payment.
 - **Till / kiosk QR:** an integration with `qrProvider: true` offers a hidden
   action `till_qr` (placement `qr`, never a button) returning `{ type: 'qr',
   qrPayload, provider, refreshAfterSec, livemode }`; calling it again for the

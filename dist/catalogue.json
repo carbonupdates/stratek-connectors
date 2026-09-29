@@ -1,5 +1,5 @@
 {
- "version": "0.7.1",
+ "version": "0.8.0",
  "categories": {
   "system": "Connector",
   "payments": "Payments",
@@ -56,8 +56,7 @@
    ],
    "secrets": [
     "PayPal client ID",
-    "PayPal client secret",
-    "Mode"
+    "PayPal client secret"
    ]
   },
   {
@@ -189,6 +188,10 @@
    "actions": [
     "Test Pathao",
     "Send with Pathao",
+    "Pathao cities",
+    "Pathao zones",
+    "Pathao areas",
+    "Pathao price",
     "Track Pathao delivery"
    ],
    "secrets": [
@@ -514,7 +517,6 @@
    "secrets": [
     "Pixel / dataset ID",
     "Conversions API access token",
-    "Test event code",
     "Graph API version"
    ]
   },

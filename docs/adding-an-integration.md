@@ -67,6 +67,26 @@ webhookId }`) -- the kiosk gate needs it. Include `integration` and `webhookId`
 in the `payment.succeeded` event data. See
 CONNECTORS.md section 6 and `paybridgenp.js`.
 
+## Test and live keys (every integration)
+
+Declare the provider's test environment next to `secrets` (see CONNECTORS.md 5b):
+
+```js
+test: {
+  support: 'sandbox',            // or 'real-money' (e.g. Fonepay) or 'none' (live only)
+  note: 'Shown on the Set up page.',
+  hints: { MY_KEY: 'Test key from ... (starts with sk_test_)' },
+  omit: [],                      // live-only key names
+  extraSecrets: [],              // test-only keys, e.g. Meta's test event code
+},
+```
+
+In `run`, `env` already holds the keys of the chosen mode; branch on
+`env.STRATEK_MODE === 'test'` only when the provider needs a different address
+(PayPal sandbox). Webhook integrations register `/webhooks/<id>` for live and
+`/webhooks/<id>/test` for test in `onKeysSaved({ mode })`. Add a case to
+`test/modes.test.js`.
+
 ## A brand-new integration
 
 Create `src/integrations/<id>.js` like the example (use `status: 'planned'` and

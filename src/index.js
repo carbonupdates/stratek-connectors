@@ -19,13 +19,18 @@
 //   POST /secrets/:int         save / remove keys            (Stratek pass,
 //                              signed-in session only, not API keys)
 //   GET  /event-key            public key Stratek checks this connector's events with
-//   POST /webhooks/:int        notifications from a provider (e.g. PayBridgeNP
+//   POST /webhooks/:int[/test] notifications from a provider (e.g. PayBridgeNP
 //                              "payment succeeded"); checked by the integration,
 //                              then forwarded to Stratek as a signed event
+//
+// Test vs live: every integration has two key sets (Set up page sections).
+// Actions/secrets take `mode: 'test' | 'live'` (default live); webhooks for
+// test keys arrive at /webhooks/:int/test. Test keys are stored separately
+// ('secrets_test') and each mode has its own integration memory.
 
 import { ConnectorState, store } from './state.js';
 import { verifyPass, fetchStratekKey } from './auth.js';
-import { manifest, findAction, findIntegration, isReady, statusOf, requiredSecrets, allSecretNames } from './registry.js';
+import { INTEGRATIONS, manifest, findAction, findIntegration, isReady, statusOf, requiredSecrets, allSecretNames, secretsFor, testInfo, modeOf } from './registry.js';
 import { homePage, messagePage, connectedPage, setupPage } from './pages.js';
 import { CONNECTOR_VERSION } from './version.js';
 import { publicEventKey, emitEvent } from './events.js';
@@ -60,19 +65,63 @@ function randomHex(bytes = 24) {
 const MAX_KEY_LENGTH = 4096;
 
 /**
- * All integration keys: saved with the Set up form (Durable Object) or set as
- * Cloudflare Secrets with the same name. The Set up form wins.
+ * All integration keys for one mode: saved with the Set up form (Durable
+ * Object; live in 'secrets', test in 'secrets_test') or set as Cloudflare
+ * Secrets with the same name (test: prefixed TEST_). The Set up form wins.
  * Returns { keys, source } where source[name] = 'connector' | 'cloudflare'.
  */
-async function loadKeys(env, db) {
-  const stored = (await db.get('secrets')) || {};
+async function loadKeys(env, db, mode = 'live') {
+  await migrateKeys(db);
+  const test = modeOf(mode) === 'test';
+  const stored = (await db.get(test ? 'secrets_test' : 'secrets')) || {};
   const keys = {};
   const source = {};
   for (const name of allSecretNames()) {
+    const envName = test ? `TEST_${name}` : name;
     if (typeof stored[name] === 'string' && stored[name]) { keys[name] = stored[name]; source[name] = 'connector'; }
-    else if (typeof env[name] === 'string' && env[name].trim()) { keys[name] = env[name]; source[name] = 'cloudflare'; }
+    else if (typeof env[envName] === 'string' && env[envName].trim()) { keys[name] = env[envName]; source[name] = 'cloudflare'; }
   }
   return { keys, source };
+}
+
+/** Per-integration memory, separate for test and live. */
+function integrationStore(db, integration, mode = 'live') {
+  const prefix = modeOf(mode) === 'test' ? `data:${integration.id}:test:` : `data:${integration.id}:`;
+  return { get: (k) => db.get(prefix + k), put: (k, v) => db.put(prefix + k, v) };
+}
+
+const TEST_VALUE = /^(sk|pk|rk)_test_/;
+/**
+ * One-time (v0.8.0): before test/live keys existed, some shops saved test
+ * keys as their only keys. Move an integration's saved keys to "test" when
+ * they are clearly test keys (sk_test_..., PayPal "sandbox" mode, a Meta test
+ * event code) and none look live.
+ */
+async function migrateKeys(db) {
+  if (await db.get('keys_v2')) return;
+  const live = (await db.get('secrets')) || {};
+  const test = (await db.get('secrets_test')) || {};
+  const moved = [];
+  for (const i of INTEGRATIONS) {
+    if (testInfo(i).support === 'none') continue;
+    const names = [...new Set([...secretsFor(i, 'live'), ...secretsFor(i, 'test')].map((x) => x.name))].filter((n) => typeof live[n] === 'string' && live[n]);
+    if (!names.length) continue;
+    const vals = names.map((n) => live[n]);
+    const looksTest = vals.some((v) => TEST_VALUE.test(v))
+      || (i.id === 'paypal' && String(live.PAYPAL_MODE || '').toLowerCase() === 'sandbox')
+      || (i.id === 'meta_capi' && !!live.META_TEST_EVENT_CODE);
+    const looksLive = vals.some((v) => /^(sk|pk|rk)_live_/.test(v));
+    if (!looksTest || looksLive) continue;
+    for (const n of names) { test[n] = live[n]; delete live[n]; }
+    if (i.id === 'paypal') { delete test.PAYPAL_MODE; delete live.PAYPAL_MODE; }
+    const hook = await db.get(`data:${i.id}:webhook`);
+    if (hook) { await db.put(`data:${i.id}:test:webhook`, { ...hook, legacyUrl: true }); await db.delete(`data:${i.id}:webhook`); }
+    moved.push(i.id);
+  }
+  await db.put('secrets', live);
+  await db.put('secrets_test', test);
+  await db.put('keys_v2', { at: new Date().toISOString(), moved });
+  if (moved.length) console.log(`keys moved to test: ${moved.join(', ')}`);
 }
 
 function mask(v) {
@@ -80,14 +129,18 @@ function mask(v) {
   return s.length >= 16 ? `${s.slice(0, 3)}…${s.slice(-4)}` : '••••••';
 }
 
-function secretsView(integration, keys, source) {
-  const missing = requiredSecrets(integration).filter((s) => !keys[s.name]).map((s) => s.label);
+function secretsView(integration, keys, source, mode = 'live') {
+  const m = modeOf(mode);
+  const missing = requiredSecrets(integration, m).filter((s) => !keys[s.name]).map((s) => s.label);
+  const t = testInfo(integration);
   return {
     id: integration.id,
     name: integration.name,
-    ready: isReady(integration, keys),
+    mode: m,
+    ready: isReady(integration, keys, m),
     missing,
-    secrets: (integration.secrets || []).map((s) => ({
+    test: { support: t.support, note: t.note || null },
+    secrets: secretsFor(integration, m).map((s) => ({
       name: s.name, label: s.label, hint: s.hint || null, optional: !!s.optional,
       set: !!keys[s.name], masked: keys[s.name] ? mask(keys[s.name]) : null, source: source[s.name] || null,
     })),
@@ -145,19 +198,20 @@ export async function handle(request, env) {
   }
 
   // Provider notifications (no Stratek pass -- each integration checks the provider's own signature).
-  const hookMatch = pathname.match(/^\/webhooks\/([a-z0-9_-]+)$/);
+  const hookMatch = pathname.match(/^\/webhooks\/([a-z0-9_-]+)(\/test)?$/);
   if (hookMatch && request.method === 'POST') {
     const integration = findIntegration(hookMatch[1]);
     if (!integration?.webhook || statusOf(integration) !== 'available') return failJson(env, request, 'Not found', 404, 'NOT_FOUND');
     const rawBody = await request.text();
     if (rawBody.length > 256 * 1024) return failJson(env, request, 'Too large.', 413, 'TOO_LARGE');
-    const { keys } = await loadKeys(env, db);
-    const store = {
-      get: (k) => db.get(`data:${integration.id}:${k}`),
-      put: (k, v) => db.put(`data:${integration.id}:${k}`, v),
-    };
+    let mode = hookMatch[2] ? 'test' : 'live';
+    await migrateKeys(db);
+    // Registered before v0.8.0 with test keys at the old (live) address.
+    if (mode === 'live' && !(await integrationStore(db, integration, 'live').get('webhook')) && (await integrationStore(db, integration, 'test').get('webhook'))?.legacyUrl) mode = 'test';
+    const { keys } = await loadKeys(env, db, mode);
+    const store = integrationStore(db, integration, mode);
     try {
-      const out = await integration.webhook({ request, rawBody, env: { ...env, ...keys }, store, emit: (event) => emitEvent(db, event) });
+      const out = await integration.webhook({ request, rawBody, env: { ...env, ...keys, STRATEK_MODE: mode }, store, mode, emit: (event) => emitEvent(db, { ...event, mode }) });
       return okJson(env, request, out || { received: true });
     } catch (err) {
       console.error(`webhook ${integration.id}:`, err?.message);
@@ -251,7 +305,7 @@ export async function handle(request, env) {
   if (pathname === '/manifest' && request.method === 'GET') {
     return okJson(env, request, {
       connector: { version: CONNECTOR_VERSION, connectorId: pairing.connectorId, owner: { type: pairing.ownerType, id: pairing.ownerId, name: pairing.ownerName } },
-      integrations: manifest((await loadKeys(env, db)).keys).filter((i) => allowedInt(i.id)),
+      integrations: manifest((await loadKeys(env, db)).keys, (await loadKeys(env, db, 'test')).keys).filter((i) => allowedInt(i.id)),
     });
   }
 
@@ -262,17 +316,22 @@ export async function handle(request, env) {
     if (!allowedInt(integration.id)) return notOffered(integration.name);
     if (statusOf(integration) !== 'available') return failJson(env, request, `${integration.name} is coming soon -- not in this connector version yet.`, 409, 'NOT_AVAILABLE');
     if (request.method === 'GET') {
-      const { keys, source } = await loadKeys(env, db);
-      return okJson(env, request, secretsView(integration, keys, source));
+      const mode = modeOf(url.searchParams.get('mode'));
+      const { keys, source } = await loadKeys(env, db, mode);
+      return okJson(env, request, secretsView(integration, keys, source, mode));
     }
     if (request.method === 'POST') {
       // Keys may only be changed by a person signed in to Stratek, never with an API key.
       if (claims.src !== 'session') return failJson(env, request, 'Keys can only be changed by someone signed in to Stratek (not with an API key).', 403, 'FORBIDDEN');
       const body = await request.json().catch(() => null);
-      const allowed = new Set(integration.secrets.map((s) => s.name));
+      const mode = modeOf(body?.mode);
+      if (mode === 'test' && testInfo(integration).support === 'none') return failJson(env, request, `${integration.name} has no test environment -- live keys only.`, 400, 'NO_TEST_MODE');
+      const allowed = new Set(secretsFor(integration, mode).map((s) => s.name));
       const values = body && typeof body.values === 'object' && body.values ? body.values : {};
       const remove = Array.isArray(body?.remove) ? body.remove : [];
-      const stored = (await db.get('secrets')) || {};
+      await migrateKeys(db);
+      const slot = mode === 'test' ? 'secrets_test' : 'secrets';
+      const stored = (await db.get(slot)) || {};
       for (const [name, value] of Object.entries(values)) {
         if (!allowed.has(name)) return failJson(env, request, `${name} is not a key of ${integration.name}.`, 400, 'BAD_KEY');
         const v = String(value ?? '').trim();
@@ -284,15 +343,15 @@ export async function handle(request, env) {
         if (!allowed.has(name)) return failJson(env, request, `${name} is not a key of ${integration.name}.`, 400, 'BAD_KEY');
         if (!(name in values)) delete stored[name];
       }
-      await db.put('secrets', stored);
-      console.log(`keys updated for ${integration.id} by ${claims.actor || claims.sub}`); // names only, never values
-      const { keys, source } = await loadKeys(env, db);
-      const view = secretsView(integration, keys, source);
+      await db.put(slot, stored);
+      console.log(`${mode} keys updated for ${integration.id} by ${claims.actor || claims.sub}`); // names only, never values
+      const { keys, source } = await loadKeys(env, db, mode);
+      const view = secretsView(integration, keys, source, mode);
       // Some integrations finish their own setup once the keys are in (e.g. PayBridgeNP
       // registers this connector for payment notifications).
       if (view.ready && integration.onKeysSaved) {
-        const store = { get: (k) => db.get(`data:${integration.id}:${k}`), put: (k, v) => db.put(`data:${integration.id}:${k}`, v) };
-        try { view.notice = await integration.onKeysSaved({ env: { ...env, ...keys }, store, origin: url.origin }); }
+        const store = integrationStore(db, integration, mode);
+        try { view.notice = await integration.onKeysSaved({ env: { ...env, ...keys, STRATEK_MODE: mode }, store, origin: url.origin, mode }); }
         catch (err) { view.warning = err?.message || 'Setup step failed.'; }
       }
       return okJson(env, request, view);
@@ -311,9 +370,11 @@ export async function handle(request, env) {
     if (!found) return failJson(env, request, 'Unknown integration or action.', 404, 'NOT_FOUND');
     if (!allowedInt(found.integration.id)) return notOffered(found.integration.name);
     if (statusOf(found.integration) !== 'available') return failJson(env, request, `${found.integration.name} is coming soon.`, 409, 'NOT_AVAILABLE');
-    const { keys } = await loadKeys(env, db);
-    if (!isReady(found.integration, keys)) return failJson(env, request, `${found.integration.name} is not set up yet -- press Set up in Stratek.`, 409, 'NOT_READY');
     const body = await request.json().catch(() => ({}));
+    const mode = modeOf(body?.mode);
+    if (mode === 'test' && testInfo(found.integration).support === 'none') return failJson(env, request, `${found.integration.name} has no test environment -- live only.`, 409, 'NO_TEST_MODE');
+    const { keys } = await loadKeys(env, db, mode);
+    if (!isReady(found.integration, keys, mode)) return failJson(env, request, `${found.integration.name} ${mode === 'test' ? 'test keys are' : 'is'} not set up yet -- press Set up in Stratek.`, 409, 'NOT_READY');
     const fields = body && typeof body.fields === 'object' && body.fields ? body.fields : {};
     for (const f of found.action.fields || []) {
       if (f.required && (fields[f.name] === undefined || fields[f.name] === null || String(fields[f.name]).trim() === '')) {
@@ -323,11 +384,9 @@ export async function handle(request, env) {
     try {
       // Integrations read their keys from env as usual; Set up form keys are merged in.
       // `store`: a small per-integration memory (e.g. which payment session belongs to which sale).
-      const store = {
-        get: (k) => db.get(`data:${found.integration.id}:${k}`),
-        put: (k, v) => db.put(`data:${found.integration.id}:${k}`, v),
-      };
-      const result = await found.action.run({ env: { ...env, ...keys }, claims, fields, context: body?.context || {}, origin: url.origin, store });
+      const store = integrationStore(db, found.integration, mode);
+      const result = await found.action.run({ env: { ...env, ...keys, STRATEK_MODE: mode }, claims, fields, context: body?.context || {}, origin: url.origin, store, mode });
+      if (result && typeof result === 'object' && mode === 'test') result.testMode = true;
       return okJson(env, request, { result });
     } catch (err) {
       console.error(`action ${m[1]}/${m[2]} failed:`, err);

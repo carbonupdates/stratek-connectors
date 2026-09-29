@@ -50,6 +50,7 @@ export default {
   status: 'available',
   description: 'Crypto payments (e.g. USDC) through Coinbase Business checkouts.',
   docsUrl: 'https://docs.cdp.coinbase.com/coinbase-business/',
+  test: { support: 'none', note: 'Coinbase Business checkouts have no test environment Stratek can rely on, so Coinbase runs with live keys only.' },
   secrets: [
     { name: 'COINBASE_API_KEY_NAME', label: 'CDP API key ID / name', hint: 'From the Coinbase Developer Platform portal (API keys). Use the Ed25519 signature algorithm.' },
     { name: 'COINBASE_API_PRIVATE_KEY', label: 'CDP API private key (Ed25519, base64)', hint: 'The "secret" shown once when the key is created.' },

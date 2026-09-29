@@ -28,10 +28,14 @@ export default {
   status: 'available',
   description: 'Send each sale to Meta (Facebook/Instagram Ads) as a Purchase event so ad results are measured.',
   docsUrl: 'https://developers.facebook.com/docs/marketing-api/conversions-api',
+  test: {
+    support: 'sandbox',
+    note: 'Test events use the same dataset and token plus a test event code; they appear in Events Manager -> Test events only.',
+    extraSecrets: [{ name: 'META_TEST_EVENT_CODE', label: 'Test event code', hint: 'Events Manager -> your dataset -> Test events (e.g. TEST12345).' }],
+  },
   secrets: [
     { name: 'META_PIXEL_ID', label: 'Pixel / dataset ID', hint: 'Events Manager -> your dataset -> Settings.' },
     { name: 'META_CAPI_TOKEN', label: 'Conversions API access token', hint: 'Events Manager -> Settings -> Conversions API -> Generate access token.' },
-    { name: 'META_TEST_EVENT_CODE', label: 'Test event code', hint: 'Only while testing in Events Manager -> Test events. Remove it to send real events.', optional: true },
     { name: 'META_GRAPH_VERSION', label: 'Graph API version', hint: 'Leave empty for v23.0.', optional: true },
   ],
   actions: [
@@ -65,7 +69,7 @@ export default {
           user_data,
           custom_data: { currency: tx.currency, value: Number(tx.amount), order_id: tx.id, contents: items.map((i) => ({ id: String(i.name).slice(0, 100), quantity: Number(i.qty) || 1, item_price: Number(i.price) || undefined })) },
         };
-        const d = await meta(env, 'POST', `/${encodeURIComponent(env.META_PIXEL_ID)}/events`, { data: [event], ...(env.META_TEST_EVENT_CODE ? { test_event_code: env.META_TEST_EVENT_CODE } : {}) });
+        const d = await meta(env, 'POST', `/${encodeURIComponent(env.META_PIXEL_ID)}/events`, { data: [event], ...(env.STRATEK_MODE === 'test' && env.META_TEST_EVENT_CODE ? { test_event_code: env.META_TEST_EVENT_CODE } : {}) });
         await store.put(`tx:${tx.id}`, { sentAt: new Date().toISOString() });
         return { type: 'message', title: 'Sent to Meta', text: `Purchase of ${tx.currency} ${tx.amount} sent (${d.events_received ?? 1} event${env.META_TEST_EVENT_CODE ? ', test mode' : ''}).` };
       },

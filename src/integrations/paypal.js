@@ -11,7 +11,8 @@
 import { toDecimalString, sale } from './_util.js';
 
 const CURRENCIES = new Set(['AUD', 'BRL', 'CAD', 'CNY', 'CZK', 'DKK', 'EUR', 'HKD', 'HUF', 'ILS', 'JPY', 'MYR', 'MXN', 'TWD', 'NZD', 'NOK', 'PHP', 'PLN', 'GBP', 'SGD', 'SEK', 'CHF', 'THB', 'USD']);
-const base = (env) => (String(env.PAYPAL_MODE || 'live').trim().toLowerCase() === 'sandbox' ? 'https://api-m.sandbox.paypal.com' : 'https://api-m.paypal.com');
+// Test keys = PayPal sandbox app; live keys = live app.
+const base = (env) => (env.STRATEK_MODE === 'test' ? 'https://api-m.sandbox.paypal.com' : 'https://api-m.paypal.com');
 
 async function token(env, store) {
   const cached = await store.get('token');
@@ -22,7 +23,7 @@ async function token(env, store) {
     body: 'grant_type=client_credentials',
   });
   const d = await res.json().catch(() => null);
-  if (!res.ok || !d?.access_token) throw new Error(`PayPal did not accept the client ID/secret${String(env.PAYPAL_MODE || '').toLowerCase() === 'sandbox' ? ' (sandbox)' : ' (live -- set Mode to "sandbox" for test keys)'}.`);
+  if (!res.ok || !d?.access_token) throw new Error(`PayPal did not accept the client ID/secret${env.STRATEK_MODE === 'test' ? ' (sandbox -- use the Sandbox app credentials in Test keys)' : ' (live -- sandbox credentials go in Test keys)'}.`);
   await store.put('token', { access_token: d.access_token, expiresAt: Date.now() + (d.expires_in || 3000) * 1000, base: base(env), clientId: env.PAYPAL_CLIENT_ID });
   return d.access_token;
 }
@@ -43,10 +44,10 @@ export default {
   status: 'available',
   description: 'PayPal checkout for international customers.',
   docsUrl: 'https://developer.paypal.com/api/rest/',
+  test: { support: 'sandbox', note: 'Use the credentials of a PayPal Sandbox app (developer.paypal.com -> Apps & Credentials -> Sandbox).' },
   secrets: [
-    { name: 'PAYPAL_CLIENT_ID', label: 'PayPal client ID', hint: 'developer.paypal.com -> Apps & Credentials.' },
+    { name: 'PAYPAL_CLIENT_ID', label: 'PayPal client ID', hint: 'developer.paypal.com -> Apps & Credentials -> Live.' },
     { name: 'PAYPAL_CLIENT_SECRET', label: 'PayPal client secret' },
-    { name: 'PAYPAL_MODE', label: 'Mode', hint: 'Type "sandbox" for test credentials; leave empty for live.', optional: true },
   ],
   actions: [
     {

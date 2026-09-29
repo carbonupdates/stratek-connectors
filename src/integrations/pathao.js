@@ -3,9 +3,15 @@
 // Developer API ("Merchant API Credentials"), which also shows the API base URL.
 //
 // Buttons
-//   Test Pathao (Integrations tab)     get a token, list your Pathao stores (to find the store ID)
+//   Test Pathao (Integrations tab)     get a token, list your Pathao stores (to find the store ID),
+//                                      check the city list and a sample price quote
 //   Send with Pathao (till, after Charge total; and sale details)  create a delivery order (cash to collect = sale total by default)
 //   Track Pathao delivery (sale)       order status
+//
+// Hidden actions (placement 'delivery', never buttons) used by the online store:
+//   cities, zones {cityId}, areas {zoneId}   Pathao's own location lists
+//   quote {cityId, zoneId, weight}           Pathao's delivery price for this store
+// Lists are cached for a day. Test keys = Pathao's sandbox (base URL + test credentials).
 //
 // The access token is cached in the connector and renewed when it expires.
 
@@ -49,6 +55,40 @@ async function api(env, store, method, path, body, what) {
   }, what);
 }
 
+const listOf = (d) => { const x = d?.data?.data ?? d?.data ?? d; return Array.isArray(x) ? x : []; };
+const posInt = (v, what) => { const n = Number(v); if (!Number.isInteger(n) || n <= 0) throw new Error(`Choose a ${what}.`); return n; };
+
+async function cachedList(env, store, key, path, what) {
+  const hit = await store.get(`list:${key}`);
+  if (hit && hit.at > Date.now() - 86400000 && hit.base === base(env)) return hit.items;
+  const items = listOf(await api(env, store, 'GET', path, null, what));
+  await store.put(`list:${key}`, { at: Date.now(), base: base(env), items });
+  return items;
+}
+export const cities = (env, store) => cachedList(env, store, 'cities', '/city-list', 'city list')
+  .then((l) => l.map((c) => ({ id: Number(c.city_id ?? c.id), name: String(c.city_name ?? c.name ?? '') })).filter((c) => c.id));
+export const zones = (env, store, cityId) => cachedList(env, store, `zones:${cityId}`, `/cities/${posInt(cityId, 'city')}/zone-list`, 'zone list')
+  .then((l) => l.map((z) => ({ id: Number(z.zone_id ?? z.id), name: String(z.zone_name ?? z.name ?? '') })).filter((z) => z.id));
+export const areas = (env, store, zoneId) => cachedList(env, store, `areas:${zoneId}`, `/zones/${posInt(zoneId, 'zone')}/area-list`, 'area list')
+  .then((l) => l.map((a) => ({ id: Number(a.area_id ?? a.id), name: String(a.area_name ?? a.name ?? ''), homeDelivery: a.home_delivery_available !== false })).filter((a) => a.id));
+
+/** Pathao's price for delivering to a city/zone from this store. Returns { price, currency }. */
+export async function quote(env, store, { cityId, zoneId, weight }) {
+  if (!env.PATHAO_STORE_ID) throw new Error('Add your Pathao store ID in Set up (press "Test Pathao" to see it).');
+  const d = await api(env, store, 'POST', '/merchant/price-plan', {
+    store_id: Number(env.PATHAO_STORE_ID),
+    item_type: 2,
+    delivery_type: 48,
+    item_weight: Number(weight) > 0 ? Math.min(Number(weight), 25) : 0.5,
+    recipient_city: posInt(cityId, 'city'),
+    recipient_zone: posInt(zoneId, 'zone'),
+  }, 'price');
+  const p = d?.data || {};
+  const price = Number(p.final_price ?? p.price);
+  if (!Number.isFinite(price) || price < 0) throw new Error('Pathao did not return a delivery price for that address.');
+  return { price: Math.round(price * 100) / 100, currency: 'NPR' };
+}
+
 export default {
   id: 'pathao',
   name: 'Pathao',
@@ -57,6 +97,11 @@ export default {
   color: '#e4202a',
   description: 'Book and track Pathao courier deliveries for a sale.',
   docsUrl: 'https://merchant.pathao.com/courier/developer-api',
+  test: {
+    support: 'sandbox',
+    note: 'Use Pathao\'s sandbox (test) API address and test credentials. Test bookings go to Pathao\'s sandbox -- no rider is sent.',
+    hints: { PATHAO_BASE_URL: 'Pathao sandbox API address (starts with https://), from Pathao\'s developer docs / test credentials.' },
+  },
   secrets: [
     { name: 'PATHAO_BASE_URL', label: 'Pathao API base URL', hint: 'Shown on Pathao Merchant -> Developer API (starts with https://).' },
     { name: 'PATHAO_CLIENT_ID', label: 'Client ID', hint: 'Pathao Merchant -> Developer API -> Merchant API Credentials.' },
@@ -75,7 +120,21 @@ export default {
         const d = await api(env, store, 'GET', '/stores', null, 'stores');
         const list = d?.data?.data || d?.data || [];
         const names = Array.isArray(list) ? list.map((s) => `${s.store_name || s.name} (ID ${s.store_id || s.id})`).join(', ') : '';
-        return { type: 'message', title: 'Pathao is connected', text: names ? `Your stores: ${names}.${env.PATHAO_STORE_ID ? '' : ' Put the right store ID in Set up.'}` : 'Signed in, but no stores were returned. Create a store in the Pathao merchant panel.' };
+        if (!names) return { type: 'message', title: 'Pathao is connected', text: 'Signed in, but no stores were returned. Create a store in the Pathao merchant panel.' };
+        // Online store readiness: city list + one sample price.
+        let extra = '';
+        try {
+          const c = await cities(env, store);
+          extra = ` City list: ${c.length} cities.`;
+          if (env.PATHAO_STORE_ID && c.length) {
+            const z = await zones(env, store, c[0].id);
+            if (z.length) {
+              const q = await quote(env, store, { cityId: c[0].id, zoneId: z[0].id, weight: 0.5 });
+              extra += ` Sample price to ${c[0].name} / ${z[0].name}: Rs ${q.price} (live quotes work).`;
+            }
+          }
+        } catch (err) { extra += ` Online-store check failed: ${err.message}`; }
+        return { type: 'message', title: 'Pathao is connected', text: `Your stores: ${names}.${env.PATHAO_STORE_ID ? '' : ' Put the right store ID in Set up.'}${extra}` };
       },
     },
     {
@@ -103,6 +162,9 @@ export default {
           recipient_name: String(fields.recipientName).slice(0, 100),
           recipient_phone: String(fields.recipientPhone).replace(/[^\d+]/g, ''),
           recipient_address: String(fields.recipientAddress).slice(0, 220),
+          ...(context?.delivery?.cityId ? { recipient_city: Number(context.delivery.cityId) } : {}),
+          ...(context?.delivery?.zoneId ? { recipient_zone: Number(context.delivery.zoneId) } : {}),
+          ...(context?.delivery?.areaId ? { recipient_area: Number(context.delivery.areaId) } : {}),
           delivery_type: 48,
           item_type: 2,
           item_quantity: Math.max(1, items.reduce((n, i) => n + (Number(i.qty) || 1), 0)),
@@ -116,6 +178,10 @@ export default {
         return { type: 'status', title: 'Pathao delivery booked', status: o.order_status || 'Pending', text: `Consignment ${o.consignment_id}${o.delivery_fee !== undefined ? `, delivery fee Rs ${o.delivery_fee}` : ''}.` };
       },
     },
+    { id: 'cities', label: 'Pathao cities', placement: ['delivery'], fields: [], async run({ env, store }) { return { type: 'list', items: await cities(env, store) }; } },
+    { id: 'zones', label: 'Pathao zones', placement: ['delivery'], fields: [], async run({ env, store, context }) { return { type: 'list', items: await zones(env, store, context?.cityId) }; } },
+    { id: 'areas', label: 'Pathao areas', placement: ['delivery'], fields: [], async run({ env, store, context }) { return { type: 'list', items: await areas(env, store, context?.zoneId) }; } },
+    { id: 'quote', label: 'Pathao price', placement: ['delivery'], fields: [], async run({ env, store, context }) { return { type: 'quote', ...(await quote(env, store, context || {})) }; } },
     {
       id: 'track',
       label: 'Track Pathao delivery',

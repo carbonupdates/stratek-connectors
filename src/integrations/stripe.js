@@ -43,8 +43,9 @@ export default {
   description: 'Card payments and payment links (international cards, Apple Pay, Google Pay).',
   docsUrl: 'https://docs.stripe.com/api',
   secrets: [
-    { name: 'STRIPE_SECRET_KEY', label: 'Stripe secret key', hint: 'Stripe Dashboard -> Developers -> API keys. Starts with sk_live_ (or sk_test_ for testing). A restricted key (rk_) with Checkout Sessions + Refunds write access also works.' },
+    { name: 'STRIPE_SECRET_KEY', label: 'Stripe secret key', hint: 'Stripe Dashboard -> Developers -> API keys. Starts with sk_live_. A restricted key (rk_live_) with Checkout Sessions + Refunds write access also works.' },
   ],
+  test: { support: 'sandbox', hints: { STRIPE_SECRET_KEY: 'Test-mode key from the same page (starts with sk_test_ or rk_test_). Pay with Stripe test cards, e.g. 4242 4242 4242 4242.' } },
   actions: [
     {
       id: 'test', label: 'Test Stripe', placement: ['settings'], fields: [],
