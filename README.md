@@ -190,7 +190,12 @@ From then on:
 - If PayBridgeNP can't make a QR (offline, plan, Fonepay not connected) or the
   amount is under Rs 10, the till shows the shop's own QR as before (a kiosk refuses the order instead).
 
-**Kiosk mode needs this.** A kiosk (self-service screen) only works when
+**Test first:** switch Stratek to **Test** (Display tab -> Shop mode). The till
+QR and kiosk then use the **Test keys** (checklist: test key + test
+notifications), every sale is a test sale kept out of the books, and screens
+show TEST MODE. Switch back to **Live** there when done.
+
+**Kiosk mode (Live) needs this.** A kiosk (self-service screen) in Live only works when
 Stratek's checklist is green: live key (`sk_live_`), payment notifications
 registered, and **one real payment received at the till** with the PayBridgeNP
 QR since the key was last saved (Display tab -> Kiosk checklist). Re-saving the
