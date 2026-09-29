@@ -1,5 +1,5 @@
 {
- "version": "0.6.1",
+ "version": "0.7.0",
  "categories": {
   "system": "Connector",
   "payments": "Payments",
@@ -132,12 +132,11 @@
    "name": "PayBridgeNP",
    "category": "payments",
    "status": "available",
-   "description": "eSewa, Khalti and Fonepay in one online checkout (Nepal).",
+   "description": "Fonepay QR at the till and kiosk that detects payment by itself (eSewa, Khalti, Fonepay aggregator, Nepal).",
    "docsUrl": "https://docs.paybridgenp.com/api-reference/overview",
    "actions": [
     "Test PayBridgeNP",
-    "Pay online (eSewa / Khalti / Fonepay)",
-    "Fonepay QR (scan in any bank or wallet app)",
+    "Fonepay QR for the till",
     "Check online payment",
     "Refund online payment"
    ],

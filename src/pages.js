@@ -112,7 +112,9 @@ export function setupPage(integration) {
         var btn = document.getElementById('save'); btn.disabled = true;
         api('POST', { values: values, remove: remove }).then(function (d) {
           render(d);
-          say(d.ready ? 'Saved. ' + d.name + ' is ready -- go back to Stratek, it updates by itself.' : 'Saved. Still missing: ' + d.missing.join(', ') + '.', d.ready ? 'ok' : 'err');
+          if (!d.ready) say('Saved. Still missing: ' + d.missing.join(', ') + '.', 'err');
+          else if (d.warning) say('Saved, but: ' + d.warning, 'err');
+          else say('Saved. ' + d.name + ' is ready' + (d.notice ? ' -- ' + d.notice : '') + '. Go back to Stratek, it updates by itself.', 'ok');
         }).catch(function (e) { say(e.message); }).then(function () { btn.disabled = false; });
       });
     })();

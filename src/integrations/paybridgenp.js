@@ -1,22 +1,20 @@
-// paybridgenp -- online payments through PayBridgeNP: one hosted checkout for
-// eSewa, Khalti and Fonepay (Nepal). Docs: https://docs.paybridgenp.com
+// paybridgenp -- PayBridgeNP (eSewa, Khalti, Fonepay aggregator, Nepal).
+// Docs: https://docs.paybridgenp.com
 //
-// Buttons
-//   Test PayBridgeNP (Integrations tab)  GET /v1/account -- shows project + sandbox/live
-//   Pay online (under the payment QR)     POST /v1/checkout -> QR of the checkout LINK: scan it
-//                                        with the phone CAMERA (it opens a web page), then pick
-//                                        eSewa/Khalti/Fonepay. Wallet-app scanners don't open links.
-//   Fonepay QR (under the payment QR)     POST /v1/qr/fonepay -> a real Fonepay QR that any bank
-//                                        or wallet app scans directly (eSewa too). Refreshes the
-//                                        same session if pressed again (~3 min per QR, 30 min per
-//                                        session). Live needs a PayBridgeNP Pro plan.
-//   Check online payment (sale details)  GET /v1/sessions/:id -> paid / pending / failed
-//   Refund online payment (sale details) POST /v1/refunds (Khalti automatic, eSewa manual
-//                                        in their portal, Fonepay not supported)
+// How Stratek uses it (when "Use for the till & kiosk QR" is on in Stratek):
+//   1. Charge total (till) / Pay with QR (kiosk): Stratek asks this connector for
+//      the payment QR -> action `till_qr` -> POST /v1/qr/fonepay (Direct QR).
+//      The QR is a real Fonepay QR any bank/wallet app scans. Asking again for
+//      the same sale refreshes the same session (QRs last ~3 min, sessions 30 min).
+//   2. PayBridgeNP calls POST <connector>/webhooks/paybridgenp ("payment.succeeded"),
+//      signed with X-PayBridgeNP-Signature (HMAC-SHA256 over "<t>.<raw body>").
+//      The connector checks the signature, re-checks the session with the API,
+//      and sends Stratek a signed event -> the sale shows "Paid online (verified)".
+//      A person at the shop still presses Settle (human in the loop).
+//   Saving the key registers the webhook automatically (onKeysSaved).
 //
-// Amounts: Stratek sends rupees; PayBridgeNP wants paisa (x100), minimum Rs 10.
-// After "Paid", the shop presses Settle in Stratek. (Automatic confirmation via
-// signed webhooks comes with Stratek's signed-events update.)
+// Buttons: Test PayBridgeNP (Integrations tab); Check online payment and Refund
+// online payment (sale details).
 
 const API = 'https://api.paybridgenp.com/v1';
 
@@ -41,10 +39,6 @@ const saleId = (context) => {
   return String(id);
 };
 
-// Test-mode logins from PayBridgeNP's sandbox guide. The real eSewa/Khalti apps
-// can't pay test payments -- they use the providers' test websites.
-const TEST_NOTE = ' TEST mode: eSewa and Khalti only accept their test accounts here (eSewa ID 9806800001, password Nepal@123, MPIN 1122, OTP 123456; Khalti ID 9800000005, MPIN 1111, OTP 987654) -- the real apps cannot pay test payments. Fonepay in test mode is real money (max Rs 1,000).';
-
 const STATUS = {
   success: ['Paid', 'The customer has paid online. Now press Settle on this sale.'],
   pending: ['Waiting', 'The customer has not paid yet.'],
@@ -59,11 +53,65 @@ export default {
   name: 'PayBridgeNP',
   category: 'payments',
   status: 'available',
-  description: 'eSewa, Khalti and Fonepay in one online checkout (Nepal).',
+  qrProvider: true,
+  color: '#1f6feb',
+  description: 'Fonepay QR at the till and kiosk that detects payment by itself (eSewa, Khalti, Fonepay aggregator, Nepal).',
   docsUrl: 'https://docs.paybridgenp.com/api-reference/overview',
   secrets: [
-    { name: 'PAYBRIDGE_SECRET_KEY', label: 'PayBridgeNP secret key', hint: 'From your PayBridgeNP dashboard. Starts with sk_live_ (or sk_test_ for testing -- note Fonepay has no sandbox, test payments move real money).' },
+    { name: 'PAYBRIDGE_SECRET_KEY', label: 'PayBridgeNP secret key', hint: 'From your PayBridgeNP dashboard (needs permission for payments and webhooks). Starts with sk_live_ (or sk_test_ -- note Fonepay has no sandbox, test payments are real money, max Rs 1,000). Connect your Fonepay merchant account inside PayBridgeNP first.' },
   ],
+
+  /** After the key is saved: register this connector for payment notifications. */
+  async onKeysSaved({ env, store, origin }) {
+    const url = `${origin}/webhooks/paybridgenp`;
+    const list = await pb(env, 'GET', '/webhooks').catch(() => null);
+    const endpoints = Array.isArray(list) ? list : list?.data || list?.endpoints || [];
+    for (const e of endpoints) {
+      if (e?.url === url && e.id) await pb(env, 'DELETE', `/webhooks/${encodeURIComponent(e.id)}`).catch(() => {});
+    }
+    const created = await pb(env, 'POST', '/webhooks', { url, events: ['payment.succeeded', 'payment.failed', 'payment.cancelled', 'payment.refunded'] });
+    const secret = created?.signing_secret || created?.data?.signing_secret;
+    if (!secret) throw new Error('PayBridgeNP did not return a webhook signing secret.');
+    await store.put('webhook', { id: created.id || created?.data?.id, secret, url, createdAt: new Date().toISOString() });
+    return 'payment notifications are switched on';
+  },
+
+  /** POST /webhooks/paybridgenp -- PayBridgeNP says a payment changed. */
+  async webhook({ request, rawBody, env, store, emit }) {
+    const hook = await store.get('webhook');
+    if (!hook?.secret) throw Object.assign(new Error('Webhook not set up.'), { status: 409 });
+    const header = request.headers.get('X-PayBridgeNP-Signature') || '';
+    const parts = Object.fromEntries(header.split(',').map((kv) => kv.trim().split('=')).filter((p) => p.length === 2));
+    const t = Number(parts.t);
+    if (!t || Math.abs(Date.now() / 1000 - t) > 300) throw Object.assign(new Error('Old or missing timestamp.'), { status: 401 });
+    const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(hook.secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+    const mac = new Uint8Array(await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(`${t}.${rawBody}`)));
+    const expected = [...mac].map((b) => b.toString(16).padStart(2, '0')).join('');
+    const got = String(parts.v1 || '');
+    let diff = got.length === expected.length ? 0 : 1;
+    for (let i = 0; i < expected.length; i++) diff |= expected.charCodeAt(i) ^ (got.charCodeAt(i) || 0);
+    if (diff) throw Object.assign(new Error('Bad signature.'), { status: 401 });
+
+    const body = JSON.parse(rawBody);
+    const type = body.type || body.event;
+    const ev = body.data?.object || body.data || body;
+    if (type !== 'payment.succeeded') return { received: true, ignored: type };
+    const sessionId = ev.session_id || ev.sessionId;
+    const txId = sessionId && (await store.get(`session:${sessionId}`));
+    if (!txId) return { received: true, ignored: 'unknown session' };
+    // Defence in depth: ask PayBridgeNP directly before telling Stratek.
+    const s = await pb(env, 'GET', `/sessions/${encodeURIComponent(sessionId)}`);
+    if (s.status !== 'success') return { received: true, ignored: `session ${s.status}` };
+    const paymentId = s.paymentId || ev.id;
+    const saved = await store.get(`tx:${txId}`);
+    await store.put(`tx:${txId}`, { ...saved, paymentId, status: 'success' });
+    await emit({
+      id: `paybridgenp-${paymentId}`,
+      type: 'payment.succeeded',
+      data: { transactionId: String(txId), amount: s.amount / 100, currency: s.currency || 'NPR', provider: 'PayBridgeNP', providerRef: paymentId, method: s.provider || ev.provider || 'fonepay', livemode: s.livemode !== false },
+    });
+    return { received: true, forwarded: true };
+  },
   actions: [
     {
       id: 'test',
@@ -77,48 +125,21 @@ export default {
       },
     },
     {
-      id: 'payment_link',
-      label: 'Pay online (eSewa / Khalti / Fonepay)',
-      placement: ['charge'],
-      fields: [],
-      async run({ env, context, origin, store, claims }) {
-        const tx = context?.transaction || {};
-        const id = saleId(context);
-        if (tx.currency && tx.currency !== 'NPR') throw new Error('PayBridgeNP only takes payments in NPR.');
-        const paisa = Math.round(Number(tx.amount) * 100);
-        if (!Number.isFinite(paisa) || paisa < 1000) throw new Error('Online payments need at least Rs 10.');
-        const s = await pb(env, 'POST', '/checkout', {
-          amount: paisa,
-          currency: 'NPR',
-          returnUrl: `${origin}/paid`,
-          cancelUrl: `${origin}/paid`,
-          description: `${claims.owner_name || 'Shop'} -- sale #${id}`.slice(0, 200),
-          metadata: { stratek_transaction: id, reference: tx.reference || null },
-        }, `stratek-${claims.aud}-${id}-${paisa}`);
-        await store.put(`tx:${id}`, { sessionId: s.id, amount: paisa, createdAt: new Date().toISOString() });
-        return {
-          type: 'qr',
-          title: `Pay online -- Rs ${(paisa / 100).toFixed(2)}`,
-          text: `Customer scans this with the phone CAMERA (not a wallet app) -- it opens a payment page where they choose eSewa, Khalti or Fonepay. Then use "Check online payment" on the sale.${s.livemode === false ? TEST_NOTE : ''}`,
-          qrPayload: s.checkout_url,
-        };
-      },
-    },
-    {
-      id: 'fonepay_qr',
-      label: 'Fonepay QR (scan in any bank or wallet app)',
-      placement: ['charge'],
+      // Hidden action: Stratek calls it to get the till/kiosk QR (placement 'qr' is never a button).
+      id: 'till_qr',
+      label: 'Fonepay QR for the till',
+      placement: ['qr'],
       fields: [],
       async run({ env, context, store, claims }) {
         const tx = context?.transaction || {};
         const id = saleId(context);
         if (tx.currency && tx.currency !== 'NPR') throw new Error('Fonepay only takes payments in NPR.');
         const paisa = Math.round(Number(tx.amount) * 100);
-        if (!Number.isFinite(paisa) || paisa < 1000) throw new Error('Online payments need at least Rs 10.');
+        if (!Number.isFinite(paisa) || paisa < 1000) throw new Error('PayBridgeNP needs at least Rs 10.');
         const saved = await store.get(`tx:${id}`);
-        let q;
+        let q = null;
         if (saved?.kind === 'fonepay' && saved.amount === paisa) {
-          // Same sale pressed again: fresh QR for the same session (QRs last ~3 minutes).
+          // Same sale again: a fresh QR for the same session.
           q = await pb(env, 'POST', `/qr/${encodeURIComponent(saved.sessionId)}/refresh`).catch(() => null);
         }
         if (!q) {
@@ -127,14 +148,19 @@ export default {
             currency: 'NPR',
             customer: { name: String(claims.owner_name || 'Customer').slice(0, 100), email: claims.actor && String(claims.actor).includes('@') ? claims.actor : 'customer@example.com' },
             metadata: { stratek_transaction: id, reference: tx.reference || null },
-          }, `stratek-fonepay-${claims.aud}-${id}-${paisa}-${Date.now() >> 20}`);
+          }, `stratek-fonepay-${claims.aud}-${id}-${paisa}`);
           await store.put(`tx:${id}`, { sessionId: q.id, amount: paisa, kind: 'fonepay', createdAt: new Date().toISOString() });
+          await store.put(`session:${q.id}`, id);
         }
         return {
           type: 'qr',
           title: `Fonepay QR -- Rs ${(paisa / 100).toFixed(2)}`,
-          text: `Customer scans this in their bank app or eSewa/Khalti (Fonepay QR). It stays valid about 3 minutes -- press the button again for a fresh one. Then use "Check online payment" on the sale.${q.livemode === false ? ' TEST mode still moves real money for Fonepay (max Rs 1,000).' : ''}`,
+          text: 'Scan with any bank app or wallet that reads Fonepay QRs.',
           qrPayload: q.qr_message,
+          provider: 'PayBridgeNP',
+          refreshAfterSec: 170,
+          expiresAt: q.expires_at || null,
+          livemode: q.livemode !== false,
         };
       },
     },

@@ -52,6 +52,8 @@ export function manifest(keys) {
       description: i.description,
       status,
       docsUrl: i.docsUrl || null,
+      color: i.color || null,           // button colour in Stratek
+      qrProvider: !!i.qrProvider,       // can make the till/kiosk payment QR (see POS "Use for the till QR")
       ready,
       setup: status === 'available' && (i.secrets || []).length > 0,
       missingSecrets: ready ? [] : requiredSecrets(i).filter((s) => !has(keys[s.name])).map((s) => s.name),

@@ -18,12 +18,17 @@
 //   GET  /secrets/:int         which keys are set (masked)   (Stratek pass)
 //   POST /secrets/:int         save / remove keys            (Stratek pass,
 //                              signed-in session only, not API keys)
+//   GET  /event-key            public key Stratek checks this connector's events with
+//   POST /webhooks/:int        notifications from a provider (e.g. PayBridgeNP
+//                              "payment succeeded"); checked by the integration,
+//                              then forwarded to Stratek as a signed event
 
 import { ConnectorState, store } from './state.js';
 import { verifyPass, fetchStratekKey } from './auth.js';
 import { manifest, findAction, findIntegration, isReady, statusOf, requiredSecrets, allSecretNames } from './registry.js';
 import { homePage, messagePage, connectedPage, setupPage } from './pages.js';
 import { CONNECTOR_VERSION } from './version.js';
+import { publicEventKey, emitEvent } from './events.js';
 
 export { ConnectorState };
 
@@ -135,6 +140,31 @@ export async function handle(request, env) {
   if (pathname === '/' && request.method === 'GET') {
     return homePage({ pairing: await db.get('pairing'), version: CONNECTOR_VERSION, stratekUrl: base });
   }
+  if (pathname === '/event-key' && request.method === 'GET') {
+    return okJson(env, request, await publicEventKey(db));
+  }
+
+  // Provider notifications (no Stratek pass -- each integration checks the provider's own signature).
+  const hookMatch = pathname.match(/^\/webhooks\/([a-z0-9_-]+)$/);
+  if (hookMatch && request.method === 'POST') {
+    const integration = findIntegration(hookMatch[1]);
+    if (!integration?.webhook || statusOf(integration) !== 'available') return failJson(env, request, 'Not found', 404, 'NOT_FOUND');
+    const rawBody = await request.text();
+    if (rawBody.length > 256 * 1024) return failJson(env, request, 'Too large.', 413, 'TOO_LARGE');
+    const { keys } = await loadKeys(env, db);
+    const store = {
+      get: (k) => db.get(`data:${integration.id}:${k}`),
+      put: (k, v) => db.put(`data:${integration.id}:${k}`, v),
+    };
+    try {
+      const out = await integration.webhook({ request, rawBody, env: { ...env, ...keys }, store, emit: (event) => emitEvent(db, event) });
+      return okJson(env, request, out || { received: true });
+    } catch (err) {
+      console.error(`webhook ${integration.id}:`, err?.message);
+      return failJson(env, request, err?.message || 'Webhook failed.', err?.status || 400, 'WEBHOOK_REJECTED');
+    }
+  }
+
   // Where online payment pages send the customer back to.
   if (pathname === '/paid' && request.method === 'GET') {
     return messagePage('Thank you', 'Your payment was submitted. Please show this screen to the shop -- they will confirm it on their side.', 'ok', 200);
@@ -257,7 +287,15 @@ export async function handle(request, env) {
       await db.put('secrets', stored);
       console.log(`keys updated for ${integration.id} by ${claims.actor || claims.sub}`); // names only, never values
       const { keys, source } = await loadKeys(env, db);
-      return okJson(env, request, secretsView(integration, keys, source));
+      const view = secretsView(integration, keys, source);
+      // Some integrations finish their own setup once the keys are in (e.g. PayBridgeNP
+      // registers this connector for payment notifications).
+      if (view.ready && integration.onKeysSaved) {
+        const store = { get: (k) => db.get(`data:${integration.id}:${k}`), put: (k, v) => db.put(`data:${integration.id}:${k}`, v) };
+        try { view.notice = await integration.onKeysSaved({ env: { ...env, ...keys }, store, origin: url.origin }); }
+        catch (err) { view.warning = err?.message || 'Setup step failed.'; }
+      }
+      return okJson(env, request, view);
     }
     return failJson(env, request, 'Method not allowed', 405, 'METHOD_NOT_ALLOWED');
   }

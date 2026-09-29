@@ -181,3 +181,43 @@ test('passes only unlock the integrations Stratek allowed for the shop (claim in
   assert.ok(m.find((i) => i.id === 'slant3d' && i.category === 'fulfilment') && m.find((i) => i.id === 'meta_capi') && m.find((i) => i.id === 'coinbase'));
   INTEGRATIONS.pop();
 });
+
+test('event key + webhook route + signed events to Stratek + onKeysSaved notice', async () => {
+  const { INTEGRATIONS } = await import('../src/registry.js');
+  let hookArgs = null; let saved = 0;
+  INTEGRATIONS.push({
+    id: 'demo3', name: 'Demo3', category: 'payments', status: 'available', description: 't', qrProvider: true, color: '#123456',
+    secrets: [{ name: 'D3', label: 'k' }],
+    actions: [],
+    async onKeysSaved() { saved += 1; return 'notifications on'; },
+    async webhook(args) { hookArgs = args; await args.emit({ id: 'e1', type: 'payment.succeeded', data: { transactionId: '5', amount: 10 } }); return { forwarded: true }; },
+  });
+  const env = makeEnv({ INSTALL_SECRET: 'i' });
+  await go(env, '/connect/auto', { method: 'POST', body: JSON.stringify({ code: 'a'.repeat(64), secret: 'i' }) });
+  const key = (await (await go(env, '/event-key')).json()).data;
+  assert.equal(key.kty, 'OKP'); assert.ok(key.x && key.kid && !key.d, 'public only');
+  // capture the event sent to Stratek
+  const prev = globalThis.fetch; let sent = null;
+  globalThis.fetch = async (input, init) => {
+    const req = input instanceof Request ? input : new Request(input, init);
+    if (req.url === `${STRATEK}/api/v1/connectors/events`) { sent = { headers: Object.fromEntries(req.headers), body: await req.text() }; return Response.json({ success: true, data: { ok: true } }); }
+    return prev(input, init);
+  };
+  const r = await go(env, '/webhooks/demo3', { method: 'POST', body: '{"x":1}' });
+  globalThis.fetch = prev;
+  assert.equal(r.status, 200); assert.equal(hookArgs.rawBody, '{"x":1}');
+  assert.equal(sent.headers['x-stratek-connector'], 'conn-1');
+  const [, t, sig] = sent.headers['x-stratek-signature'].match(/^t=(\d+),sig=([A-Za-z0-9_-]+)$/);
+  const pub = await crypto.subtle.importKey('jwk', { kty: 'OKP', crv: 'Ed25519', x: key.x }, { name: 'Ed25519' }, false, ['verify']);
+  assert.ok(await crypto.subtle.verify({ name: 'Ed25519' }, pub, Buffer.from(sig, 'base64url'), new TextEncoder().encode(`${t}.${sent.body}`)), 'Stratek can verify it');
+  assert.equal(JSON.parse(sent.body).connectorId, 'conn-1');
+  assert.equal((await go(env, '/webhooks/nope', { method: 'POST', body: '{}' })).status, 404);
+  // onKeysSaved runs when keys become ready
+  const now = Math.floor(Date.now() / 1000);
+  const session = await pass({ iss: STRATEK, aud: 'conn-1', sub: 'merchant:1', iat: now, exp: now + 3600, src: 'session' });
+  const v = await (await go(env, '/secrets/demo3', { method: 'POST', headers: { Authorization: `Bearer ${session}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ values: { D3: 'x' } }) })).json();
+  assert.equal(v.data.notice, 'notifications on'); assert.equal(saved, 1);
+  const m = (await (await go(env, '/manifest', { headers: { Authorization: `Bearer ${session}` } })).json()).data.integrations.find((i) => i.id === 'demo3');
+  assert.equal(m.qrProvider, true); assert.equal(m.color, '#123456');
+  INTEGRATIONS.pop();
+});

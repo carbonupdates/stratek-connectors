@@ -57,6 +57,13 @@ in `store` keyed by sale (`tx:<id>`); use idempotency keys when the API has
 them; see `src/integrations/paybridgenp.js` and `pathao.js` for complete examples,
 and `test/integrations.test.js` for testing against a stand-in API.
 
+Payment integrations that should confirm sales by themselves: add
+`webhook(...)` (check the provider's signature, then `await emit({ id, type:
+'payment.succeeded', data: { transactionId, amount, currency, provider,
+providerRef } })`), `onKeysSaved(...)` to register the webhook, and for a
+till/kiosk QR `qrProvider: true` plus a `till_qr` action (placement `qr`). See
+CONNECTORS.md section 6 and `paybridgenp.js`.
+
 ## A brand-new integration
 
 Create `src/integrations/<id>.js` like the example (use `status: 'planned'` and

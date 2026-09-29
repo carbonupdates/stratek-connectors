@@ -77,7 +77,7 @@ built.
 | [eSewa](https://developer.esewa.com.np/) | Pay with eSewa, Check eSewa payment | eSewa merchant (product) code, eSewa secret key | Coming soon |
 | [Fonepay dynamic QR](https://www.fonepay.com/) | Fonepay QR for this amount, Check Fonepay payment | Fonepay merchant code, Fonepay secret key, Fonepay API username (optional), Fonepay API password (optional) | Coming soon |
 | [connectIPS](https://www.connectips.com/) | Pay with connectIPS | Merchant ID, App ID, App name, App password, Private key (PEM) | Coming soon |
-| [PayBridgeNP](https://docs.paybridgenp.com/api-reference/overview) | Test PayBridgeNP, Pay online (eSewa / Khalti / Fonepay), Fonepay QR (scan in any bank or wallet app), Check online payment, Refund online payment | PayBridgeNP secret key | **Available** |
+| [PayBridgeNP](https://docs.paybridgenp.com/api-reference/overview) | Till & kiosk payment QR (auto-detects payment), Test PayBridgeNP, Check online payment, Refund online payment | PayBridgeNP secret key | **Available** |
 | [Razorpay (UPI)](https://razorpay.com/docs/api/) | Pay with UPI (Razorpay), Refund with Razorpay | Razorpay key ID, Razorpay key secret | Coming soon |
 | [Coinbase (crypto)](https://docs.cdp.coinbase.com/coinbase-business/) | Test Coinbase, Pay with crypto (Coinbase), Check crypto payment, Refund crypto payment | CDP API key ID / name, CDP API private key (Ed25519, base64) | **Available** |
 
@@ -140,32 +140,40 @@ built.
 | [Zapier](https://zapier.com/apps/webhook/integrations) | Send sale to Zapier | Zapier catch hook URL | Coming soon |
 | [Make](https://www.make.com/en/help/tools/webhooks) | Send sale to Make | Make webhook URL | Coming soon |
 
-### Using PayBridgeNP (available)
+### Using PayBridgeNP (available) -- the till & kiosk QR that sees payments
 
-1. Stratek admin enables PayBridgeNP for the shop (Availability, NPR).
-2. Integrations -> PayBridgeNP -> **Set up**: paste the secret key from the
-   PayBridgeNP dashboard (`sk_test_...` to try, `sk_live_...` for real money --
-   Fonepay has no sandbox, so even test Fonepay payments are real, capped by
-   PayBridgeNP). Press **Test PayBridgeNP** to see the project and mode.
-3. At the till, after **Charge total**, two buttons appear under the QR:
-   - **Pay online** -- a QR of PayBridgeNP's checkout **link**. The customer
-     scans it with the phone **camera** (wallet-app scanners such as eSewa's
-     don't open web links), then picks eSewa, Khalti or Fonepay. Minimum Rs 10.
-   - **Fonepay QR** -- a real Fonepay QR that **any bank or wallet app scans
-     directly** (eSewa included). Each QR lasts about 3 minutes; press the
-     button again for a fresh one on the same payment. Live use needs a
-     PayBridgeNP Pro plan.
-   **Test mode:** eSewa and Khalti only accept their test accounts on their test
-   websites -- the real apps can't pay a test payment. eSewa: ID `9806800001`,
-   password `Nepal@123`, MPIN `1122`, OTP `123456`. Khalti: ID `9800000005`,
-   MPIN `1111`, OTP `987654`. Fonepay has no test mode: even test payments are
-   real money (max Rs 1,000 each, Rs 5,000 a month).
-4. On the sale's Details: **Check online payment** (Paid / Waiting / Failed...),
-   then press **Settle**. **Refund online payment** works for Khalti
-   (automatic) and eSewa (finish it in the eSewa portal); Fonepay refunds aren't
-   supported by PayBridgeNP.
+1. **In PayBridgeNP:** connect the shop's **Fonepay merchant account** (money goes
+   there). Live Fonepay QRs need a PayBridgeNP **Pro** plan.
+2. Stratek admin enables PayBridgeNP for the shop (Availability, NPR).
+3. Integrations -> PayBridgeNP -> **Set up**: paste the secret key (`sk_test_...`
+   to try, `sk_live_...` for real; the key needs payment + webhook permissions).
+   Saving it **registers payment notifications automatically** -- the Set up
+   page says "payment notifications are switched on". Press **Test PayBridgeNP**.
+4. Tick **Use for the till & kiosk QR** on the PayBridgeNP row.
 
-Automatic "paid" (signed webhooks -> Stratek) comes with the next update.
+From then on:
+
+- **Charge total** (till) and **Pay with QR** (kiosk) show a **Fonepay QR from
+  PayBridgeNP** with the exact amount, instead of the shop's own QR -- any bank
+  app or wallet that reads Fonepay QRs can pay it. It refreshes by itself every
+  ~3 minutes (same payment).
+- When the customer pays, PayBridgeNP notifies the connector (signed), the
+  connector double-checks with PayBridgeNP and tells Stratek (signed). The sale
+  shows **"Payment received"** at the till and **"Paid online ✓"** in
+  Transactions; the kiosk says "Thank you".
+- **A person still confirms:** press **Settle Payment** at the till, or later in
+  Transactions (e.g. if the sale left the till). Nothing settles by itself.
+- Not paid within 30 minutes: the sale is cancelled automatically (no money
+  moved). Paid late after a cancel, or a wrong amount: flagged "check".
+- If PayBridgeNP can't make a QR (offline, plan, Fonepay not connected) or the
+  amount is under Rs 10, the shop's own QR is shown as before.
+
+On a sale's Details: **Check online payment** (manual look-up) and **Refund
+online payment** (Khalti automatic, eSewa finished in the eSewa portal, Fonepay
+refunds aren't supported by PayBridgeNP).
+
+**Test mode:** Fonepay has no sandbox -- test payments are real money (max Rs
+1,000 each, Rs 5,000 a month).
 
 ### Using Pathao (available)
 
@@ -175,9 +183,10 @@ Automatic "paid" (signed webhooks -> Stratek) comes with the next update.
    Credentials), plus your Pathao merchant login email and password.
 3. Press **Test Pathao**: it signs in and lists your Pathao stores with their
    IDs. Put the right **Store ID** in Set up.
-4. On a sale's Details: **Send with Pathao** (recipient, phone, address, cash to
-   collect, weight, note) books the delivery; **Track Pathao delivery** shows
-   its status.
+4. **Send with Pathao** (red button) appears at the till right after **Charge
+   total**, and on every sale's Details: recipient, phone, address, cash to
+   collect, weight, note -> books the delivery. **Track Pathao delivery** (sale
+   Details) shows its status.
 
 ### Using Stripe, PayPal and Coinbase (available)
 

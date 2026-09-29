@@ -71,7 +71,7 @@ The browser asks Stratek: `POST /api/v1/merchant/connectors/pass` (or admin) ->
 | `aud` | `connectorId` |
 | `sub` | `merchant:<id>` or `admin:hq` (must match the pairing) |
 | `owner_name`, `actor` | shop name, who is signed in |
-| `src` | `session` (a person signed in to Stratek) or `api_key` (API key / AI agent). Only `session` passes may change keys. |
+| `src` | `session` (a person signed in to Stratek), `api_key` (API key / AI agent) or `server` (Stratek itself, e.g. kiosk QR). Only `session` passes may change keys. |
 | `int` | Integrations this pass may use: `"*"` (Stratek HQ) or an array of ids chosen by Stratek's admins for the shop (per shop currency). `core` is always allowed. Missing = everything (older Stratek). |
 | `iat`, `exp`, `jti` | issued / expires (1 hour) / unique id |
 
@@ -164,7 +164,38 @@ never in Stratek:
   disconnects, and are passed to actions as `env.<NAME>` (form value wins over a
   Cloudflare Secret).
 
-## 6. Catalogue file
+## 6. Payments that report themselves -- webhooks and signed events
+
+- **Provider -> connector:** `POST <connector>/webhooks/<integration>` (no pass).
+  The integration's `webhook({ request, rawBody, env, store, emit })` checks
+  the provider's own signature (PayBridgeNP: `X-PayBridgeNP-Signature: t=..,v1=..`,
+  HMAC-SHA256 over `"<t>.<raw body>"`, 5-minute window) and re-checks with the
+  provider's API.
+- **Setup:** an integration may define `onKeysSaved({ env, store, origin })`,
+  run when its keys become complete in the Set up form -- PayBridgeNP registers
+  `<connector>/webhooks/paybridgenp` there and keeps the signing secret. Its
+  return text / error is shown on the Set up page.
+- **Connector -> Stratek:** `emit({ id, type, data })` sends
+  `POST <STRATEK_URL>/api/v1/connectors/events` with `X-Stratek-Connector:
+  <connectorId>` and `X-Stratek-Signature: t=<unix>,sig=<base64url Ed25519 over
+  "<t>.<body>">`. The connector's key pair lives in its Durable Object; the
+  public key is at `GET <connector>/event-key`, which Stratek fetches from the
+  connector address it paired with (cached, re-fetched on rotation).
+  Stratek checks signature, time (5 min), duplicate `id`, that the connector is
+  active and the sale belongs to its shop, and the exact amount.
+- **Event `payment.succeeded`** `data: { transactionId, amount (major units),
+  currency, provider, providerRef, method, livemode }` -> Stratek records
+  `provider_paid_at/name/ref/note` on the sale ("Paid online"). It **never
+  settles** the sale -- a person presses Settle. Wrong amount or paid after a
+  cancel -> flagged with a note.
+- **Till / kiosk QR:** an integration with `qrProvider: true` offers a hidden
+  action `till_qr` (placement `qr`, never a button) returning `{ type: 'qr',
+  qrPayload, provider, refreshAfterSec, livemode }`; calling it again for the
+  same sale refreshes the QR. Stratek calls it from the till (browser pass) or,
+  for kiosks, from its server (pass with `src: "server"`, 2 minutes).
+- `color` (e.g. `'#e4202a'`) colours an integration's buttons in Stratek.
+
+## 7. Catalogue file
 
 `npm run bundle` also writes `dist/catalogue.json` -- `{ version, categories,
 integrations: [{ id, name, category, status, description, docsUrl, actions:
@@ -172,7 +203,7 @@ integrations: [{ id, name, category, status, description, docsUrl, actions:
 build the "Availability for merchants" table, so a new integration appears
 there as soon as it is pushed (switched off until an admin enables it).
 
-## 7. Other routes
+## 8. Other routes
 
 - `POST /connect/auto` -- `{ code, secret }`, used right after Stratek installs
   the connector (section 0). 403 without the right install secret.

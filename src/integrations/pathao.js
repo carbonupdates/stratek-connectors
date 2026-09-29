@@ -4,7 +4,7 @@
 //
 // Buttons
 //   Test Pathao (Integrations tab)     get a token, list your Pathao stores (to find the store ID)
-//   Send with Pathao (sale details)    create a delivery order (cash to collect = sale total by default)
+//   Send with Pathao (till, after Charge total; and sale details)  create a delivery order (cash to collect = sale total by default)
 //   Track Pathao delivery (sale)       order status
 //
 // The access token is cached in the connector and renewed when it expires.
@@ -54,6 +54,7 @@ export default {
   name: 'Pathao',
   category: 'delivery',
   status: 'available',
+  color: '#e4202a',
   description: 'Book and track Pathao courier deliveries for a sale.',
   docsUrl: 'https://merchant.pathao.com/courier/developer-api',
   secrets: [
@@ -80,7 +81,7 @@ export default {
     {
       id: 'create_delivery',
       label: 'Send with Pathao',
-      placement: ['transaction'],
+      placement: ['charge', 'transaction'],
       fields: [
         { name: 'recipientName', label: 'Recipient name', type: 'text', required: true },
         { name: 'recipientPhone', label: 'Recipient phone', type: 'tel', required: true },
