@@ -89,7 +89,7 @@ export default {
       },
     },
     {
-      id: 'refund', label: 'Refund PayPal payment', placement: ['transaction'],
+      id: 'refund', outbound: true, label: 'Refund PayPal payment', placement: ['transaction'],
       fields: [{ name: 'amount', label: 'Amount to refund (empty = all)', type: 'number' }],
       async run({ env, context, store, fields }) {
         const tx = sale(context);

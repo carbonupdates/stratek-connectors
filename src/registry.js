@@ -91,10 +91,19 @@ export function manifest(keys, testKeys = {}) {
       missingSecrets: ready ? [] : requiredSecrets(i).filter((s) => !has(keys[s.name])).map((s) => s.name),
       secrets: (i.secrets || []).map((s) => ({ name: s.name, label: s.label, optional: !!s.optional, set: has(keys[s.name]) })),
       testSecrets: secretsFor(i, 'test').map((s) => ({ name: s.name, label: s.label, optional: !!s.optional, set: has(testKeys[s.name]) })),
-      actions: (i.actions || []).map(({ run, ...a }) => a),
+      actions: (i.actions || []).map(({ run, ...a }) => ({ ...a, outbound: isOutbound(a) })),
     };
   });
 }
+/**
+ * Outbound actions move money out of the shop or commit it to a real-world
+ * cost (refunds, booking a rider, paying for a print). A person must run them:
+ * API keys / AI agents are refused and use Stratek's approval requests instead.
+ * Marked with `outbound: true`; ids like refund / create_delivery / confirm /
+ * payout / transfer are treated as outbound even if a scaffold forgets it.
+ */
+export const isOutbound = (a) => a.outbound === true || (a.outbound !== false && /^(refund|create_delivery|confirm|payout|transfer|send_money)/.test(a.id || ''));
+
 export function findAction(integrationId, actionId) {
   const integration = findIntegration(integrationId);
   const action = integration?.actions?.find((a) => a.id === actionId);

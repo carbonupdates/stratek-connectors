@@ -87,6 +87,13 @@ In `run`, `env` already holds the keys of the chosen mode; branch on
 `/webhooks/<id>/test` for test in `onKeysSaved({ mode })`. Add a case to
 `test/modes.test.js`.
 
+## Outbound actions
+
+Mark any action that sends money out of the shop or books something that costs
+money with `outbound: true` (refunds, deliveries, paying a supplier). AI agents
+and API keys can then only *request* it; a person approves it in Stratek.
+Read-only actions (test, check, track, quotes) need nothing.
+
 ## A brand-new integration
 
 Create `src/integrations/<id>.js` like the example (use `status: 'planned'` and

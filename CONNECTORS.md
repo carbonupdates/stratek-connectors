@@ -122,6 +122,15 @@ CORS: only `Origin: <STRATEK_URL>` is allowed.
 
 Request: `{ "fields": { ... }, "context": { "transaction": { "id", "amount", "currency", "reference", "items", "bill", "createdAt" } }, "mode": "live" | "test" }`
 
+**Outbound actions (v0.9.0+).** Actions that move money out of the shop or
+commit it to a real-world cost carry `outbound: true` in the manifest (refunds,
+Pathao `create_delivery`, Slant 3D `confirm`; ids starting `refund`,
+`create_delivery`, `confirm`, `payout`, `transfer`, `send_money` count as
+outbound even if a scaffold forgets the flag). A pass with `src: "api_key"`
+(an AI agent / API key) gets `403 APPROVAL_REQUIRED` for them. People
+(`session`) and Stratek itself (`server`, after a person approved the agent's
+request in the dashboard) can run them.
+
 `mode` (v0.8.0+, default `live`) picks the key set. `test` on an integration
 with `support: none` answers `409 NO_TEST_MODE`; missing keys for the chosen
 mode answer `409 NOT_READY`. Results of test-mode calls carry `testMode: true`.

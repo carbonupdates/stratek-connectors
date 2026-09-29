@@ -30,7 +30,7 @@
 
 import { ConnectorState, store } from './state.js';
 import { verifyPass, fetchStratekKey } from './auth.js';
-import { INTEGRATIONS, manifest, findAction, findIntegration, isReady, statusOf, requiredSecrets, allSecretNames, secretsFor, testInfo, modeOf } from './registry.js';
+import { INTEGRATIONS, isOutbound, manifest, findAction, findIntegration, isReady, statusOf, requiredSecrets, allSecretNames, secretsFor, testInfo, modeOf } from './registry.js';
 import { homePage, messagePage, connectedPage, setupPage } from './pages.js';
 import { CONNECTOR_VERSION } from './version.js';
 import { publicEventKey, emitEvent } from './events.js';
@@ -370,6 +370,11 @@ export async function handle(request, env) {
     if (!found) return failJson(env, request, 'Unknown integration or action.', 404, 'NOT_FOUND');
     if (!allowedInt(found.integration.id)) return notOffered(found.integration.name);
     if (statusOf(found.integration) !== 'available') return failJson(env, request, `${found.integration.name} is coming soon.`, 409, 'NOT_AVAILABLE');
+    // Outbound money actions are never run for an API key / AI agent -- a person
+    // approves them in Stratek, which then runs them with a server pass.
+    if (isOutbound(found.action) && claims.src === 'api_key') {
+      return failJson(env, request, `${found.action.label} moves money out of the shop, so an AI agent or API key can't run it directly. Ask for approval in Stratek (request_integration_action); a person approves it in the dashboard.`, 403, 'APPROVAL_REQUIRED');
+    }
     const body = await request.json().catch(() => ({}));
     const mode = modeOf(body?.mode);
     if (mode === 'test' && testInfo(found.integration).support === 'none') return failJson(env, request, `${found.integration.name} has no test environment -- live only.`, 409, 'NO_TEST_MODE');

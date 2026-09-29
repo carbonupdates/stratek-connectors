@@ -61,6 +61,14 @@ code not written yet) -- Stratek lists them but shows no buttons until a
 connector update makes them available. Key fields may change when each one is
 built.
 
+### AI agents and money (v0.9.0+)
+
+Agents connected to Stratek (API keys, MCP) can run safe actions -- tests,
+checks, tracking, Pathao quotes, menu sync. Actions that move money out of the
+shop (refunds, **Send with Pathao**, confirming a 3D print) are marked
+`outbound`: the connector refuses them to API keys, and the agent must ask in
+Stratek, where a person approves each one. Incoming payments stay automatic.
+
 ### Live keys and test keys (v0.8.0+)
 
 Every integration's **Set up** page has two sections: **Live keys** (real
@@ -93,21 +101,21 @@ keys once afterwards so both live and test payment notifications are registered.
 
 | Integration | Buttons in Stratek | Keys (Set up form) | Test mode | Status |
 |---|---|---|---|---|
-| [Stripe](https://docs.stripe.com/api) | Test Stripe, Pay by card (Stripe), Check card payment, Refund card payment | Stripe secret key | Test keys | **Available** |
-| [PayPal](https://developer.paypal.com/api/rest/) | Test PayPal, Pay with PayPal, Check PayPal payment, Refund PayPal payment | PayPal client ID, PayPal client secret | Test keys | **Available** |
+| [Stripe](https://docs.stripe.com/api) | Test Stripe, Pay by card (Stripe), Check card payment, Refund card payment (needs a person) | Stripe secret key | Test keys | **Available** |
+| [PayPal](https://developer.paypal.com/api/rest/) | Test PayPal, Pay with PayPal, Check PayPal payment, Refund PayPal payment (needs a person) | PayPal client ID, PayPal client secret | Test keys | **Available** |
 | [Khalti](https://docs.khalti.com/) | Pay with Khalti, Check Khalti payment | Khalti live secret key | -- | Coming soon |
 | [eSewa](https://developer.esewa.com.np/) | Pay with eSewa, Check eSewa payment | eSewa merchant (product) code, eSewa secret key | -- | Coming soon |
 | [Fonepay dynamic QR](https://www.fonepay.com/) | Fonepay QR for this amount, Check Fonepay payment | Fonepay merchant code, Fonepay secret key, Fonepay API username (optional), Fonepay API password (optional) | -- | Coming soon |
 | [connectIPS](https://www.connectips.com/) | Pay with connectIPS | Merchant ID, App ID, App name, App password, Private key (PEM) | -- | Coming soon |
-| [PayBridgeNP](https://docs.paybridgenp.com/api-reference/overview) | Till & kiosk payment QR (auto-detects payment), Test PayBridgeNP, Check online payment, Refund online payment | PayBridgeNP secret key | Test keys (Fonepay = real money) | **Available** |
+| [PayBridgeNP](https://docs.paybridgenp.com/api-reference/overview) | Till, kiosk & online store payment QR (auto-detects payment), Test PayBridgeNP, Check online payment, Refund online payment (needs a person) | PayBridgeNP secret key | Test keys (Fonepay = real money) | **Available** |
 | [Razorpay (UPI)](https://razorpay.com/docs/api/) | Pay with UPI (Razorpay), Refund with Razorpay | Razorpay key ID, Razorpay key secret | -- | Coming soon |
-| [Coinbase (crypto)](https://docs.cdp.coinbase.com/coinbase-business/) | Test Coinbase, Pay with crypto (Coinbase), Check crypto payment, Refund crypto payment | CDP API key ID / name, CDP API private key (Ed25519, base64) | Live only | **Available** |
+| [Coinbase (crypto)](https://docs.cdp.coinbase.com/coinbase-business/) | Test Coinbase, Pay with crypto (Coinbase), Check crypto payment, Refund crypto payment (needs a person) | CDP API key ID / name, CDP API private key (Ed25519, base64) | Live only | **Available** |
 
 ### Delivery & rides
 
 | Integration | Buttons in Stratek | Keys (Set up form) | Test mode | Status |
 |---|---|---|---|---|
-| [Pathao](https://merchant.pathao.com/courier/developer-api) | Test Pathao, Send with Pathao, Track Pathao delivery | Pathao API base URL, Client ID, Client secret, Pathao merchant login email, Pathao merchant password, Store ID (optional) | Test keys | **Available** |
+| [Pathao](https://merchant.pathao.com/courier/developer-api) | Test Pathao, Send with Pathao (needs a person), Track Pathao delivery | Pathao API base URL, Client ID, Client secret, Pathao merchant login email, Pathao merchant password, Store ID (optional) | Test keys | **Available** |
 | [Yango Delivery](https://yango.com/) | Send with Yango, Track Yango delivery | Yango Delivery API token, Pickup address | -- | Coming soon |
 | [Pick & Drop](https://pickndropnepal.com/) | Send with Pick & Drop | Pick & Drop API key | -- | Coming soon |
 | inDrive | Send with inDrive | inDrive API key | -- | Coming soon |
@@ -117,7 +125,7 @@ keys once afterwards so both live and test payment notifications are registered.
 
 | Integration | Buttons in Stratek | Keys (Set up form) | Test mode | Status |
 |---|---|---|---|---|
-| [Slant 3D](https://slant3dapi.com/documentation/introduction) | Test Slant 3D, Quote 3D print (Slant 3D), Confirm 3D print order, Track 3D print | Slant 3D API key, Platform ID (optional) | Live only | **Available** |
+| [Slant 3D](https://slant3dapi.com/documentation/introduction) | Test Slant 3D, Quote 3D print (Slant 3D), Confirm 3D print order (needs a person), Track 3D print | Slant 3D API key, Platform ID (optional) | Live only | **Available** |
 
 ### Messages & notifications
 
@@ -284,7 +292,7 @@ account (Pathao especially, and Slant 3D's address fields).
 
 New integrations arrive with connector updates (**Update connector** in Stratek).
 
-Next in Stratek: an **online store** per shop (`strateknepal.com/store/<shop>`,
+Built in Stratek: an **online store** per shop (`strateknepal.com/store/<shop>`,
 see the POS repo's `docs/proposals/online-store.md`), gated on PayBridgeNP
 (Fonepay QR on the order page, confirmed automatically) + Pathao (live quotes,
 booking), with pickup or delivery and a test mode that uses the test keys.

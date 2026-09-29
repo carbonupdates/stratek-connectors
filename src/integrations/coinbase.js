@@ -91,7 +91,7 @@ export default {
       },
     },
     {
-      id: 'refund', label: 'Refund crypto payment', placement: ['transaction'],
+      id: 'refund', outbound: true, label: 'Refund crypto payment', placement: ['transaction'],
       fields: [{ name: 'amount', label: 'Amount to refund (empty = all)', type: 'number' }],
       async run({ env, context, store, fields }) {
         const tx = sale(context);

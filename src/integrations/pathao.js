@@ -152,6 +152,7 @@ export default {
     },
     {
       id: 'create_delivery',
+      outbound: true, // books a real rider (costs money): agents can only request it
       label: 'Send with Pathao',
       placement: ['charge', 'transaction'],
       fields: [

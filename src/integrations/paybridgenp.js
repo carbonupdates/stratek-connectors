@@ -205,6 +205,7 @@ export default {
     },
     {
       id: 'refund',
+      outbound: true, // money leaves the shop: agents can only request it
       label: 'Refund online payment',
       placement: ['transaction'],
       fields: [

@@ -183,3 +183,23 @@ test('Pathao: sandbox test keys, city/zone/area lists, live quote, booking with 
   const order = seen.filter((x) => x.path.endsWith('/orders')).at(-1);
   assert.equal(order.host, 'pathao.test'); assert.equal(order.body.recipient_area, 111); assert.equal(order.body.amount_to_collect, 0);
 });
+
+test('outbound money actions: refused for API keys / agents, allowed for people and Stratek after approval', async () => {
+  const c = await paired();
+  await c.save('paybridgenp', 'live', { PAYBRIDGE_SECRET_KEY: 'sk_live_aaaaaaaaaaaaaaaa' });
+  const m = (await c.manifest()).find((i) => i.id === 'paybridgenp');
+  assert.equal(m.actions.find((a) => a.id === 'refund').outbound, true);
+  assert.equal(m.actions.find((a) => a.id === 'check').outbound, false);
+  const now = Math.floor(Date.now() / 1000);
+  const agent = await pass({ iss: STRATEK, aud: 'conn-1', sub: 'merchant:1', iat: now, exp: now + 600, src: 'api_key' });
+  const r = await c.act('paybridgenp', 'refund', { context: { transaction: { id: 1 } }, fields: {} }, agent);
+  assert.equal(r.error.code, 'APPROVAL_REQUIRED');
+  const ok = await c.act('paybridgenp', 'test', {}, agent);
+  assert.equal(ok.success, true, 'safe actions still run for agents');
+  const pathao = (await c.manifest()).find((i) => i.id === 'pathao');
+  assert.equal(pathao.actions.find((a) => a.id === 'create_delivery').outbound, true);
+  assert.equal(pathao.actions.find((a) => a.id === 'quote').outbound, false);
+  // server pass (Stratek, after a person approved) is not blocked by the rule
+  const srv = await c.act('paybridgenp', 'refund', { context: { transaction: { id: 1 } }, fields: {} }, c.server);
+  assert.notEqual(srv.error?.code, 'APPROVAL_REQUIRED');
+});

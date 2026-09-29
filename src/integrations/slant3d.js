@@ -103,7 +103,7 @@ export default {
       },
     },
     {
-      id: 'confirm', label: 'Confirm 3D print order', placement: ['transaction'], fields: [],
+      id: 'confirm', outbound: true, label: 'Confirm 3D print order', placement: ['transaction'], fields: [],
       async run({ env, context, store }) {
         const tx = sale(context);
         const saved = await store.get(`tx:${tx.id}`);
