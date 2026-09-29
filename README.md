@@ -71,8 +71,9 @@ fixed, not a switch you can forget:
 - **Test keys:** only where Stratek says "test": the online store's test mode
   and the **"(test keys)"** buttons on Stratek's Integrations tab.
 
-The Integrations tab shows **Test keys ✓** when a test set is saved, or **Live
-only** when the provider has no test environment (Coinbase, Slant 3D). Test
+The Integrations tab shows two labels on every integration: **Live keys ✓ / not
+set** and **Test keys ✓ / not set** (or **not offered (live only)** when the
+provider has no test environment: Coinbase, Slant 3D). Test
 payments are marked "Test-mode payment" in Stratek and never count as real
 proof (e.g. for the kiosk). PayBridgeNP: Fonepay has no sandbox, so a test-mode
 Fonepay payment still moves real money (capped).
@@ -218,7 +219,8 @@ and kiosk always use the live key.
 3. Press **Test Pathao**: it signs in, lists your Pathao stores with their
    IDs, and checks what the online store needs -- Pathao's city list and one
    sample delivery price ("live quotes work"). Put the right **Store ID** in
-   Set up.
+   Set up -- just the number (e.g. `130903`); Test Pathao says "Using store ID
+   ..." or tells you if it doesn't match your stores.
    **Test keys:** Pathao's sandbox API address and test credentials; press
    **Test Pathao (test keys)** to check them. Test bookings go to Pathao's
    sandbox -- no rider is sent.

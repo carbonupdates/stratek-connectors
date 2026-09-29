@@ -55,6 +55,13 @@ async function api(env, store, method, path, body, what) {
   }, what);
 }
 
+/** The saved store ID as a number -- tolerant of "ID 130903" or "130903 (My store)". */
+function storeId(env) {
+  const m = String(env.PATHAO_STORE_ID || '').match(/\d+/);
+  if (!m) throw new Error('Add your Pathao store ID (the number) in Set up -- press "Test Pathao" to see it.');
+  return Number(m[0]);
+}
+
 const listOf = (d) => { const x = d?.data?.data ?? d?.data ?? d; return Array.isArray(x) ? x : []; };
 const posInt = (v, what) => { const n = Number(v); if (!Number.isInteger(n) || n <= 0) throw new Error(`Choose a ${what}.`); return n; };
 
@@ -74,9 +81,8 @@ export const areas = (env, store, zoneId) => cachedList(env, store, `areas:${zon
 
 /** Pathao's price for delivering to a city/zone from this store. Returns { price, currency }. */
 export async function quote(env, store, { cityId, zoneId, weight }) {
-  if (!env.PATHAO_STORE_ID) throw new Error('Add your Pathao store ID in Set up (press "Test Pathao" to see it).');
   const d = await api(env, store, 'POST', '/merchant/price-plan', {
-    store_id: Number(env.PATHAO_STORE_ID),
+    store_id: storeId(env),
     item_type: 2,
     delivery_type: 48,
     item_weight: Number(weight) > 0 ? Math.min(Number(weight), 25) : 0.5,
@@ -108,7 +114,7 @@ export default {
     { name: 'PATHAO_CLIENT_SECRET', label: 'Client secret' },
     { name: 'PATHAO_USERNAME', label: 'Pathao merchant login email' },
     { name: 'PATHAO_PASSWORD', label: 'Pathao merchant password' },
-    { name: 'PATHAO_STORE_ID', label: 'Store ID', hint: 'Press "Test Pathao" on the Integrations tab after saving the other keys to see your store IDs.', optional: true },
+    { name: 'PATHAO_STORE_ID', label: 'Store ID', hint: 'Just the number (e.g. 130903). Press "Test Pathao" on the Integrations tab after saving the other keys to see your store IDs.', optional: true },
   ],
   actions: [
     {
@@ -133,8 +139,15 @@ export default {
               extra += ` Sample price to ${c[0].name} / ${z[0].name}: Rs ${q.price} (live quotes work).`;
             }
           }
-        } catch (err) { extra += ` Online-store check failed: ${err.message}`; }
-        return { type: 'message', title: 'Pathao is connected', text: `Your stores: ${names}.${env.PATHAO_STORE_ID ? '' : ' Put the right store ID in Set up.'}${extra}` };
+        } catch (err) { extra += ` Online-store check failed: ${err.message}${env.PATHAO_STORE_ID ? ` (store ID sent: ${String(env.PATHAO_STORE_ID).match(/\d+/)?.[0] || 'none'})` : ''}`; }
+        let sidNote = ' Put the right store ID in Set up.';
+        if (env.PATHAO_STORE_ID) {
+          const sid = String(env.PATHAO_STORE_ID).match(/\d+/)?.[0];
+          const known = Array.isArray(list) && list.some((x) => String(x.store_id ?? x.id) === sid);
+          sidNote = !sid ? ' The saved store ID has no number in it -- put just the number in Set up.'
+            : known ? ` Using store ID ${sid}.` : ` The saved store ID (${sid}) is not one of these stores -- fix it in Set up.`;
+        }
+        return { type: 'message', title: 'Pathao is connected', text: `Your stores: ${names}.${sidNote}${extra}` };
       },
     },
     {
@@ -152,12 +165,12 @@ export default {
       async run({ env, store, fields, context }) {
         const tx = context?.transaction || {};
         if (!tx.id) throw new Error('Open this from a sale.');
-        if (!env.PATHAO_STORE_ID) throw new Error('Add your Pathao store ID in Set up (press "Test Pathao" to see it).');
+        const sid = storeId(env);
         const existing = await store.get(`tx:${tx.id}`);
         if (existing?.consignmentId) return { type: 'status', title: 'Pathao', status: 'Already booked', text: `Consignment ${existing.consignmentId}. Use "Track Pathao delivery".` };
         const items = Array.isArray(tx.items) ? tx.items : [];
         const d = await api(env, store, 'POST', '/orders', {
-          store_id: Number(env.PATHAO_STORE_ID),
+          store_id: sid,
           merchant_order_id: `STK-${tx.id}`,
           recipient_name: String(fields.recipientName).slice(0, 100),
           recipient_phone: String(fields.recipientPhone).replace(/[^\d+]/g, ''),

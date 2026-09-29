@@ -158,12 +158,12 @@ test('old test keys move to Test automatically (v0.8.0 migration) and their webh
 
 test('Pathao: sandbox test keys, city/zone/area lists, live quote, booking with location', async () => {
   const c = await paired();
-  const base = { PATHAO_CLIENT_ID: 'c', PATHAO_CLIENT_SECRET: 's', PATHAO_USERNAME: 'u', PATHAO_PASSWORD: 'p', PATHAO_STORE_ID: '7' };
+  const base = { PATHAO_CLIENT_ID: 'c', PATHAO_CLIENT_SECRET: 's', PATHAO_USERNAME: 'u', PATHAO_PASSWORD: 'p', PATHAO_STORE_ID: 'ID 7 (Chyau)' };
   await c.save('pathao', 'live', { ...base, PATHAO_BASE_URL: 'https://pathao.test' });
   await c.save('pathao', 'test', { ...base, PATHAO_BASE_URL: 'https://pathao-sandbox.test' });
   seen.length = 0;
   const tr = await c.act('pathao', 'test', { mode: 'test' });
-  assert.match(tr.data.result.text, /2 cities/); assert.match(tr.data.result.text, /Rs 110/);
+  assert.match(tr.data.result.text, /2 cities/); assert.match(tr.data.result.text, /Rs 110/); assert.match(tr.data.result.text, /Using store ID 7/);
   assert.ok(seen.every((x) => x.host !== 'pathao.test'), 'test mode only talks to the sandbox');
   const cities = (await c.act('pathao', 'cities', {}, c.server)).data.result.items;
   assert.deepEqual(cities[0], { id: 1, name: 'Kathmandu' });
