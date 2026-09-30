@@ -21,7 +21,8 @@
 //   GET  /event-key            public key Stratek checks this connector's events with
 //   POST /webhooks/:int[/test] notifications from a provider (e.g. PayBridgeNP
 //                              "payment succeeded"); checked by the integration,
-//                              then forwarded to Stratek as a signed event
+//                              then forwarded to Stratek as a signed event.
+//                              /webhooks/telegram: messages to the shop's bot (v0.13.0)
 //
 // Test vs live: every integration has two key sets (Set up page sections).
 // Actions/secrets take `mode: 'test' | 'live'` (default live); webhooks for
@@ -216,7 +217,8 @@ export async function handle(request, env) {
     const { keys } = await loadKeys(env, db, mode);
     const store = integrationStore(db, integration, mode);
     try {
-      const out = await integration.webhook({ request, rawBody, env: { ...env, ...keys, STRATEK_MODE: mode }, store, mode, emit: (event) => emitEvent(db, { ...event, mode }) });
+      const storeFor = (id) => integrationStore(db, findIntegration(id), mode); // e.g. Telegram hands messages to the AI employee
+      const out = await integration.webhook({ request, rawBody, env: { ...env, ...keys, STRATEK_MODE: mode }, store, mode, storeFor, emit: (event) => emitEvent(db, { ...event, mode }) });
       if (out instanceof Response) return out; // e.g. Pathao needs 202 + its own header
       return okJson(env, request, out || { received: true });
     } catch (err) {

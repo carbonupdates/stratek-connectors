@@ -43,6 +43,7 @@ const stratekFetch = globalThis.fetch;
 const seen = [];
 const pbHooks = [];
 const stratekEvents = [];
+const tgCalls = [];
 globalThis.fetch = async (input, init) => {
   const req = input instanceof Request ? input : new Request(input, init);
   const u = new URL(req.url);
@@ -65,6 +66,13 @@ globalThis.fetch = async (input, init) => {
     if (u.pathname.endsWith('/orders')) return Response.json({ data: { consignment_id: 'NP9', order_status: 'Pending' } });
   }
   if (u.host === 'graph.facebook.com') return Response.json({ events_received: 1 });
+  if (u.host === 'api.telegram.org') {
+    tgCalls.push({ method: u.pathname.split('/').pop(), body });
+    if (u.pathname.endsWith('/getMe')) return Response.json({ ok: true, result: { id: 99, username: 'chyau_bot', first_name: 'Chyau' } });
+    return Response.json({ ok: true, result: true });
+  }
+  if (u.host === 'api.openai.com') return Response.json({ choices: [{ message: { role: 'assistant', content: '2 orders need settling.' } }], usage: { prompt_tokens: 10, completion_tokens: 5 } });
+  if (u.href === `${STRATEK}/mcp`) return Response.json({ jsonrpc: '2.0', id: 1, result: { tools: [] } });
   if (u.href === `${STRATEK}/api/v1/connectors/events`) { const b = await req.json(); stratekEvents.push({ body: b, sig: req.headers.get('X-Stratek-Signature') }); return Response.json({ success: true, data: { recorded: true } }); }
   return stratekFetch(input, init);
 };
@@ -271,4 +279,64 @@ test('AI employee (0.12.0): identity only from Stratek, tasks only from a signed
   assert.equal(m.test.support, 'none'); assert.equal(m.category, 'ai');
   r = await (await go(c.env, '/agent-key', { method: 'POST', headers: { Authorization: `Bearer ${c.server}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ off: true }) })).json();
   assert.equal(r.data.linked, false); assert.equal(c.env._map.get('data:ai_employee:agent_key'), undefined);
+});
+
+test('Telegram (0.13.0): bot setup, one-time link, only the linked account, alerts from Stratek only, chat to the AI employee', async () => {
+  const c = await paired();
+  const saved = await c.save('telegram', 'live', { TELEGRAM_BOT_TOKEN: '123:abc' });
+  assert.equal(saved.success, true); assert.match(saved.data.notice, /@chyau_bot/);
+  const hook = tgCalls.find((x) => x.method === 'setWebhook');
+  assert.equal(hook.body.url, 'https://stratek-connector.test.workers.dev/webhooks/telegram');
+  const secret = hook.body.secret_token; assert.ok(secret.length >= 32);
+  const m = (await c.manifest()).find((i) => i.id === 'telegram');
+  assert.equal(m.status, 'available'); assert.equal(m.test.support, 'none');
+  // link: people only
+  assert.equal((await c.act('telegram', 'link', {}, c.server)).success, false);
+  const link = (await c.act('telegram', 'link')).data.result;
+  assert.match(link.url, /^https:\/\/t\.me\/chyau_bot\?start=[0-9a-f]{32}$/);
+  const code = link.url.split('=')[1];
+  let upd = 1;
+  const hookPost = (msg, sec = secret) => go(c.env, '/webhooks/telegram', { method: 'POST', headers: { 'X-Telegram-Bot-Api-Secret-Token': sec, 'Content-Type': 'application/json' }, body: JSON.stringify({ update_id: upd++, message: msg }) });
+  const from = { id: 5, first_name: 'Gunjan', username: 'gunjan' };
+  assert.equal((await hookPost({ text: `/start ${code}`, chat: { id: 5, type: 'private' }, from }, 'wrong')).status, 403, 'secret header checked');
+  // a group can't link
+  await hookPost({ text: `/start ${code}`, chat: { id: -7, type: 'group' }, from });
+  assert.equal(c.env._map.get('data:telegram:owner'), undefined);
+  await hookPost({ text: `/start ${code}`, chat: { id: 5, type: 'private' }, from });
+  assert.equal(c.env._map.get('data:telegram:owner').userId, 5);
+  // code is one-time: someone else can't take over
+  const before = tgCalls.length;
+  await hookPost({ text: `/start ${code}`, chat: { id: 8, type: 'private' }, from: { id: 8, first_name: 'X' } });
+  assert.equal(c.env._map.get('data:telegram:owner').userId, 5);
+  await hookPost({ text: 'show me sales', chat: { id: 8, type: 'private' }, from: { id: 8, first_name: 'X' } });
+  assert.equal(tgCalls.slice(before).filter((x) => x.method === 'sendMessage' && x.body.chat_id === 8 && !/expired/.test(x.body.text)).length, 0, 'strangers get nothing');
+  // retried update is handled once
+  const dup = await go(c.env, '/webhooks/telegram', { method: 'POST', headers: { 'X-Telegram-Bot-Api-Secret-Token': secret }, body: JSON.stringify({ update_id: 1, message: { text: 'hi', chat: { id: 5, type: 'private' }, from } }) });
+  assert.equal((await dup.json()).data.duplicate, true);
+  // alerts: Stratek's server only; button only to Stratek
+  assert.equal((await c.act('telegram', 'alert', { fields: { text: 'x' } })).success, false, 'not from a browser session');
+  const a = await c.act('telegram', 'alert', { fields: { text: 'Approval needed', buttonLabel: 'Review', buttonUrl: 'https://strateknepal.com/dashboard.html#integrations' } }, c.server);
+  assert.equal(a.success, true);
+  let sent = tgCalls.filter((x) => x.method === 'sendMessage').pop();
+  assert.equal(sent.body.chat_id, 5); assert.equal(sent.body.reply_markup.inline_keyboard[0][0].url, 'https://strateknepal.com/dashboard.html#integrations');
+  await c.act('telegram', 'alert', { fields: { text: 'Phish', buttonUrl: 'https://evil.test/' } }, c.server);
+  sent = tgCalls.filter((x) => x.method === 'sendMessage').pop();
+  assert.equal(sent.body.reply_markup, undefined, 'no buttons to other sites');
+  // chat: AI employee off -> tells how to switch on
+  await hookPost({ text: 'which orders need settling?', chat: { id: 5, type: 'private' }, from });
+  assert.match(tgCalls.filter((x) => x.method === 'sendMessage').pop().body.text, /AI employee is off/);
+  // AI employee on -> answers in Telegram
+  await c.save('ai_employee', 'live', { AI_PROVIDER: 'openai', AI_API_KEY: 'sk-x', AI_MODEL: 'm' });
+  await go(c.env, '/agent-key', { method: 'POST', headers: { Authorization: `Bearer ${c.server}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ key: 'stk_m_' + 'a'.repeat(64) }) });
+  await hookPost({ text: 'which orders need settling?', chat: { id: 5, type: 'private' }, from });
+  assert.equal(tgCalls.filter((x) => x.method === 'sendMessage').pop().body.text, '2 orders need settling.');
+  assert.equal(c.env._map.get('data:ai_employee:history').length, 2);
+  await hookPost({ text: '/new', chat: { id: 5, type: 'private' }, from });
+  assert.equal(c.env._map.get('data:ai_employee:history').length, 0);
+  // status + unlink (unlink: people only)
+  assert.equal((await c.act('telegram', 'status', {}, c.server)).data.result.linked.username, 'gunjan');
+  assert.equal((await c.act('telegram', 'unlink', {}, c.server)).success, false);
+  await c.act('telegram', 'unlink');
+  assert.equal(c.env._map.get('data:telegram:owner'), undefined);
+  assert.equal((await c.act('telegram', 'alert', { fields: { text: 'x' } }, c.server)).success, false, 'no alerts once unlinked');
 });

@@ -133,7 +133,7 @@ keys once afterwards so both live and test payment notifications are registered.
 |---|---|---|---|---|
 | [WhatsApp Business](https://developers.facebook.com/docs/whatsapp/cloud-api) | Send receipt on WhatsApp, Send payment QR on WhatsApp | WhatsApp access token, WhatsApp phone number ID | -- | Coming soon |
 | [Sparrow SMS](https://sparrowsms.com/) | Send receipt by SMS | Sparrow SMS token, Sender ID | -- | Coming soon |
-| [Telegram](https://core.telegram.org/bots/api) | Post sale to Telegram | Telegram bot token, Chat ID | -- | Coming soon |
+| [Telegram](https://core.telegram.org/bots/api) | Owner alerts from Stratek, chat with the AI employee, Post sale to Telegram, Send test message | Telegram bot token | Live only | **Available** (v0.13.0) |
 | [Slack](https://api.slack.com/messaging/webhooks) | Post sale to Slack | Slack incoming webhook URL | -- | Coming soon |
 
 ### Accounting & tax
@@ -308,6 +308,20 @@ see the POS repo's `docs/proposals/online-store.md`), gated on PayBridgeNP
 (Fonepay QR on the order page, confirmed automatically) + Pathao (live quotes,
 booking), with pickup or delivery and a test mode that uses the test keys.
 To build one, see [docs/adding-an-integration.md](docs/adding-an-integration.md).
+
+## Telegram (v0.13.0+)
+
+Stratek alerts on the owner's Telegram (approval requests, paid online orders,
+delivery problems, daily summary) and chat with the AI employee there.
+Make a bot with **@BotFather** (`/newbot`) and paste its token in Set up --
+saving registers this connector with Telegram (`setWebhook` to
+`/webhooks/telegram` with a random secret that Telegram sends back in
+`X-Telegram-Bot-Api-Secret-Token`). Then press **Link my Telegram** in
+Stratek: a one-time `t.me/<bot>?start=<code>` link (15 minutes, private chat
+only) links that one Telegram account; every other chat is ignored. Stratek
+decides when an alert is due and asks the connector to send it; the token
+never leaves the connector. Approvals stay in the Stratek dashboard -- alerts
+only link there.
 
 ## AI employee (v0.12.0+)
 

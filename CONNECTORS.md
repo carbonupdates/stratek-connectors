@@ -272,6 +272,23 @@ its Set up page.
   `webhookSetup: { where, what }` so its Set up page shows the callback URL.
 - `color` (e.g. `'#e4202a'`) colours an integration's buttons in Stratek.
 
+## 6a-2. Telegram (v0.13.0+)
+
+- Integration `telegram` (category `messaging`, live only): key `TELEGRAM_BOT_TOKEN`.
+  `onKeysSaved` calls `getMe` and `setWebhook` (`<connector>/webhooks/telegram`,
+  random `secret_token`, `allowed_updates: [message]`) and remembers the bot.
+- `POST /webhooks/telegram`: checked with `X-Telegram-Bot-Api-Secret-Token`;
+  each `update_id` handled once (Telegram retries). Private chats only.
+  `/start <code>` with the one-time code links that account (stored as the
+  integration's `owner`); messages from anyone else get no answer. Messages
+  from the owner go to the AI employee (`runAgentTurn`, same limits; `continue`
+  and `/new`). Webhook handlers now get `storeFor(id)` to reach another
+  integration's memory (here the AI employee's).
+- Actions: `test` (settings), `notify` "Post sale to Telegram" (transaction),
+  hidden (placement `agent`): `link` / `unlink` (session pass only), `status`
+  (session or server), `alert` (**server pass only** -- Stratek's alerts;
+  the button URL must start with the Stratek address).
+
 ## 6a. AI employee (v0.12.0+)
 
 - `POST /agent-key` (Stratek pass, `src` session or server) `{ key: "stk_m_..." }`

@@ -1,5 +1,5 @@
 {
- "version": "0.12.0",
+ "version": "0.13.0",
  "categories": {
   "system": "Connector",
   "payments": "Payments",
@@ -340,15 +340,19 @@
    "id": "telegram",
    "name": "Telegram",
    "category": "messaging",
-   "status": "planned",
-   "description": "Sale alerts to a Telegram chat or group.",
-   "docsUrl": "https://core.telegram.org/bots/api",
+   "status": "available",
+   "description": "Stratek alerts on your Telegram (approvals, paid orders, delivery problems, daily summary) -- and chat with your AI employee there.",
+   "docsUrl": "https://github.com/carbonupdates/stratek-connectors#telegram",
    "actions": [
-    "Post sale to Telegram"
+    "Send test message",
+    "Post sale to Telegram",
+    "Link my Telegram",
+    "Telegram status",
+    "Unlink Telegram",
+    "Send an alert"
    ],
    "secrets": [
-    "Telegram bot token",
-    "Chat ID"
+    "Telegram bot token"
    ]
   },
   {
