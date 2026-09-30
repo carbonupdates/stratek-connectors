@@ -256,3 +256,19 @@ test('storefront (0.11.0): config via pass only, own domain + workers.dev/shop m
   assert.equal(r.data.slug, 'chyau');
   assert.equal(c.env._map.get('storefront').workersDev, true);
 });
+
+test('AI employee (0.12.0): identity only from Stratek, tasks only from a signed-in person', async () => {
+  const c = await paired();
+  let r = await go(c.env, '/agent-key', { method: 'POST', body: JSON.stringify({ key: 'stk_m_' + 'a'.repeat(64) }) });
+  assert.equal(r.status, 401, 'no pass, no identity');
+  r = await (await go(c.env, '/agent-key', { method: 'POST', headers: { Authorization: `Bearer ${c.server}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ key: 'stk_m_' + 'a'.repeat(64) }) })).json();
+  assert.equal(r.data.linked, true);
+  assert.ok(c.env._map.get('data:ai_employee:agent_key').key.startsWith('stk_m_'));
+  await c.save('ai_employee', 'live', { AI_PROVIDER: 'openai', AI_API_KEY: 'sk-x', AI_MODEL: 'm' });
+  const t = await c.act('ai_employee', 'task', { fields: { message: 'hi' } }, c.server);
+  assert.equal(t.success, false); assert.match(t.error.message, /person signed in/);
+  const m = (await c.manifest()).find((i) => i.id === 'ai_employee');
+  assert.equal(m.test.support, 'none'); assert.equal(m.category, 'ai');
+  r = await (await go(c.env, '/agent-key', { method: 'POST', headers: { Authorization: `Bearer ${c.server}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ off: true }) })).json();
+  assert.equal(r.data.linked, false); assert.equal(c.env._map.get('data:ai_employee:agent_key'), undefined);
+});

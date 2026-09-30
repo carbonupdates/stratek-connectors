@@ -88,7 +88,7 @@ async function loadKeys(env, db, mode = 'live') {
 /** Per-integration memory, separate for test and live. */
 function integrationStore(db, integration, mode = 'live') {
   const prefix = modeOf(mode) === 'test' ? `data:${integration.id}:test:` : `data:${integration.id}:`;
-  return { get: (k) => db.get(prefix + k), put: (k, v) => db.put(prefix + k, v) };
+  return { get: (k) => db.get(prefix + k), put: (k, v) => db.put(prefix + k, v), delete: (k) => db.delete(prefix + k) };
 }
 
 const TEST_VALUE = /^(sk|pk|rk)_test_/;
@@ -295,7 +295,7 @@ export async function handle(request, env) {
   }
 
   // ── API for the Stratek POS (needs a Stratek pass) ────────
-  const needsPass = pathname === '/manifest' || pathname === '/disconnect' || pathname === '/storefront' || pathname.startsWith('/actions/') || pathname.startsWith('/secrets/');
+  const needsPass = pathname === '/manifest' || pathname === '/disconnect' || pathname === '/storefront' || pathname === '/agent-key' || pathname.startsWith('/actions/') || pathname.startsWith('/secrets/');
   if (!needsPass) return failJson(env, request, 'Not found', 404, 'NOT_FOUND');
 
   const pairing = await db.get('pairing');
@@ -313,6 +313,19 @@ export async function handle(request, env) {
       connector: { version: CONNECTOR_VERSION, connectorId: pairing.connectorId, owner: { type: pairing.ownerType, id: pairing.ownerId, name: pairing.ownerName } },
       integrations: manifest((await loadKeys(env, db)).keys, (await loadKeys(env, db, 'test')).keys).filter((i) => allowedInt(i.id)),
     });
+  }
+
+  // AI employee identity (v0.12.0): Stratek gives it when the owner switches the
+  // AI employee on, and takes it away when switched off. Never shown anywhere.
+  if (pathname === '/agent-key' && request.method === 'POST') {
+    if (claims.src !== 'session' && claims.src !== 'server') return failJson(env, request, 'Only Stratek can do this.', 403, 'FORBIDDEN');
+    const body = await request.json().catch(() => null);
+    const aiStore = integrationStore(db, findIntegration('ai_employee'), 'live');
+    if (body?.off) { await aiStore.delete('agent_key'); await aiStore.delete('tools'); return okJson(env, request, { linked: false }); }
+    if (!/^stk_m_[0-9a-f]{64}$/.test(String(body?.key || ''))) return failJson(env, request, 'Bad key.', 400, 'BAD_KEY');
+    await aiStore.put('agent_key', { key: body.key, at: new Date().toISOString() });
+    await aiStore.delete('tools');
+    return okJson(env, request, { linked: true });
   }
 
   // Storefront config: set by Stratek (a signed-in person, or Stratek's server acting for them).

@@ -309,6 +309,19 @@ see the POS repo's `docs/proposals/online-store.md`), gated on PayBridgeNP
 booking), with pickup or delivery and a test mode that uses the test keys.
 To build one, see [docs/adding-an-integration.md](docs/adding-an-integration.md).
 
+## AI employee (v0.12.0+)
+
+An AI staff member that runs **in this connector** with **your own AI key**
+(Anthropic / OpenAI / Gemini / any OpenAI-compatible model). Set up keys on its
+row in Stratek's Integrations tab (provider, key, model, optional base URL and
+daily token limit), press **Switch on** on its card, and give it tasks there.
+Stratek gives the connector a limited identity for it (`POST /agent-key`, pass
+only) and it uses Stratek's MCP tools with that identity -- so it follows every
+Stratek rule for agents: no cash, no settling, money actions wait for a person.
+The key and the conversation stay in this connector. Long jobs stop at a
+free-plan-safe size and continue when asked; a daily token limit caps the bill.
+Stratek's own API & MCP keys are separate and unchanged.
+
 ## The online store on your own address (v0.11.0+)
 
 Your connector can also serve your Stratek online store from **your own

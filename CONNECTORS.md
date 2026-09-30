@@ -272,6 +272,23 @@ its Set up page.
   `webhookSetup: { where, what }` so its Set up page shows the callback URL.
 - `color` (e.g. `'#e4202a'`) colours an integration's buttons in Stratek.
 
+## 6a. AI employee (v0.12.0+)
+
+- `POST /agent-key` (Stratek pass, `src` session or server) `{ key: "stk_m_..." }`
+  stores the AI employee's Stratek identity in the integration's memory;
+  `{ off: true }` forgets it. Never returned by any endpoint.
+- Integration `ai_employee` (category `ai`, live keys only): `AI_PROVIDER`
+  (anthropic | openai | gemini | custom), `AI_API_KEY`, `AI_MODEL`, optional
+  `AI_BASE_URL` (custom) and `AI_DAILY_TOKENS`. Actions: `test` (settings),
+  and hidden `task` / `history` / `reset` (placement `agent`) that only run with
+  a **session** pass (a signed-in person), never a server pass or API key.
+- `task` (src/agent.js): loads Stratek's MCP `tools/list` with the identity,
+  asks the model (Anthropic Messages or OpenAI-compatible chat completions,
+  Gemini via its OpenAI-compatible endpoint), runs the chosen tools with MCP
+  `tools/call`, up to 6 model calls / 30 outgoing calls per turn (free plan),
+  then `needsContinue`. History (last 30 messages) and daily token use are kept
+  in the integration's memory; tool results are marked as data, not instructions.
+
 ## 6b. Storefront (v0.11.0+)
 
 - `POST /storefront` (Stratek pass, `src` session or server) `{ slug, workersDev,

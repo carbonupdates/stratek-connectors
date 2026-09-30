@@ -1,5 +1,5 @@
 {
- "version": "0.11.0",
+ "version": "0.12.0",
  "categories": {
   "system": "Connector",
   "payments": "Payments",
@@ -9,7 +9,8 @@
   "accounting": "Accounting & tax",
   "commerce": "Online stores & marketplaces",
   "marketing": "Customers & marketing",
-  "automation": "Automation"
+  "automation": "Automation",
+  "ai": "AI employee"
  },
  "integrations": [
   {
@@ -23,6 +24,27 @@
     "Test connection"
    ],
    "secrets": []
+  },
+  {
+   "id": "ai_employee",
+   "name": "AI employee",
+   "category": "ai",
+   "status": "available",
+   "description": "An AI staff member that runs in your own Cloudflare with your own AI key, uses Stratek and your integrations, and asks a person before anything that moves money.",
+   "docsUrl": "https://github.com/carbonupdates/stratek-connectors#ai-employee",
+   "actions": [
+    "Test AI employee",
+    "Give the AI employee a task",
+    "AI employee conversation",
+    "New conversation"
+   ],
+   "secrets": [
+    "AI provider",
+    "AI provider API key",
+    "Model",
+    "Base URL (custom only)",
+    "Daily token limit"
+   ]
   },
   {
    "id": "stripe",

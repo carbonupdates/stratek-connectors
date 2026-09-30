@@ -34,8 +34,10 @@ import hubspot from './hubspot.js';
 import webhook from './webhook.js';
 import zapier from './zapier.js';
 import make from './make.js';
+import ai_employee from './ai_employee.js';
 
 export const CATALOGUE = [
+  ai_employee,
   stripe,
   paypal,
   khalti,

@@ -25,6 +25,7 @@ export const CATEGORIES = {
   commerce: 'Online stores & marketplaces',
   marketing: 'Customers & marketing',
   automation: 'Automation',
+  ai: 'AI employee',
 };
 
 const has = (v) => typeof v === 'string' && v.trim() !== '';
