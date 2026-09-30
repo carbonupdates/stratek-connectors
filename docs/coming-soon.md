@@ -1,6 +1,6 @@
 # Integrations: finished, remaining and build waves
 
-**Tally (connector 0.18.0): 38 built, 34 coming soon, 72 in total** (the Connector itself not counted).
+**Tally (connector 0.19.0): 40 built, 32 coming soon, 72 in total** (the Connector itself not counted).
 
 Coming-soon ones are already in the catalogue as scaffolds (key fields and buttons drafted, `run` not built). To build one: follow `docs/adding-an-integration.md`, write each action, set `status: 'available'`, add a test, bump the version. Buttons only -- nothing runs by itself. Anything that spends money (labels, fulfilment, PCB and dropship orders, refunds) needs a person (AI agents can only ask).
 
@@ -8,8 +8,8 @@ Coming-soon ones are already in the catalogue as scaffolds (key fields and butto
 
 | Kind | Who | Meaning |
 |---|---|---|
-| **Merchant account** | the business | Anyone can sign up and get API keys; the business pastes them in Set up. (8 remaining) |
-| **Merchant approval** | the business | The provider has to accept the business first (merchant agreement, KYC, API application, seller account). Stratek can build and test these once one test account exists. (13 remaining) |
+| **Merchant account** | the business | Anyone can sign up and get API keys; the business pastes them in Set up. (7 remaining) |
+| **Merchant approval** | the business | The provider has to accept the business first (merchant agreement, KYC, API application, seller account). Stratek can build and test these once one test account exists. (12 remaining) |
 | **Stratek partner approval** | Stratek | The provider only works with certified software partners, so **Stratek** (the software maker) must apply once; after that every business can use it with its own login. (8 remaining) |
 | **Partner deal (to confirm)** / No public API | -- | No public API yet; needs a conversation with the company first. (5 remaining) |
 
@@ -22,15 +22,16 @@ Setting up the connector itself never needs anyone's approval.
 - **Wave 2 (0.15.0):** Khalti, eSewa, connectIPS, Nepal IRD e-billing (CBMS)
 - **Wave 3 (0.17.0):** WhatsApp Business, Viber, WooCommerce, Shopify, QuickBooks Online, Xero, Zoho Books, DHL Express
 - **Wave 4 (0.18.0):** FedEx, UPS, Aramex, Easyship, ShipStation, ShipBob, Amazon Multi-Channel Fulfillment, Shiprocket
+- **Wave 5 (0.19.0):** Cloudbeds, Oracle OPERA Cloud (charge to room)
 
-## Remaining (34)
+## Remaining (32)
 
-### Wave 5 -- hotels & hospitality
+### Wave 5 -- hotels & hospitality (rest: need Stratek partner approval or an API)
+
+Cloudbeds and OPERA Cloud are built. The ones below only open to certified software partners (Stratek applies once) or have no public API.
 
 | Integration | What it does | API | Approval |
 |---|---|---|---|
-| Cloudbeds | Charge to room, arrivals | REST API (property API key) | Merchant account |
-| Oracle OPERA Cloud | Charge to room | OHIP (hotel's own OHIP subscription, or Stratek as partner) | Merchant approval |
 | Mews | Charge to room, guests in house | Connector API; integration certification | Stratek partner approval |
 | OpenTable | Table bookings | Partner API | Stratek partner approval |
 | SiteMinder | Room availability / channel manager | Partner programme | Stratek partner approval |
@@ -69,7 +70,7 @@ Setting up the connector itself never needs anyone's approval.
 | TikTok Shop | Products and orders | Partner Center app | Stratek partner approval |
 | Daraz | Products and orders | Open Platform app (approval) | Merchant approval |
 
-### Parked
+### Wave 8 -- parked (need partner accounts or a public API)
 
 | Integration | What it does | API | Approval |
 |---|---|---|---|

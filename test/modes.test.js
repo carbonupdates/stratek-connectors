@@ -47,6 +47,7 @@ const tgCalls = [];
 const kCalls = []; const kState = { status: 'Initiated' }; const eCalls = []; const eState = { status: 'PENDING' }; const cCalls = []; const irdCalls = [];
 const waCalls = []; const viCalls = []; const wooCalls = []; const shCalls = []; const oaCalls = []; const qbCalls = []; const xeCalls = []; const zoCalls = []; const dhCalls = [];
 const w4Calls = [];
+const w5Calls = [];
 const hookCalls = []; const smsCalls = []; const gCalls = []; const gTabs = ['Sheet1']; const mcCalls = []; const hsCalls = [];
 globalThis.fetch = async (input, init) => {
   const req = input instanceof Request ? input : new Request(input, init);
@@ -84,6 +85,21 @@ globalThis.fetch = async (input, init) => {
   if (u.host === 'api.xero.com') { xeCalls.push({ method: req.method, path: u.pathname, body, tenant: req.headers.get('xero-tenant-id') }); if (u.pathname === '/connections') return Response.json([{ tenantId: 'T-1', tenantType: 'ORGANISATION', tenantName: 'Demo Company' }]); if (u.pathname.endsWith('/Organisation')) return Response.json({ Organisations: [{ Name: 'Demo Company (Global)', BaseCurrency: 'USD' }] }); return Response.json({ Invoices: [{ InvoiceID: 'inv-1', InvoiceNumber: 'INV-0042' }] }); }
   if (u.host === 'www.zohoapis.com') { zoCalls.push({ method: req.method, path: u.pathname + u.search, body }); if (u.pathname.endsWith('/organizations')) return Response.json({ code: 0, organizations: [{ organization_id: 'O1', name: 'Chyau Pvt', currency_code: 'NPR', is_default_org: true }] }); if (u.pathname.endsWith('/contacts') && req.method === 'GET') return Response.json({ code: 0, contacts: [] }); if (u.pathname.endsWith('/contacts')) return Response.json({ code: 0, contact: { contact_id: 'C9' } }); return Response.json({ code: 0, invoice: { invoice_id: 'I1', invoice_number: 'INV-000001' } }); }
   if (u.host === 'express.api.dhl.com') { dhCalls.push({ method: req.method, path: u.pathname + u.search, body, auth: req.headers.get('Authorization') }); if (u.pathname.endsWith('/rates')) return Response.json({ products: [{ productName: 'EXPRESS WORLDWIDE', totalPrice: [{ currencyType: 'BILLC', priceCurrency: 'NPR', price: 7420 }], deliveryCapabilities: { estimatedDeliveryDateAndTime: '2026-10-04T23:59:00' } }] }); if (u.pathname.endsWith('/shipments')) return Response.json({ shipmentTrackingNumber: '1234567890', documents: [{ typeCode: 'label', content: btoa('%PDF-1.4 fake') }] }); return Response.json({ shipments: [{ status: 'transit', events: [{ description: 'Processed at KATHMANDU', date: '2026-10-02' }] }] }); }
+  if (u.host === 'api.cloudbeds.com' || u.host === 'ohip.example.com' || u.host === 'ohip-sandbox.example.com') {
+    const raw = req.method === 'GET' ? '' : await req.clone().text();
+    const form = Object.fromEntries(new URLSearchParams(raw)); let jb = null; try { jb = raw ? JSON.parse(raw) : null; } catch { jb = null; }
+    const p = u.pathname; w5Calls.push({ host: u.host, method: req.method, path: p + u.search, form, body: jb, headers: Object.fromEntries(req.headers) });
+    if (u.host === 'api.cloudbeds.com') {
+      if (req.headers.get('x-api-key') !== 'cbat_ok') return Response.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+      if (p.endsWith('/getHotelDetails')) return Response.json({ success: true, data: { propertyName: 'Hotel Himalaya', propertyCurrency: { currencyCode: 'NPR' } } });
+      if (p.endsWith('/getReservations') && u.searchParams.get('status') === 'checked_in') return Response.json({ success: true, data: [{ reservationID: 'R100', guestName: 'Anna Berg', guestList: { g1: { rooms: [{ roomName: '203' }] } } }, { reservationID: 'R101', guestName: 'Ram Thapa', guestList: { g2: { rooms: [{ roomName: '305' }] } } }, { reservationID: 'R102', guestName: 'Ramesh Rai', guestList: { g3: { rooms: [{ roomName: '306' }] } } }] });
+      if (p.endsWith('/getReservations')) return Response.json({ success: true, data: [{ reservationID: 'R200', guestName: 'Li Wei' }] });
+      if (p.endsWith('/postCustomItem')) return Response.json({ success: true, data: { soldProductID: 'SP1' } });
+    }
+    if (p === '/oauth/v1/tokens') return Response.json({ access_token: 'oh-tok', expires_in: 3600 });
+    if (p.includes('/reservations') && req.method === 'GET') return Response.json({ reservations: { totalResults: u.searchParams.get('roomId') === '999' ? 0 : 1, reservationInfo: u.searchParams.get('roomId') === '999' ? [] : [{ reservationIdList: [{ id: '55501', type: 'Reservation' }], reservationGuest: { givenName: 'Anna', surname: 'Berg' }, roomStay: { roomId: '203' } }] } });
+    if (p.endsWith('/charges')) return Response.json({ postings: [{ transactionNo: 331494 }] }, { status: 201 });
+  }
   if (['apis-sandbox.fedex.com', 'wwwcie.ups.com', 'ws.dev.aramex.net', 'public-api.easyship.com', 'ssapi.shipstation.com', 'sandbox-api.shipbob.com', 'api.amazon.com', 'sandbox.sellingpartnerapi-na.amazon.com', 'apiv2.shiprocket.in'].includes(u.host)) {
     const raw = req.method === 'GET' ? '' : await req.clone().text();
     let jb = null; try { jb = raw ? JSON.parse(raw) : null; } catch { jb = Object.fromEntries(new URLSearchParams(raw)); }
@@ -818,4 +834,45 @@ test('Wave 4 (0.18.0): FedEx, UPS, Aramex, Easyship, ShipStation, ShipBob, Amazo
   const man = await c.manifest();
   for (const id of ['fedex', 'ups', 'aramex', 'easyship', 'shipstation', 'shipbob', 'amazon_mcf', 'shiprocket']) assert.equal(man.find((i) => i.id === id).status, 'available', id);
   assert.equal(man.find((i) => i.id === 'amazon_scs').status, 'planned');
+});
+
+test('Wave 5 (0.19.0): Cloudbeds and OPERA Cloud room charges', async () => {
+  const c = await paired();
+  const now = Math.floor(Date.now() / 1000);
+  const apiKeyPass = () => pass({ iss: STRATEK, aud: 'conn-1', sub: 'merchant:1', iat: now, exp: now + 60, src: 'api_key' });
+  const saleCtx = { context: { transaction: { id: 95, amount: 678, currency: 'NPR', reference: 'Restaurant', items: [{ name: 'Momo', price: 300, qty: 2 }], createdAt: '2026-09-30 06:00:00' } } };
+  const calls = (host, path) => w5Calls.filter((x) => x.host === host && (!path || x.path.includes(path)));
+  // ── Cloudbeds ──
+  await c.save('cloudbeds', 'live', { CLOUDBEDS_API_KEY: 'bad', CLOUDBEDS_PROPERTY_ID: '9001' });
+  assert.match((await c.act('cloudbeds', 'test')).error.message, /did not accept/);
+  await c.save('cloudbeds', 'live', { CLOUDBEDS_API_KEY: 'cbat_ok', CLOUDBEDS_PROPERTY_ID: '9001' });
+  assert.match((await c.act('cloudbeds', 'test')).data.result.text, /Hotel Himalaya \(NPR\)/);
+  assert.match((await c.act('cloudbeds', 'in_house')).data.result.text, /203 Anna Berg/);
+  assert.match((await c.act('cloudbeds', 'arrivals')).data.result.text, /Li Wei/);
+  assert.equal((await c.act('cloudbeds', 'post_to_room', { ...saleCtx, fields: { roomOrGuest: '203' } }, await apiKeyPass())).error.code, 'APPROVAL_REQUIRED');
+  assert.match((await c.act('cloudbeds', 'post_to_room', { ...saleCtx, fields: { roomOrGuest: 'ram' } })).error.message, /matches 2 guests/);
+  let r = await c.act('cloudbeds', 'post_to_room', { ...saleCtx, fields: { roomOrGuest: '203' } });
+  assert.equal(r.success, true, JSON.stringify(r));
+  const f = calls('api.cloudbeds.com', 'postCustomItem')[0].form;
+  assert.equal(f.reservationID, 'R100'); assert.equal(f.referenceID, 'stratek-95'); assert.equal(f.propertyID, '9001');
+  assert.equal(f['items[0][itemQuantity]'], '2'); assert.equal(f['items[1][itemPrice]'], '78', 'VAT/service line makes the total match');
+  r = await c.act('cloudbeds', 'post_to_room', { ...saleCtx, fields: { roomOrGuest: '203' } });
+  assert.match(r.data.result.status, /Already charged/); assert.equal(calls('api.cloudbeds.com', 'postCustomItem').length, 1);
+  // ── OPERA Cloud (sandbox gateway under test keys) ──
+  const oh = { OHIP_APP_KEY: 'app', OHIP_CLIENT_ID: 'cid', OHIP_CLIENT_SECRET: 'csec', OHIP_ENTERPRISE_ID: 'ENT', OHIP_HOTEL_ID: 'ktmhotel', OHIP_TRANSACTION_CODE: '2000' };
+  await c.save('opera_cloud', 'test', { ...oh, OHIP_GATEWAY_URL: 'https://ohip-sandbox.example.com' });
+  assert.match((await c.act('opera_cloud', 'test', { mode: 'test' })).data.result.text, /KTMHOTEL: 1 reservation in house \(sandbox\)/);
+  const tok = calls('ohip-sandbox.example.com', '/oauth/v1/tokens')[0];
+  assert.match(tok.headers.authorization, /^Basic /); assert.equal(tok.headers.enterpriseid, 'ENT'); assert.equal(tok.form.grant_type, 'client_credentials');
+  assert.match((await c.act('opera_cloud', 'post_to_room', { ...saleCtx, mode: 'test', fields: { room: '999' } })).error.message, /No in-house guest in room 999/);
+  r = await c.act('opera_cloud', 'post_to_room', { ...saleCtx, mode: 'test', fields: { room: '203' } });
+  assert.equal(r.success, true, JSON.stringify(r)); assert.match(r.data.result.text, /Anna Berg's OPERA folio \(posting 331494\)/);
+  const ch = calls('ohip-sandbox.example.com', '/charges')[0];
+  assert.match(ch.path, /\/csh\/v1\/hotels\/KTMHOTEL\/reservations\/55501\/charges$/); assert.equal(ch.headers['x-hotelid'], 'KTMHOTEL');
+  assert.equal(ch.body.criteria.charges[0].transactionCode, '2000'); assert.equal(ch.body.criteria.charges[0].price.amount, 678);
+  assert.equal(calls('ohip-sandbox.example.com', '/oauth/v1/tokens').length, 1, 'token reused');
+  assert.equal((await c.act('opera_cloud', 'post_to_room', { ...saleCtx, mode: 'test', fields: { room: '203' } }, await apiKeyPass())).error.code, 'APPROVAL_REQUIRED');
+  const man = await c.manifest();
+  for (const id of ['cloudbeds', 'opera_cloud']) assert.equal(man.find((i) => i.id === id).status, 'available', id);
+  for (const id of ['mews', 'opentable', 'siteminder', 'booking_com', 'expedia', 'airbnb', 'foodmandu']) assert.equal(man.find((i) => i.id === id).status, 'planned', id);
 });

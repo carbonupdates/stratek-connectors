@@ -149,6 +149,13 @@ keys once afterwards so both live and test payment notifications are registered.
 | [ShipBob](https://developer.shipbob.com/) | Test ShipBob, Fulfil with ShipBob (needs a person), ShipBob tracking | Personal Access Token (+ ship option, channel ID) | Sandbox token | **Available** (v0.18.0) |
 | [Amazon Multi-Channel Fulfillment](https://developer-docs.amazon.com/sp-api/docs/fulfillment-outbound-api) | Preview Amazon fulfillment, Fulfil with Amazon (MCF) (needs a person), Track Amazon fulfillment | Login with Amazon client ID + secret, SP-API refresh token, marketplace ID (+ region) | SP-API sandbox | **Available** (v0.18.0) |
 
+### Hotels & hospitality
+
+| Integration | Buttons in Stratek | Keys (Set up form) | Test mode | Status |
+|---|---|---|---|---|
+| [Cloudbeds](https://developers.cloudbeds.com/) | Test Cloudbeds, Guests in house, Today's arrivals, Charge to room (needs a person) | Property API key, Property ID | Live only | **Available** (v0.19.0) |
+| [Oracle OPERA Cloud](https://docs.oracle.com/en/industries/hospitality/integration-platform/) | Test OPERA Cloud, Charge to room (needs a person) | OHIP gateway URL, app key, client ID + secret, enterprise ID, hotel ID, outlet transaction code (+ cashier ID) | OHIP sandbox | **Available** (v0.19.0) |
+
 ### Messages & notifications
 
 | Integration | Buttons in Stratek | Keys (Set up form) | Test mode | Status |
@@ -332,6 +339,25 @@ see the POS repo's `docs/proposals/online-store.md`), gated on PayBridgeNP
 (Fonepay QR on the order page, confirmed automatically) + Pathao (live quotes,
 booking), with pickup or delivery and a test mode that uses the test keys.
 To build one, see [docs/adding-an-integration.md](docs/adding-an-integration.md).
+
+## Wave 5: hotels -- charge to room (v0.19.0+)
+
+- For a restaurant, bar, spa or shop inside a hotel: on a sale, **Charge to room**
+  puts it on the guest's hotel bill. It bills a guest, so it **needs a person**
+  (AI agents and API keys get an approval request). One charge per sale; pressing
+  again shows the one already made. The guest pays the hotel at check-out, and a
+  person settles the Stratek sale as usual -- nothing settles by itself.
+- **Cloudbeds:** type the room number or the guest's name (only checked-in guests
+  match; two matches -> use the room). Each sale item becomes a line on the bill,
+  plus one line for VAT / service / rounding so the total matches Stratek's bill.
+  "Guests in house" and "Today's arrivals" help at the counter. No test mode.
+- **OPERA Cloud:** needs the hotel's own OHIP access (OHIP developer portal: an
+  application with Cashiering + Reservations, an integration user / cashier and a
+  transaction code for this outlet). Posts one charge with the sale total; the
+  item list goes in the posting remark. Try it on the OHIP sandbox (Test keys).
+- Mews, OpenTable, SiteMinder, Booking.com, Expedia and Airbnb only open to
+  certified software partners, so they wait until Stratek applies; Foodmandu has
+  no public API.
 
 ## Wave 4: shipping and fulfilment (v0.18.0+)
 

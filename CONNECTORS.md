@@ -272,6 +272,18 @@ its Set up page.
   `webhookSetup: { where, what }` so its Set up page shows the callback URL.
 - `color` (e.g. `'#e4202a'`) colours an integration's buttons in Stratek.
 
+## 6a-7. Hotels (v0.19.0+)
+
+- `cloudbeds` (v1.2, header `x-api-key`): `getReservations?status=checked_in`
+  (room names from `guestList[].rooms[]`), `postCustomItem` as form data with
+  `referenceID=stratek-<sale>` (Cloudbeds ignores a repeat), one item per sale line
+  + a VAT/service/rounding line (`folioLines()`); guest matching `matchGuest()`.
+- `opera_cloud` (OHIP): token `POST {gateway}/oauth/v1/tokens` (client_credentials,
+  basic auth, `x-app-key`, `enterpriseId`), `GET /rsv/v1/hotels/{h}/reservations?searchType=InHouse&roomId=`,
+  `POST /csh/v1/hotels/{h}/reservations/{id}/charges` (one simple charge,
+  `postIt: true`, outlet transaction code). Headers `x-app-key`, `x-hotelid`.
+- Both `post_to_room` actions are outbound; one charge per sale (`tx:<id>` memory).
+
 ## 6a-6. Shipping & fulfilment (v0.18.0+)
 
 - Shared helper `src/integrations/_ship.js`: the recipient form (`recipientFields`,

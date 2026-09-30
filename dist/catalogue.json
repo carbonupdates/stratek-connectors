@@ -1,5 +1,5 @@
 {
- "version": "0.18.0",
+ "version": "0.19.0",
  "categories": {
   "system": "Connector",
   "payments": "Payments",
@@ -748,12 +748,14 @@
    "id": "cloudbeds",
    "name": "Cloudbeds",
    "category": "hospitality",
-   "status": "planned",
-   "description": "Hotel PMS: charge a restaurant, bar or shop sale to a guest's room, and see arrivals.",
-   "docsUrl": "https://www.cloudbeds.com/api/",
+   "status": "available",
+   "description": "Hotel PMS: charge a restaurant, bar or shop sale to a guest's room, and see who is in house.",
+   "docsUrl": "https://developers.cloudbeds.com/",
    "actions": [
-    "Charge to room (Cloudbeds)",
-    "Today's arrivals (Cloudbeds)"
+    "Test Cloudbeds",
+    "Guests in house",
+    "Today's arrivals",
+    "Charge to room (Cloudbeds)"
    ],
    "secrets": [
     "Cloudbeds API key",
@@ -781,18 +783,22 @@
    "id": "opera_cloud",
    "name": "Oracle OPERA Cloud",
    "category": "hospitality",
-   "status": "planned",
-   "description": "Post sales to guest folios in Oracle OPERA Cloud (hotels and resorts).",
+   "status": "available",
+   "description": "Charge a restaurant, bar or shop sale to a guest's room in OPERA Cloud (hotel's own OHIP access).",
    "docsUrl": "https://docs.oracle.com/en/industries/hospitality/integration-platform/",
    "actions": [
+    "Test OPERA Cloud",
     "Charge to room (OPERA)"
    ],
    "secrets": [
+    "OHIP gateway URL",
+    "OHIP app key",
     "OHIP client ID",
     "OHIP client secret",
-    "OHIP app key",
-    "Hotel ID",
-    "OHIP gateway URL"
+    "Enterprise ID",
+    "Hotel ID (property code)",
+    "Transaction code for this outlet",
+    "Cashier ID"
    ]
   },
   {
