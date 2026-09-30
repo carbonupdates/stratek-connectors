@@ -45,6 +45,7 @@ const pbHooks = [];
 const stratekEvents = [];
 const tgCalls = [];
 const kCalls = []; const kState = { status: 'Initiated' }; const eCalls = []; const eState = { status: 'PENDING' }; const cCalls = []; const irdCalls = [];
+const waCalls = []; const viCalls = []; const wooCalls = []; const shCalls = []; const oaCalls = []; const qbCalls = []; const xeCalls = []; const zoCalls = []; const dhCalls = [];
 const hookCalls = []; const smsCalls = []; const gCalls = []; const gTabs = ['Sheet1']; const mcCalls = []; const hsCalls = [];
 globalThis.fetch = async (input, init) => {
   const req = input instanceof Request ? input : new Request(input, init);
@@ -67,7 +68,21 @@ globalThis.fetch = async (input, init) => {
     if (u.pathname.endsWith('/merchant/price-plan')) return Response.json({ data: { price: 120, discount: 0, final_price: 110 } });
     if (u.pathname.endsWith('/orders')) return Response.json({ data: { consignment_id: 'NP9', order_status: 'Pending' } });
   }
+  if (u.host === 'graph.facebook.com' && u.pathname.includes('/PHONE1')) {
+    waCalls.push({ path: u.pathname, body, auth: req.headers.get('Authorization') });
+    if (req.method === 'GET') return Response.json({ display_phone_number: '+977 980-0000000', verified_name: 'Chyau Bio', quality_rating: 'GREEN' });
+    if (body.template.name === 'missing') return Response.json({ error: { code: 132001, message: 'Template name does not exist' } }, { status: 404 });
+    return Response.json({ messages: [{ id: 'wamid.1', message_status: 'accepted' }] });
+  }
   if (u.host === 'graph.facebook.com') return Response.json({ events_received: 1 });
+  if (u.host === 'chatapi.viber.com') { viCalls.push({ path: u.pathname, body, token: req.headers.get('X-Viber-Auth-Token') }); return Response.json(u.pathname.endsWith('get_account_info') ? { status: 0, uri: 'chyaubot', name: 'Chyau Bot' } : { status: 0, message_token: 1 }); }
+  if (u.host === 'shop.example.com') { wooCalls.push({ method: req.method, path: u.pathname + u.search, body, auth: req.headers.get('Authorization') }); if (req.method === 'GET' && u.pathname.endsWith('/orders')) return Response.json([{ number: '101', status: 'processing', currency: 'NPR', total: '500.00', billing: { first_name: 'Ram' } }]); if (req.method === 'GET') return Response.json([]); return Response.json({ id: 900 + wooCalls.length }); }
+  if (u.host === 'chyau.myshopify.com') { shCalls.push({ method: req.method, path: u.pathname, body, token: req.headers.get('X-Shopify-Access-Token') }); if (u.pathname.endsWith('/shop.json')) return Response.json({ shop: { name: 'Chyau', currency: 'NPR' } }); if (u.pathname.endsWith('/orders.json')) return Response.json({ orders: [{ name: '#1001', financial_status: 'paid', currency: 'NPR', total_price: '750.00' }] }); if (req.method === 'POST') return Response.json({ product: { id: 5000 + shCalls.length, variants: [{ id: 1, price: body.product.variants[0].price }] } }); return Response.json({ product: { id: 1, variants: [{ id: 77, price: '1.00' }] } }); }
+  if (u.host === 'oauth.platform.intuit.com' || u.host === 'identity.xero.com' || u.host === 'accounts.zoho.com') { const f = Object.fromEntries(new URLSearchParams(await req.clone().text())); oaCalls.push({ host: u.host, form: f, auth: req.headers.get('Authorization') }); return Response.json({ access_token: `at-${u.host}-${f.grant_type}`, refresh_token: 'rt-1', expires_in: f.grant_type === 'authorization_code' ? 1 : 3600 }); }
+  if (u.host === 'sandbox-quickbooks.api.intuit.com') { qbCalls.push({ method: req.method, path: u.pathname + u.search, body, auth: req.headers.get('Authorization') }); if (u.pathname.includes('/query')) { const q = u.searchParams.get('query'); return Response.json({ QueryResponse: q.includes('from Item') ? {} : { Account: [{ Id: '79' }] } }); } if (u.pathname.endsWith('/item')) return Response.json({ Item: { Id: '33' } }); if (u.pathname.includes('/companyinfo/')) return Response.json({ CompanyInfo: { CompanyName: 'Sandbox Co' } }); return Response.json({ SalesReceipt: { Id: '145', DocNumber: '1037' } }); }
+  if (u.host === 'api.xero.com') { xeCalls.push({ method: req.method, path: u.pathname, body, tenant: req.headers.get('xero-tenant-id') }); if (u.pathname === '/connections') return Response.json([{ tenantId: 'T-1', tenantType: 'ORGANISATION', tenantName: 'Demo Company' }]); if (u.pathname.endsWith('/Organisation')) return Response.json({ Organisations: [{ Name: 'Demo Company (Global)', BaseCurrency: 'USD' }] }); return Response.json({ Invoices: [{ InvoiceID: 'inv-1', InvoiceNumber: 'INV-0042' }] }); }
+  if (u.host === 'www.zohoapis.com') { zoCalls.push({ method: req.method, path: u.pathname + u.search, body }); if (u.pathname.endsWith('/organizations')) return Response.json({ code: 0, organizations: [{ organization_id: 'O1', name: 'Chyau Pvt', currency_code: 'NPR', is_default_org: true }] }); if (u.pathname.endsWith('/contacts') && req.method === 'GET') return Response.json({ code: 0, contacts: [] }); if (u.pathname.endsWith('/contacts')) return Response.json({ code: 0, contact: { contact_id: 'C9' } }); return Response.json({ code: 0, invoice: { invoice_id: 'I1', invoice_number: 'INV-000001' } }); }
+  if (u.host === 'express.api.dhl.com') { dhCalls.push({ method: req.method, path: u.pathname + u.search, body, auth: req.headers.get('Authorization') }); if (u.pathname.endsWith('/rates')) return Response.json({ products: [{ productName: 'EXPRESS WORLDWIDE', totalPrice: [{ currencyType: 'BILLC', priceCurrency: 'NPR', price: 7420 }], deliveryCapabilities: { estimatedDeliveryDateAndTime: '2026-10-04T23:59:00' } }] }); if (u.pathname.endsWith('/shipments')) return Response.json({ shipmentTrackingNumber: '1234567890', documents: [{ typeCode: 'label', content: btoa('%PDF-1.4 fake') }] }); return Response.json({ shipments: [{ status: 'transit', events: [{ description: 'Processed at KATHMANDU', date: '2026-10-02' }] }] }); }
   if (['hooks.example.test', 'hooks.zapier.com', 'hook.eu2.make.com', 'hooks.slack.com'].includes(u.host)) { hookCalls.push({ host: u.host, headers: Object.fromEntries(req.headers), body, raw: await req.clone().text() }); return new Response('ok'); }
   if (u.host === 'api.sparrowsms.com') {
     const form = req.method === 'POST' ? Object.fromEntries(new URLSearchParams(await req.clone().text())) : Object.fromEntries(u.searchParams);
@@ -528,4 +543,122 @@ test('Wave 2 (0.15.0): Khalti, eSewa, connectIPS pay -> gateway check -> signed 
   assert.equal((await c.act('ird_cbms', 'report_bill', { ...saleCtx, mode: 'test' })).success, false, 'never in test mode');
   const m = await c.manifest();
   for (const id of ['khalti', 'esewa', 'connectips', 'ird_cbms']) assert.equal(m.find((i) => i.id === id).status, 'available', id);
+});
+
+test('Wave 3 (0.17.0): WhatsApp, Viber, WooCommerce, Shopify, QuickBooks / Xero / Zoho Books (OAuth), DHL Express', async () => {
+  const c = await paired();
+  const saleCtx = { context: { transaction: { id: 88, amount: 565, currency: 'NPR', reference: 'Till', items: [{ name: 'Oyster pack', price: 250, qty: 2 }], createdAt: '2026-09-30 06:00:00' }, customer: { name: 'Sita Sharma', email: 'sita@x.com', phone: '9800000001' } } };
+  const menuCtx = { context: { menu: { currency: 'NPR', items: [{ id: 1, name: 'Oyster pack', price: 250, available: true, description: 'Fresh', category: 'Mushrooms', photo: 'https://strateknepal.com/media/menu/1.jpg' }, { id: 2, name: 'Shiitake', price: 400, available: false }] } } };
+  // ── WhatsApp ──
+  await c.save('whatsapp', 'live', { WHATSAPP_TOKEN: 'EAAG', WHATSAPP_PHONE_NUMBER_ID: 'PHONE1', WHATSAPP_RECEIPT_TEMPLATE: 'stratek_receipt' });
+  assert.match((await c.act('whatsapp', 'test')).data.result.text, /Chyau Bio/);
+  let r = await c.act('whatsapp', 'send_receipt', saleCtx);
+  assert.equal(r.success, true, JSON.stringify(r));
+  let m = waCalls.at(-1).body;
+  assert.equal(m.to, '9779800000001'); assert.equal(m.template.name, 'stratek_receipt'); assert.deepEqual(m.template.components[0].parameters.map((p) => p.text), ['our shop', '88', 'Rs 565']);
+  r = await c.act('whatsapp', 'test_message', { fields: { phone: '+977 9800000002' } });
+  assert.equal(waCalls.at(-1).body.template.name, 'hello_world');
+  await c.save('whatsapp', 'live', { WHATSAPP_RECEIPT_TEMPLATE: 'missing' });
+  assert.match((await c.act('whatsapp', 'send_receipt', saleCtx)).error.message, /not approved|does not exist/);
+  // ── Viber ──
+  const vs = await c.save('viber', 'live', { VIBER_BOT_TOKEN: 'vbtoken' });
+  assert.match(vs.data.notice, /Chyau Bot/); assert.equal(viCalls.find((x) => x.path.endsWith('set_webhook')).body.url, `${SELF}/webhooks/viber`);
+  assert.equal((await c.act('viber', 'link', {}, c.server)).success, false, 'people only');
+  const link = (await c.act('viber', 'link')).data.result;
+  const code = link.url.split('/').pop();
+  let res = await go(c.env, new URL(link.url).pathname);
+  assert.match(await res.text(), new RegExp(`viber://pa\\?chatURI=chyaubot&amp;context=${code}`));
+  const { createHmac } = await import('node:crypto');
+  const vhook = (obj, sig) => { const raw = JSON.stringify(obj); return go(c.env, '/webhooks/viber', { method: 'POST', headers: { 'X-Viber-Content-Signature': sig ?? createHmac('sha256', 'vbtoken').update(raw).digest('hex') }, body: raw }); };
+  assert.equal((await vhook({ event: 'message', sender: { id: 'U1' } }, 'bad')).status, 403);
+  res = await vhook({ event: 'conversation_started', user: { id: 'U1', name: 'Gunjan' }, context: code });
+  assert.match((await res.json()).text, /send me any message/);
+  await vhook({ event: 'message', sender: { id: 'U2' }, message: { text: 'hi' } });
+  assert.equal(c.env._map.get('data:viber:owner'), undefined, 'a stranger cannot finish the link');
+  await vhook({ event: 'message', sender: { id: 'U1' }, message: { text: 'hi' } });
+  assert.equal(c.env._map.get('data:viber:owner').userId, 'U1');
+  await c.act('viber', 'send_receipt', saleCtx);
+  assert.equal(viCalls.at(-1).body.receiver, 'U1'); assert.match(viCalls.at(-1).body.text, /Sale #88: Rs 565/);
+  // ── WooCommerce ──
+  await c.save('woocommerce', 'live', { WOO_STORE_URL: 'http://shop.example.com', WOO_CONSUMER_KEY: 'ck_1', WOO_CONSUMER_SECRET: 'cs_1' });
+  assert.match((await c.act('woocommerce', 'test')).error.message, /https/);
+  await c.save('woocommerce', 'live', { WOO_STORE_URL: 'https://shop.example.com' });
+  r = await c.act('woocommerce', 'sync_menu', menuCtx);
+  assert.match(r.data.result.text, /2 added/);
+  const created = wooCalls.filter((x) => x.method === 'POST');
+  assert.equal(created[0].body.sku, 'stratek-1'); assert.equal(created[0].body.regular_price, '250.00'); assert.equal(created[1].body.status, 'draft'); assert.equal(created[0].auth, `Basic ${btoa('ck_1:cs_1')}`);
+  r = await c.act('woocommerce', 'sync_menu', menuCtx);
+  assert.match(r.data.result.text, /0 added, 0 updated, 2 already up to date/);
+  menuCtx.context.menu.items[0].price = 275;
+  r = await c.act('woocommerce', 'sync_menu', menuCtx);
+  assert.match(r.data.result.text, /1 updated/); assert.equal(wooCalls.at(-1).method, 'PUT');
+  assert.match((await c.act('woocommerce', 'orders')).data.result.text, /#101 processing NPR 500.00/);
+  // ── Shopify ──
+  await c.save('shopify', 'live', { SHOPIFY_STORE_DOMAIN: 'https://chyau.myshopify.com/admin', SHOPIFY_ACCESS_TOKEN: 'shpat_1' });
+  assert.match((await c.act('shopify', 'test')).data.result.text, /Chyau/);
+  r = await c.act('shopify', 'sync_menu', menuCtx);
+  assert.match(r.data.result.text, /2 added/);
+  assert.equal(shCalls.find((x) => x.method === 'POST').body.product.variants[0].sku, 'stratek-1'); assert.equal(shCalls.at(-1).token, 'shpat_1');
+  menuCtx.context.menu.items[1].price = 450;
+  await c.act('shopify', 'sync_menu', menuCtx);
+  assert.ok(shCalls.some((x) => x.path.endsWith('/variants/77.json') && x.body.variant.price === '450.00'), 'price updated on the variant');
+  // ── QuickBooks (OAuth, sandbox with Test keys) ──
+  await c.save('quickbooks', 'test', { QUICKBOOKS_CLIENT_ID: 'qbid', QUICKBOOKS_CLIENT_SECRET: 'qbsec' });
+  assert.equal((await c.act('quickbooks', 'connect', { mode: 'test' }, c.server)).success, false, 'people only');
+  const ql = (await c.act('quickbooks', 'connect', { mode: 'test' })).data.result;
+  assert.match(ql.text, /oauth\/quickbooks\/callback/);
+  res = await go(c.env, new URL(ql.url).pathname);
+  assert.equal(res.status, 302);
+  const auth = new URL(res.headers.get('location'));
+  assert.equal(auth.host, 'appcenter.intuit.com'); assert.equal(auth.searchParams.get('client_id'), 'qbid'); assert.equal(auth.searchParams.get('redirect_uri'), `${SELF}/oauth/quickbooks/callback`);
+  res = await go(c.env, `/oauth/quickbooks/callback?code=C1&state=${auth.searchParams.get('state')}&realmId=R42`);
+  assert.equal(res.status, 200); assert.match(await res.text(), /connected/);
+  assert.equal(oaCalls.at(-1).auth, `Basic ${btoa('qbid:qbsec')}`);
+  res = await go(c.env, `/oauth/quickbooks/callback?code=C1&state=${auth.searchParams.get('state')}`);
+  assert.equal(res.status, 400, 'state is one-time');
+  r = await c.act('quickbooks', 'send_sale', { ...saleCtx, mode: 'test' });
+  assert.equal(r.success, true, JSON.stringify(r));
+  assert.equal(oaCalls.at(-1).form.grant_type, 'refresh_token', 'expired token refreshed');
+  const receipt = qbCalls.find((x) => x.path.includes('/salesreceipt'));
+  assert.match(receipt.path, /\/company\/R42\//); assert.equal(receipt.body.Line[0].SalesItemLineDetail.ItemRef.value, '33'); assert.equal(receipt.body.Line.at(-1).Amount, 65, 'VAT/service line makes the total match');
+  assert.equal((await c.act('quickbooks', 'send_sale', { ...saleCtx, mode: 'test' })).data.result.status, 'Already sent');
+  // ── Xero ──
+  await c.save('xero', 'live', { XERO_CLIENT_ID: 'xid', XERO_CLIENT_SECRET: 'xsec' });
+  const xl = (await c.act('xero', 'connect')).data.result;
+  res = await go(c.env, new URL(xl.url).pathname);
+  const xa = new URL(res.headers.get('location'));
+  assert.equal(xa.host, 'login.xero.com'); assert.match(xa.searchParams.get('scope'), /offline_access/);
+  await go(c.env, `/oauth/xero/callback?code=X1&state=${xa.searchParams.get('state')}`);
+  assert.equal(c.env._map.get('data:xero:oauth').tenantId, 'T-1');
+  r = await c.act('xero', 'send_sale', saleCtx);
+  const inv = xeCalls.find((x) => x.path.endsWith('/Invoices'));
+  assert.equal(inv.tenant, 'T-1'); assert.equal(inv.body.Invoices[0].Contact.Name, 'Sita Sharma'); assert.equal(inv.body.Invoices[0].Status, 'AUTHORISED'); assert.equal(inv.body.Invoices[0].LineItems[0].AccountCode, '200');
+  assert.match(r.data.result.text, /INV-0042/);
+  // ── Zoho Books ──
+  await c.save('zoho_books', 'live', { ZOHO_CLIENT_ID: 'zid', ZOHO_CLIENT_SECRET: 'zsec' });
+  const zl = (await c.act('zoho_books', 'connect')).data.result;
+  res = await go(c.env, new URL(zl.url).pathname);
+  const za = new URL(res.headers.get('location'));
+  assert.equal(za.host, 'accounts.zoho.com'); assert.equal(za.searchParams.get('access_type'), 'offline');
+  await go(c.env, `/oauth/zoho_books/callback?code=Z1&state=${za.searchParams.get('state')}`);
+  assert.equal(oaCalls.at(-1).form.client_secret, 'zsec', 'Zoho gets the secret in the body');
+  r = await c.act('zoho_books', 'send_invoice', saleCtx);
+  assert.equal(r.success, true, JSON.stringify(r));
+  const zi = zoCalls.find((x) => x.path.includes('/invoices'));
+  assert.match(zi.path, /organization_id=O1/); assert.equal(zi.body.customer_id, 'C9');
+  // ── DHL Express (test credentials) ──
+  await c.save('dhl', 'test', { DHL_API_KEY: 'k', DHL_API_SECRET: 's', DHL_ACCOUNT_NUMBER: '950000002', DHL_SHIPPER_NAME: 'Chyau Bio', DHL_SHIPPER_PHONE: '9800000000', DHL_SHIPPER_ADDRESS: 'Jhamsikhel', DHL_SHIPPER_CITY: 'Lalitpur', DHL_SHIPPER_POSTAL_CODE: '44700' });
+  r = await c.act('dhl', 'quote', { ...saleCtx, mode: 'test', fields: { weight: 1.5, country: 'us', city: 'New York', postalCode: '10001' } });
+  assert.match(r.data.result.text, /EXPRESS WORLDWIDE: NPR 7420/); assert.match(dhCalls.at(-1).path, /\/mydhlapi\/test\/rates\?.*destinationCountryCode=US/);
+  const shipFields = { recipientName: 'John', recipientPhone: '+12125550100', recipientAddress: '1 Main St', recipientCity: 'New York', recipientPostalCode: '10001', country: 'US', weight: 1.5 };
+  assert.equal((await c.act('dhl', 'create_shipment', { ...saleCtx, mode: 'test', fields: shipFields }, await pass({ iss: STRATEK, aud: 'conn-1', sub: 'merchant:1', iat: Math.floor(Date.now() / 1000), exp: Math.floor(Date.now() / 1000) + 60, src: 'api_key' }))).error.code, 'APPROVAL_REQUIRED');
+  r = await c.act('dhl', 'create_shipment', { ...saleCtx, mode: 'test', fields: shipFields });
+  assert.equal(r.success, true, JSON.stringify(r));
+  const sh = dhCalls.find((x) => x.path.endsWith('/shipments')).body;
+  assert.equal(sh.customerDetails.shipperDetails.postalAddress.cityName, 'Lalitpur'); assert.equal(sh.content.exportDeclaration.lineItems[0].quantity.value, 2); assert.equal(sh.accounts[0].number, '950000002');
+  res = await go(c.env, new URL(r.data.result.url).pathname);
+  assert.equal(res.headers.get('content-type'), 'application/pdf'); assert.match(await res.text(), /%PDF/);
+  assert.match((await c.act('dhl', 'track', { ...saleCtx, mode: 'test' })).data.result.text, /KATHMANDU/);
+  const man = await c.manifest();
+  for (const id of ['whatsapp', 'viber', 'woocommerce', 'shopify', 'quickbooks', 'xero', 'zoho_books', 'dhl']) assert.equal(man.find((i) => i.id === id).status, 'available', id);
 });

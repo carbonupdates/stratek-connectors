@@ -54,6 +54,11 @@ export function gatewayFormPage({ title, amountText, action, fields, buttonLabel
 <p>Taking you to the payment page&hellip;</p><script>setTimeout(function(){document.getElementById('f').submit()},300)</script>`);
 }
 
+/** A page with one button to an app link (e.g. viber://...). */
+export function linkPage(title, text, href, label) {
+  return html(title, `<h1>${esc(title)}</h1><p>${esc(text)}</p><p><a href="${esc(href)}" style="display:inline-block;background:#c81e2c;color:#fff;border-radius:999px;padding:14px 26px;font-weight:700;text-decoration:none">${esc(label)}</a></p>`);
+}
+
 export function resultPage(ok, text) {
   return html(ok ? 'Payment received' : 'Payment not completed', ok
     ? `<h1 class="ok">Payment received</h1><p>${esc(text || 'Thank you! The shop can see your payment.')}</p>`

@@ -69,8 +69,8 @@ CJdropshipping, Made-in-China.com), hotels & hospitality (Cloudbeds, Mews, Oracl
 OPERA Cloud, SiteMinder, Booking.com, Expedia, Airbnb, OpenTable, Foodmandu),
 payments (IME Pay, Prabhu Pay, WeChat Pay, Alipay+ direct, Paytm, Payoneer),
 marketplaces (Amazon Seller, Etsy, eBay, TikTok Shop), Viber and Zoho Books.
-**[docs/coming-soon.md](docs/coming-soon.md)** lists every scaffold by build wave,
-with what each needs (open API or partner access). They are not in the table
+**[docs/coming-soon.md](docs/coming-soon.md)** has the finished / remaining tally and every
+scaffold by build wave, with who has to be approved (the business or Stratek). They are not in the table
 below yet; each moves into it when it is built.
 
 ### AI agents and money (v0.9.0+)
@@ -131,7 +131,7 @@ keys once afterwards so both live and test payment notifications are registered.
 | [Yango Delivery](https://yango.com/) | Send with Yango, Track Yango delivery | Yango Delivery API token, Pickup address | -- | Coming soon |
 | [Pick & Drop](https://pickndropnepal.com/) | Send with Pick & Drop | Pick & Drop API key | -- | Coming soon |
 | inDrive | Send with inDrive | inDrive API key | -- | Coming soon |
-| [DHL Express](https://developer.dhl.com/) | Ship with DHL, Track DHL shipment | DHL API key, DHL API secret, DHL account number | -- | Coming soon |
+| [DHL Express](https://developer.dhl.com/api-reference/dhl-express-mydhl-api) | Get DHL rate, Ship with DHL (needs a person; label PDF), Track DHL shipment | MyDHL API key + secret, DHL Express account number, shipper name/phone/address/city (+ postal code, country) | Test credentials | **Available** (v0.17.0) |
 
 ### Manufacturing & fulfilment
 
@@ -143,9 +143,10 @@ keys once afterwards so both live and test payment notifications are registered.
 
 | Integration | Buttons in Stratek | Keys (Set up form) | Test mode | Status |
 |---|---|---|---|---|
-| [WhatsApp Business](https://developers.facebook.com/docs/whatsapp/cloud-api) | Send receipt on WhatsApp, Send payment QR on WhatsApp | WhatsApp access token, WhatsApp phone number ID | -- | Coming soon |
+| [WhatsApp Business](https://developers.facebook.com/docs/whatsapp/cloud-api) | Test WhatsApp, Send test message, Send receipt on WhatsApp (approved template) | Access token, Phone number ID, Receipt template name (+ language) | Live only (Meta test number) | **Available** (v0.17.0) |
 | [Sparrow SMS](https://docs.sparrowsms.com/sms/documentation/) | Test Sparrow SMS (credits), Send test SMS, Send receipt by SMS | Sparrow SMS token, Sender identity (From) | Live only | **Available** (v0.14.0) |
 | [Telegram](https://core.telegram.org/bots/api) | Owner alerts from Stratek, chat with the AI employee, Post sale to Telegram, Send test message | Telegram bot token | Live only | **Available** (v0.13.0) |
+| [Viber](https://developers.viber.com/docs/api/rest-bot-api/) | Link my Viber, Send test message, Post sale to Viber | Viber bot token | Live only | **Available** (v0.17.0) |
 | [Slack](https://api.slack.com/messaging/webhooks) | Test Slack, Post sale to Slack | Slack incoming webhook URL | Live only | **Available** (v0.14.0) |
 
 ### Accounting & tax
@@ -153,16 +154,17 @@ keys once afterwards so both live and test payment notifications are registered.
 | Integration | Buttons in Stratek | Keys (Set up form) | Test mode | Status |
 |---|---|---|---|---|
 | [Nepal IRD e-billing (CBMS)](https://ird.gov.np/content/9052/cbmsapitechnicaldocumentfor/) | Check IRD settings, Report bill to IRD, Report return to IRD | IRD CBMS username, IRD CBMS password, Seller PAN, CBMS address (optional) | Live only (test sales never sent) | **Available** (v0.15.0) |
-| [QuickBooks Online](https://developer.intuit.com/app/developer/qbo/docs/get-started) | Send sale to QuickBooks | Client ID, Client secret, Refresh token, Company (realm) ID | -- | Coming soon |
-| [Xero](https://developer.xero.com/documentation/) | Send sale to Xero | Client ID, Client secret, Refresh token, Tenant ID | -- | Coming soon |
+| [QuickBooks Online](https://developer.intuit.com/app/developer/qbo/docs/get-started) | Connect QuickBooks (OAuth), Test QuickBooks, Send sale to QuickBooks (sales receipt) | Intuit app client ID + secret | Sandbox company | **Available** (v0.17.0) |
+| [Xero](https://developer.xero.com/documentation/api/accounting/invoices) | Connect Xero (OAuth), Test Xero, Send sale to Xero (approved invoice) | Xero app client ID + secret (+ sales account, scopes) | Live only (Demo Company) | **Available** (v0.17.0) |
 | [Google Sheets](https://developers.google.com/workspace/sheets/api/guides/concepts) | Test Google Sheets, Copy inventory to Google Sheet, Add sale to Google Sheet | Service account key (JSON), Sheet link or ID, Tab for sales (optional) | Live only | **Available** (v0.14.0) |
+| [Zoho Books](https://www.zoho.com/books/api/v3/) | Connect Zoho Books (OAuth), Test Zoho Books, Send sale to Zoho Books (invoice) | Zoho client ID + secret (+ data centre, organization ID) | Live only | **Available** (v0.17.0) |
 
 ### Online stores & marketplaces
 
 | Integration | Buttons in Stratek | Keys (Set up form) | Test mode | Status |
 |---|---|---|---|---|
-| [Shopify](https://shopify.dev/docs/api/admin-rest) | Sync menu to Shopify, Record sale in Shopify | Store domain, Admin API access token | -- | Coming soon |
-| [WooCommerce](https://woocommerce.github.io/woocommerce-rest-api-docs/) | Sync menu to WooCommerce, Record sale in WooCommerce | Store address, Consumer key, Consumer secret | -- | Coming soon |
+| [Shopify](https://shopify.dev/docs/api/admin-rest) | Test Shopify, Sync inventory to Shopify, Latest Shopify orders | Store address (myshopify.com), Admin API access token | Live only (development store) | **Available** (v0.17.0) |
+| [WooCommerce](https://woocommerce.github.io/woocommerce-rest-api-docs/) | Test WooCommerce, Sync inventory to WooCommerce, Latest WooCommerce orders | Store address (https), Consumer key, Consumer secret | Live only (staging store) | **Available** (v0.17.0) |
 | [Daraz](https://open.daraz.com/) | Sync stock to Daraz | App key, App secret, Access token | -- | Coming soon |
 | [Meta Catalog (Facebook & Instagram Shop)](https://developers.facebook.com/docs/marketing-api/catalog-batch/) | Test Meta Catalog, Sync menu to Facebook/Instagram Shop | Catalog ID, System user access token, Shop web address (optional), Graph API version (optional) | Test keys | **Available** |
 
@@ -320,6 +322,29 @@ see the POS repo's `docs/proposals/online-store.md`), gated on PayBridgeNP
 (Fonepay QR on the order page, confirmed automatically) + Pathao (live quotes,
 booking), with pickup or delivery and a test mode that uses the test keys.
 To build one, see [docs/adding-an-integration.md](docs/adding-an-integration.md).
+
+## Wave 3: WhatsApp, Viber, stores and accounting, DHL (v0.17.0+)
+
+- **WhatsApp Business:** receipts use a message template Meta has approved
+  (Utility, 3 variables: shop, receipt number, amount). "Send test message" uses
+  Meta's built-in `hello_world`. Nepali 10-digit numbers get 977 added.
+- **Viber:** your own bot; saving the token registers `/webhooks/viber` (signed
+  events). "Link my Viber" opens the bot with a one-time code; send it any message
+  to finish. Sale updates go to you (customers must message a bot first).
+- **WooCommerce / Shopify:** "Sync inventory" pushes new and changed items (20 per
+  press, press again for more; the item link is remembered), and "Latest orders"
+  shows the last five. WooCommerce needs https and a Read/Write REST key; Shopify
+  a custom app token with `write_products` and `read_orders`.
+- **QuickBooks, Xero, Zoho Books -- bring your own app + Connect:** create an app
+  with the provider, paste its client ID / secret, add the redirect URI
+  `<connector>/oauth/<integration>/callback` (the Connect button shows it), then
+  press **Connect ...** and log in. Tokens stay in this connector and refresh by
+  themselves. "Send sale" books the sale once (QuickBooks sales receipt on a
+  "Stratek sale" item, Xero approved invoice on account 200, Zoho invoice), with a
+  line for VAT / service / discount so totals match the Stratek bill.
+- **DHL Express:** rates, "Ship with DHL" (books a paid shipment, so it needs a
+  person; the label PDF opens from a link on this connector) and tracking. Use
+  DHL's test credentials first.
 
 ## Nepal payments and tax (v0.15.0+)
 

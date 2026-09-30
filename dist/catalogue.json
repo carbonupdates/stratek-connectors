@@ -1,5 +1,5 @@
 {
- "version": "0.16.0",
+ "version": "0.17.0",
  "categories": {
   "system": "Connector",
   "payments": "Payments",
@@ -381,17 +381,24 @@
    "id": "dhl",
    "name": "DHL Express",
    "category": "delivery",
-   "status": "planned",
-   "description": "International shipping labels and tracking with DHL Express.",
-   "docsUrl": "https://developer.dhl.com/",
+   "status": "available",
+   "description": "International shipping with DHL Express: rates, labels and tracking.",
+   "docsUrl": "https://developer.dhl.com/api-reference/dhl-express-mydhl-api",
    "actions": [
+    "Get DHL rate",
     "Ship with DHL",
     "Track DHL shipment"
    ],
    "secrets": [
-    "DHL API key",
-    "DHL API secret",
-    "DHL account number"
+    "MyDHL API key (username)",
+    "MyDHL API secret (password)",
+    "DHL Express account number",
+    "Shipper (your business) name",
+    "Shipper phone",
+    "Shipper street address",
+    "Shipper city",
+    "Shipper postal code",
+    "Shipper country code"
    ]
   },
   {
@@ -844,16 +851,19 @@
    "id": "whatsapp",
    "name": "WhatsApp Business",
    "category": "messaging",
-   "status": "planned",
-   "description": "Send receipts and payment QRs on WhatsApp (Meta Cloud API).",
+   "status": "available",
+   "description": "Send receipts to customers on WhatsApp (WhatsApp Business Platform, approved templates).",
    "docsUrl": "https://developers.facebook.com/docs/whatsapp/cloud-api",
    "actions": [
-    "Send receipt on WhatsApp",
-    "Send payment QR on WhatsApp"
+    "Test WhatsApp",
+    "Send test message",
+    "Send receipt on WhatsApp"
    ],
    "secrets": [
-    "WhatsApp access token",
-    "WhatsApp phone number ID"
+    "Access token",
+    "Phone number ID",
+    "Receipt template name",
+    "Template language code"
    ]
   },
   {
@@ -896,11 +906,13 @@
    "id": "viber",
    "name": "Viber",
    "category": "messaging",
-   "status": "planned",
-   "description": "Order updates and receipts on Viber (popular in Nepal).",
+   "status": "available",
+   "description": "Sale updates to you on Viber, through your own Viber bot.",
    "docsUrl": "https://developers.viber.com/docs/api/rest-bot-api/",
    "actions": [
-    "Send receipt on Viber"
+    "Link my Viber",
+    "Send test message",
+    "Post sale to Viber"
    ],
    "secrets": [
     "Viber bot token"
@@ -944,34 +956,36 @@
    "id": "quickbooks",
    "name": "QuickBooks Online",
    "category": "accounting",
-   "status": "planned",
-   "description": "Send sales to QuickBooks as sales receipts.",
+   "status": "available",
+   "description": "Send sales to QuickBooks Online as sales receipts.",
    "docsUrl": "https://developer.intuit.com/app/developer/qbo/docs/get-started",
    "actions": [
+    "Connect QuickBooks",
+    "Test QuickBooks",
     "Send sale to QuickBooks"
    ],
    "secrets": [
-    "Client ID",
-    "Client secret",
-    "Refresh token",
-    "Company (realm) ID"
+    "Intuit app client ID",
+    "Intuit app client secret"
    ]
   },
   {
    "id": "xero",
    "name": "Xero",
    "category": "accounting",
-   "status": "planned",
-   "description": "Send sales to Xero as invoices.",
-   "docsUrl": "https://developer.xero.com/documentation/",
+   "status": "available",
+   "description": "Send sales to Xero as approved sales invoices.",
+   "docsUrl": "https://developer.xero.com/documentation/api/accounting/invoices",
    "actions": [
+    "Connect Xero",
+    "Test Xero",
     "Send sale to Xero"
    ],
    "secrets": [
-    "Client ID",
-    "Client secret",
-    "Refresh token",
-    "Tenant ID"
+    "Xero app client ID",
+    "Xero app client secret",
+    "Sales account code",
+    "Scopes"
    ]
   },
   {
@@ -996,16 +1010,18 @@
    "id": "zoho_books",
    "name": "Zoho Books",
    "category": "accounting",
-   "status": "planned",
+   "status": "available",
    "description": "Send sales to Zoho Books as invoices.",
    "docsUrl": "https://www.zoho.com/books/api/v3/",
    "actions": [
+    "Connect Zoho Books",
+    "Test Zoho Books",
     "Send sale to Zoho Books"
    ],
    "secrets": [
     "Zoho client ID",
     "Zoho client secret",
-    "Refresh token",
+    "Zoho data centre",
     "Organization ID"
    ]
   },
@@ -1013,15 +1029,16 @@
    "id": "shopify",
    "name": "Shopify",
    "category": "commerce",
-   "status": "planned",
-   "description": "Keep a Shopify store in step with the POS menu and sales.",
+   "status": "available",
+   "description": "Keep a Shopify store in step with your Stratek inventory, and see its latest orders.",
    "docsUrl": "https://shopify.dev/docs/api/admin-rest",
    "actions": [
-    "Sync menu to Shopify",
-    "Record sale in Shopify"
+    "Test Shopify",
+    "Sync inventory to Shopify",
+    "Latest Shopify orders"
    ],
    "secrets": [
-    "Store domain",
+    "Store address",
     "Admin API access token"
    ]
   },
@@ -1029,12 +1046,13 @@
    "id": "woocommerce",
    "name": "WooCommerce",
    "category": "commerce",
-   "status": "planned",
-   "description": "Keep a WooCommerce store in step with the POS menu and sales.",
+   "status": "available",
+   "description": "Keep a WooCommerce store in step with your Stratek inventory, and see its latest orders.",
    "docsUrl": "https://woocommerce.github.io/woocommerce-rest-api-docs/",
    "actions": [
-    "Sync menu to WooCommerce",
-    "Record sale in WooCommerce"
+    "Test WooCommerce",
+    "Sync inventory to WooCommerce",
+    "Latest WooCommerce orders"
    ],
    "secrets": [
     "Store address",

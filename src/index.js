@@ -21,6 +21,8 @@
 //   GET  /event-key            public key Stratek checks this connector's events with
 //   GET  /pay/:int/start/:mode/:token   hosted payment start page (eSewa, connectIPS form post)
 //   GET|POST /pay/:int/return/:mode     gateway return; checked, then a signed payment.succeeded event
+//   GET  /oauth/:int/start/:mode/:state  OAuth login for QuickBooks / Xero / Zoho Books (owner's own app)
+//   GET  /oauth/:int/callback            OAuth return; tokens stay in this connector
 //   POST /webhooks/:int[/test] notifications from a provider (e.g. PayBridgeNP
 //                              "payment succeeded"); checked by the integration,
 //                              then forwarded to Stratek as a signed event.
@@ -38,6 +40,7 @@ import { homePage, messagePage, connectedPage, setupPage } from './pages.js';
 import { matchStorefront, serveStorefront, cleanStorefront } from './storefront.js';
 import { CONNECTOR_VERSION } from './version.js';
 import { publicEventKey, emitEvent, keyPair } from './events.js';
+import { oauthStartLink, oauthStart, oauthCallback } from './integrations/_oauth.js';
 
 export { ConnectorState };
 
@@ -251,6 +254,27 @@ export async function handle(request, env) {
     }
   }
 
+  // OAuth (v0.17.0: QuickBooks, Xero, Zoho Books -- the owner's own app).
+  //   GET /oauth/:int/start/:mode/:state   one-time link from the "Connect" button -> provider login
+  //   GET /oauth/:int/callback             provider sends the owner back; tokens stay here
+  const oauthMatch = pathname.match(/^\/oauth\/([a-z0-9_]+)\/(?:start\/(live|test)\/([0-9a-f]{48})|(callback))$/);
+  if (oauthMatch && request.method === 'GET') {
+    const integration = findIntegration(oauthMatch[1]);
+    if (!integration?.oauth || statusOf(integration) !== 'available') return messagePage('Not found', 'This link is not valid.', 'err', 404);
+    try {
+      if (oauthMatch[2]) {
+        const { keys } = await loadKeys(env, db, oauthMatch[2]);
+        return await oauthStart({ db, integration, mode: oauthMatch[2], state: oauthMatch[3], env: { ...env, ...keys }, origin: url.origin });
+      }
+      const r = await oauthCallback({ db, integration, url, origin: url.origin,
+        envFor: async (mode) => ({ ...env, ...(await loadKeys(env, db, mode)).keys }),
+        storeFor: (mode) => integrationStore(db, integration, mode) });
+      return messagePage(`${integration.name} is connected`, `Done${r.mode === 'test' ? ' (test keys)' : ''}. You can close this page and go back to Stratek.`, 'ok', 200);
+    } catch (err) {
+      return messagePage(`Could not connect ${integration.name}`, err?.message || 'Something went wrong.', 'err', 400);
+    }
+  }
+
   // Where online payment pages send the customer back to.
   if (pathname === '/paid' && request.method === 'GET') {
     return messagePage('Thank you', 'Your payment was submitted. Please show this screen to the shop -- they will confirm it on their side.', 'ok', 200);
@@ -449,7 +473,7 @@ export async function handle(request, env) {
       // Integrations read their keys from env as usual; Set up form keys are merged in.
       // `store`: a small per-integration memory (e.g. which payment session belongs to which sale).
       const store = integrationStore(db, found.integration, mode);
-      const result = await found.action.run({ env: { ...env, ...keys, STRATEK_MODE: mode }, claims, fields, context: body?.context || {}, origin: url.origin, store, mode, emit: (event) => emitEvent(db, { ...event, mode }) });
+      const result = await found.action.run({ env: { ...env, ...keys, STRATEK_MODE: mode }, claims, fields, context: body?.context || {}, origin: url.origin, store, mode, emit: (event) => emitEvent(db, { ...event, mode }), oauthLink: () => oauthStartLink({ db, integration: found.integration, mode, origin: url.origin }) });
       if (result && typeof result === 'object' && mode === 'test') result.testMode = true;
       return okJson(env, request, { result });
     } catch (err) {

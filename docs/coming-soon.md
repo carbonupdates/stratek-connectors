@@ -1,87 +1,94 @@
-# Coming soon: build waves
+# Integrations: finished, remaining and build waves
 
-Every integration below is already in the connector's catalogue as a **Coming soon** scaffold (key fields and buttons drafted, `run` not built yet). Stratek lists them faded. To build one, follow `docs/adding-an-integration.md`, write each action's `run`, set `status: 'available'`, add a test and bump the version.
+**Tally (connector 0.17.0): 30 built, 42 coming soon, 72 in total** (the Connector itself not counted).
 
-Order: open APIs we can build and test with a sandbox first; partner-only ones once the shop (or Stratek) has the partner account. Buttons only -- nothing runs by itself. Anything that spends money (shipping labels, fulfilment orders, PCB orders, refunds) needs a person (approval request for AI agents).
+Coming-soon ones are already in the catalogue as scaffolds (key fields and buttons drafted, `run` not built). To build one: follow `docs/adding-an-integration.md`, write each action, set `status: 'available'`, add a test, bump the version. Buttons only -- nothing runs by itself. Anything that spends money (labels, fulfilment, PCB and dropship orders, refunds) needs a person (AI agents can only ask).
 
-## Wave 3 -- messaging, commerce, accounting (open APIs)
+## What "approval" means
 
-| Integration | Buttons / what it does | API access |
+| Kind | Who | Meaning |
 |---|---|---|
-| [WhatsApp Business](https://developers.facebook.com/docs/whatsapp/cloud-api) | Receipts, payment QRs and owner alerts on WhatsApp | Meta Cloud API (business verification, approved templates) |
-| [Viber](https://developers.viber.com/docs/api/rest-bot-api/) | Send receipt on Viber | Viber REST Bot API (the customer subscribes to your bot) or Viber Business Messages via a partner. |
-| [WooCommerce](https://woocommerce.github.io/woocommerce-rest-api-docs/) | Sync products and orders with a WooCommerce store | REST API (consumer key/secret) |
-| [Shopify](https://shopify.dev/docs/api/admin) | Sync products and orders with a Shopify store | Admin API (custom app token) |
-| [QuickBooks Online](https://developer.intuit.com/) | Send sales as invoices / sales receipts | OAuth 2.0 (Intuit developer app) |
-| [Xero](https://developer.xero.com/) | Send sales as invoices | OAuth 2.0 (Xero app) |
-| [Zoho Books](https://www.zoho.com/books/api/v3/) | Send sale to Zoho Books | Zoho Books API v3 (OAuth). |
-| [DHL Express](https://developer.dhl.com/) | International rates, labels and tracking | MyDHL API (DHL Express account) |
+| **Merchant account** | the business | Anyone can sign up and get API keys; the business pastes them in Set up. (16 remaining) |
+| **Merchant approval** | the business | The provider has to accept the business first (merchant agreement, KYC, API application, seller account). Stratek can build and test these once one test account exists. (14 remaining) |
+| **Stratek partner approval** | Stratek | The provider only works with certified software partners, so **Stratek** (the software maker) must apply once; after that every business can use it with its own login. (8 remaining) |
+| **Partner deal (to confirm)** / No public API | -- | No public API yet; needs a conversation with the company first. (4 remaining) |
 
-## Wave 4 -- shipping & fulfilment
+Setting up the connector itself never needs anyone's approval.
 
-| Integration | Buttons / what it does | API access |
-|---|---|---|
-| [FedEx](https://developer.fedex.com/api/en-us/home.html) | Get FedEx rate, Ship with FedEx, Track FedEx shipment | Open API (FedEx Developer Portal): OAuth client credentials; Rate, Ship and Track APIs. |
-| [UPS](https://developer.ups.com/) | Get UPS rate, Ship with UPS, Track UPS shipment | Open API (UPS Developer Portal): OAuth; Rating, Shipping and Tracking APIs. |
-| [Aramex](https://www.aramex.com/us/en/developers-solution-center) | Get Aramex rate, Ship with Aramex, Track Aramex shipment | Aramex Shipping / Rate / Tracking web services; credentials from your Aramex account manager. |
-| [Easyship](https://developers.easyship.com/) | Get Easyship rate, Ship with Easyship, Track Easyship shipment | Open REST API with a bearer token. |
-| [ShipStation](https://www.shipstation.com/docs/api/) | Send order to ShipStation, Track ShipStation shipment | Open REST API (basic auth). |
-| [ShipBob](https://developer.shipbob.com/) | Fulfil with ShipBob, Track ShipBob order | Open REST API (personal access token or OAuth). |
-| [Amazon Multi-Channel Fulfillment](https://developer-docs.amazon.com/sp-api/docs/fulfillment-outbound-api) | Preview Amazon fulfillment, Fulfil with Amazon (MCF), Track Amazon fulfillment | Selling Partner API, Fulfillment Outbound v2020-07-01 (getFulfillmentPreview, createFulfillmentOrder, getPackageTrackingDetails). Needs an Amazon seller account with FBA inventory. |
-| [Amazon Supply Chain Services](https://supplychain.amazon.com/) | Ship with Amazon Supply Chain, Track Amazon Supply Chain shipment | Opened to all businesses in May 2026 (Amazon Supply Chain Services); API access details to confirm when building. |
-| [Shiprocket](https://apidocs.shiprocket.in/) | Ship with Shiprocket, Track Shiprocket shipment | Open REST API (token from an API user). |
+## Finished
 
-## Wave 5 -- hotels & hospitality (open PMS APIs first)
+- **Before the waves:** AI employee, PayBridgeNP, Stripe, PayPal, Coinbase, Pathao, Slant 3D, Meta Catalog, Meta Conversions API, Telegram
+- **Wave 1 (0.14.0):** Webhook, Zapier, Make, Slack, Sparrow SMS, Google Sheets, Mailchimp, HubSpot
+- **Wave 2 (0.15.0):** Khalti, eSewa, connectIPS, Nepal IRD e-billing (CBMS)
+- **Wave 3 (0.17.0):** WhatsApp Business, Viber, WooCommerce, Shopify, QuickBooks Online, Xero, Zoho Books, DHL Express
 
-| Integration | Buttons / what it does | API access |
-|---|---|---|
-| [Cloudbeds](https://www.cloudbeds.com/api/) | Charge to room (Cloudbeds), Today's arrivals (Cloudbeds) | Open REST API (API key / OAuth). |
-| [Mews](https://mews-systems.gitbook.io/connector-api/) | Charge to room (Mews), Guests in house (Mews) | Mews Connector API (open; certification before production). |
-| [Oracle OPERA Cloud](https://docs.oracle.com/en/industries/hospitality/integration-platform/) | Charge to room (OPERA) | Oracle Hospitality Integration Platform (OHIP); partner / customer credentials. |
-| [OpenTable](https://platform.opentable.com/) | Today's bookings (OpenTable) | OpenTable partner API (approval required). |
-| [SiteMinder](https://developer.siteminder.com/) | Room availability (SiteMinder) | Partner programme (SiteConnect / pmsXchange). |
-| [Booking.com](https://connect.booking.com/) | Booking.com reservations | Booking.com Connectivity Partner Programme only (approval required). |
-| [Expedia Group](https://developers.expediagroup.com/supply/lodging) | Expedia reservations | Expedia Group lodging connectivity (partner access). |
-| [Airbnb](https://www.airbnb.com/partner) | Airbnb bookings | Airbnb API is for approved software partners only. |
-| [Foodmandu](https://foodmandu.com/) | Foodmandu orders | No public API -- partner access to confirm with Foodmandu. |
+## Remaining (42)
 
-## Wave 6 -- manufacturing, print-on-demand & sourcing
+### Wave 4 -- shipping & fulfilment
 
-| Integration | Buttons / what it does | API access |
-|---|---|---|
-| [Printful](https://developers.printful.com/docs/) | Send order to Printful, Track Printful order | Open REST API with a private token. |
-| [Printify](https://developers.printify.com/) | Send order to Printify, Track Printify order | Open REST API with a personal access token. |
-| [CJdropshipping](https://developers.cjdropshipping.com/) | Import CJ product, Order from CJ, Track CJ order | Open API (API key -> access token). |
-| [JLCPCB](https://api.jlcpcb.com/) | Quote PCB (JLCPCB), Order PCB (JLCPCB), Track JLCPCB order | JLCPCB API platform (application required): quote, order and track PCB / SMT / 3D orders. |
-| [PCBWay](https://api-partner.pcbway.com/) | Quote PCB (PCBWay), Order PCB (PCBWay), Track PCBWay order | PCBWay Partner API (application required). |
-| [AliExpress dropshipping](https://openservice.aliexpress.com/) | Import AliExpress product, Order from AliExpress, Track AliExpress order | AliExpress Open Platform dropshipping (DS) APIs (app approval required). |
-| [Alibaba.com](https://openapi.alibaba.com/) | Search Alibaba suppliers, Track Alibaba order | Alibaba.com Open Platform (app approval required). |
-| [Made-in-China.com](https://www.made-in-china.com/) | Search Made-in-China suppliers | Partner access to confirm. |
+| Integration | What it does | API | Approval |
+|---|---|---|---|
+| FedEx | Rates, labels, tracking | Open developer portal (OAuth) | Merchant account |
+| UPS | Rates, labels, tracking | Open developer portal (OAuth) | Merchant account |
+| Aramex | Rates, shipments, tracking | Web services; credentials from your Aramex account manager | Merchant account |
+| Easyship | Compare couriers, labels, tracking | Open REST API (token) | Merchant account |
+| ShipStation | Send orders, track | Open REST API (key/secret) | Merchant account |
+| ShipBob | Fulfil orders from ShipBob warehouses | Open REST API (token) | Merchant account |
+| Amazon Multi-Channel Fulfillment | Fulfil from your FBA stock | SP-API Fulfillment Outbound; your own private SP-API app | Merchant approval |
+| Amazon Supply Chain Services | Freight, storage, distribution | Opened to all businesses May 2026; API details to confirm | Merchant account |
+| Shiprocket | India shipping (INR shops) | Open REST API (API user) | Merchant account |
 
-## Wave 7 -- more payments & marketplaces
+### Wave 5 -- hotels & hospitality
 
-| Integration | Buttons / what it does | API access |
-|---|---|---|
-| [IME Pay](https://www.imepay.com.np/) | Pay with IME Pay, Check IME Pay payment | IME Pay merchant e-payment API (merchant agreement). |
-| [Prabhu Pay](https://prabhupay.com/) | Pay with Prabhu Pay, Check Prabhu Pay payment | Merchant API (merchant agreement). |
-| [Razorpay (UPI)](https://razorpay.com/docs/api/) | Cards and UPI for INR shops | Open API |
-| [Paytm](https://business.paytm.com/docs) | Pay with Paytm, Check Paytm payment | Paytm Payment Gateway API. |
-| [Payoneer](https://developer.payoneer.com/) | Request payment (Payoneer), Check Payoneer payment | Payoneer API (partner programme). |
-| [WeChat Pay](https://pay.weixin.qq.com/wiki/doc/api_external/en/index.shtml) | Pay with WeChat Pay, Check WeChat Pay payment | Cross-border merchant account through an acquirer (partner). |
-| [Alipay+ (direct)](https://docs.alipayplus.com/) | Pay with Alipay+, Check Alipay+ payment | Alipay+ acquiring partner onboarding. |
-| [Amazon Seller](https://developer-docs.amazon.com/sp-api/) | Sync inventory to Amazon, Amazon orders | Selling Partner API (Listings, Orders). |
-| [Etsy](https://developers.etsy.com/) | Sync inventory to Etsy, Etsy orders | Etsy Open API v3 (OAuth). |
-| [eBay](https://developer.ebay.com/) | Sync inventory to eBay, eBay orders | eBay Sell APIs (OAuth). |
-| [TikTok Shop](https://partner.tiktokshop.com/docv2) | Sync inventory to TikTok Shop, TikTok Shop orders | TikTok Shop Partner Center (app approval). |
-| [Daraz](https://open.daraz.com/) | Sync products and orders with Daraz | Daraz Open Platform (app approval) |
+| Integration | What it does | API | Approval |
+|---|---|---|---|
+| Cloudbeds | Charge to room, arrivals | REST API (property API key) | Merchant account |
+| Oracle OPERA Cloud | Charge to room | OHIP (hotel's own OHIP subscription, or Stratek as partner) | Merchant approval |
+| Mews | Charge to room, guests in house | Connector API; integration certification | Stratek partner approval |
+| OpenTable | Table bookings | Partner API | Stratek partner approval |
+| SiteMinder | Room availability / channel manager | Partner programme | Stratek partner approval |
+| Booking.com | Reservations | Connectivity Partner Programme | Stratek partner approval |
+| Expedia Group | Reservations | Lodging connectivity partner | Stratek partner approval |
+| Airbnb | Bookings | Approved software partners only | Stratek partner approval |
+| Foodmandu | Food-delivery orders (Nepal) | No public API | Partner deal (to confirm) |
 
-## Parked -- need a partner deal or have no public API
+### Wave 6 -- manufacturing, print-on-demand & sourcing
 
-| Integration | Buttons / what it does | API access |
-|---|---|---|
-| [Fonepay dynamic QR (direct)](https://fonepay.com/) | Fonepay QR without an aggregator | Merchant API via bank / Fonepay agreement |
-| [Yango Delivery](https://yango.com/) | Same-day courier deliveries | Claims API with a Yango business account |
-| [Pick & Drop](https://pickndropnepal.com/) | Courier deliveries in Nepal | No public API found (partner) |
-| [inDrive](https://indrive.com/) | Courier / rides | No public delivery API |
+| Integration | What it does | API | Approval |
+|---|---|---|---|
+| Printful | Print-on-demand orders | Open REST API (token) | Merchant account |
+| Printify | Print-on-demand orders | Open REST API (token) | Merchant account |
+| CJdropshipping | Import products, dropship orders | Open API (key) | Merchant account |
+| JLCPCB | Quote/order PCB, SMT, 3D | API platform -- apply with your JLCPCB account | Merchant approval |
+| PCBWay | Quote/order PCB | Partner API -- apply with your PCBWay account | Merchant approval |
+| AliExpress dropshipping | Import products, dropship orders | Open Platform app (approval) | Merchant approval |
+| Alibaba.com | Supplier search, orders | Open Platform app (approval) | Merchant approval |
+| Made-in-China.com | Supplier search | Partner access to confirm | Partner deal (to confirm) |
+
+### Wave 7 -- more payments & marketplaces
+
+| Integration | What it does | API | Approval |
+|---|---|---|---|
+| IME Pay | Wallet checkout (Nepal) | Merchant e-payment API | Merchant approval |
+| Prabhu Pay | Wallet checkout (Nepal) | Merchant API | Merchant approval |
+| Razorpay (UPI) | Cards/UPI (INR shops) | Open API (KYC account) | Merchant account |
+| Paytm | Paytm/UPI (INR shops) | Payment Gateway API (KYC account) | Merchant account |
+| Payoneer | Payment requests | API partner programme | Stratek partner approval |
+| WeChat Pay | Visitors from China | Cross-border merchant account through an acquirer | Merchant approval |
+| Alipay+ (direct) | Visitors (Fonepay QRs already take Alipay+) | Acquiring partner onboarding | Merchant approval |
+| Amazon Seller | Listings and orders | SP-API; your own private app | Merchant approval |
+| Etsy | Listings and orders | Open API v3 (app key approval) | Merchant approval |
+| eBay | Listings and orders | Sell APIs (open developer programme) | Merchant account |
+| TikTok Shop | Products and orders | Partner Center app | Stratek partner approval |
+| Daraz | Products and orders | Open Platform app (approval) | Merchant approval |
+
+### Parked
+
+| Integration | What it does | API | Approval |
+|---|---|---|---|
+| Fonepay dynamic QR (direct) | Fonepay QR without an aggregator | Merchant API through a bank / Fonepay agreement (PayBridgeNP covers it today) | Merchant approval |
+| Yango Delivery | Same-day courier | Claims API with a Yango business account | Merchant account |
+| Pick & Drop | Courier (Nepal) | No public API found | Partner deal (to confirm) |
+| inDrive | Courier / rides | No public delivery API | No public API |
 
 Sources: [Amazon Supply Chain Services (May 2026)](https://press.aboutamazon.com/2026/5/amazon-launches-amazon-supply-chain-services-opening-its-logistics-network-to-all-businesses), [SP-API Fulfillment Outbound](https://developer-docs.amazon.com/sp-api/docs/fulfillment-outbound-api), [JLCPCB API platform](https://api.jlcpcb.com/), [PCBWay partner API](https://api-partner.pcbway.com/), [Cloudbeds API](https://www.cloudbeds.com/api/), [Mews API](https://www.mews.com/en/products/api).

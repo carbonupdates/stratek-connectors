@@ -272,6 +272,19 @@ its Set up page.
   `webhookSetup: { where, what }` so its Set up page shows the callback URL.
 - `color` (e.g. `'#e4202a'`) colours an integration's buttons in Stratek.
 
+## 6a-5. OAuth + wave 3 (v0.17.0+)
+
+- `GET /oauth/:int/start/:mode/:state` -> 302 to the provider (one-time state from
+  the integration's **connect** action; session pass only). `GET /oauth/:int/callback`
+  swaps the code for tokens (client secret as basic auth or in the body, per
+  integration) and keeps `{ access_token, refresh_token, expires_at, ... }` in the
+  integration memory; `accessToken()` refreshes it. Helpers: `src/integrations/_oauth.js`.
+  Actions receive `oauthLink()`.
+- Inventory sync helper `_sync.js`: one memory read/write per press, 20 changed
+  items per press.
+- Hosted files: DHL labels are served from `/pay/dhl/start/:mode/:token` (PDF);
+  Viber's link page uses `/pay/viber/start/live/:code`.
+
 ## 6a-4. Hosted payment pages + Nepal gateways (v0.15.0+)
 
 - `GET /pay/:int/start/:mode/:token` -> the integration's `payPage()` (e.g. an
