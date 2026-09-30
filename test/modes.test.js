@@ -48,6 +48,7 @@ const kCalls = []; const kState = { status: 'Initiated' }; const eCalls = []; co
 const waCalls = []; const viCalls = []; const wooCalls = []; const shCalls = []; const oaCalls = []; const qbCalls = []; const xeCalls = []; const zoCalls = []; const dhCalls = [];
 const w4Calls = [];
 const w5Calls = [];
+const w6Calls = [];
 const hookCalls = []; const smsCalls = []; const gCalls = []; const gTabs = ['Sheet1']; const mcCalls = []; const hsCalls = [];
 globalThis.fetch = async (input, init) => {
   const req = input instanceof Request ? input : new Request(input, init);
@@ -85,6 +86,30 @@ globalThis.fetch = async (input, init) => {
   if (u.host === 'api.xero.com') { xeCalls.push({ method: req.method, path: u.pathname, body, tenant: req.headers.get('xero-tenant-id') }); if (u.pathname === '/connections') return Response.json([{ tenantId: 'T-1', tenantType: 'ORGANISATION', tenantName: 'Demo Company' }]); if (u.pathname.endsWith('/Organisation')) return Response.json({ Organisations: [{ Name: 'Demo Company (Global)', BaseCurrency: 'USD' }] }); return Response.json({ Invoices: [{ InvoiceID: 'inv-1', InvoiceNumber: 'INV-0042' }] }); }
   if (u.host === 'www.zohoapis.com') { zoCalls.push({ method: req.method, path: u.pathname + u.search, body }); if (u.pathname.endsWith('/organizations')) return Response.json({ code: 0, organizations: [{ organization_id: 'O1', name: 'Chyau Pvt', currency_code: 'NPR', is_default_org: true }] }); if (u.pathname.endsWith('/contacts') && req.method === 'GET') return Response.json({ code: 0, contacts: [] }); if (u.pathname.endsWith('/contacts')) return Response.json({ code: 0, contact: { contact_id: 'C9' } }); return Response.json({ code: 0, invoice: { invoice_id: 'I1', invoice_number: 'INV-000001' } }); }
   if (u.host === 'express.api.dhl.com') { dhCalls.push({ method: req.method, path: u.pathname + u.search, body, auth: req.headers.get('Authorization') }); if (u.pathname.endsWith('/rates')) return Response.json({ products: [{ productName: 'EXPRESS WORLDWIDE', totalPrice: [{ currencyType: 'BILLC', priceCurrency: 'NPR', price: 7420 }], deliveryCapabilities: { estimatedDeliveryDateAndTime: '2026-10-04T23:59:00' } }] }); if (u.pathname.endsWith('/shipments')) return Response.json({ shipmentTrackingNumber: '1234567890', documents: [{ typeCode: 'label', content: btoa('%PDF-1.4 fake') }] }); return Response.json({ shipments: [{ status: 'transit', events: [{ description: 'Processed at KATHMANDU', date: '2026-10-02' }] }] }); }
+  if (u.host === 'api.printful.com' || u.host === 'api.printify.com' || u.host === 'developers.cjdropshipping.com') {
+    const raw = req.method === 'GET' ? '' : await req.clone().text(); let jb = null; try { jb = raw ? JSON.parse(raw) : null; } catch { jb = null; }
+    const p = u.pathname; w6Calls.push({ host: u.host, method: req.method, path: p + u.search, body: jb, headers: Object.fromEntries(req.headers) });
+    if (u.host === 'api.printful.com') {
+      if (p === '/stores') return Response.json({ code: 200, result: [{ id: 111, name: 'Chyau Merch' }] });
+      if (p === '/orders/estimate-costs') return Response.json({ code: 200, result: { costs: { currency: 'USD', subtotal: 21.9, shipping: 4.99, tax: 0, vat: 0, total: 26.89 } } });
+      if (p === '/orders') return Response.json({ code: 200, result: { id: 9901, status: 'pending', costs: { currency: 'USD', total: 26.89 } } });
+      return Response.json({ code: 200, result: { id: 9901, status: 'fulfilled', shipments: [{ carrier: 'USPS', tracking_number: '9400111', tracking_url: 'https://tools.usps.com/x' }] } });
+    }
+    if (u.host === 'api.printify.com') {
+      if (p === '/v1/shops.json') return Response.json([{ id: 5551, title: 'Chyau POD' }]);
+      if (p.endsWith('/orders/shipping.json')) return Response.json({ standard: 499, express: 1299 });
+      if (p.endsWith('/send_to_production.json')) return Response.json({ id: 'po-1' });
+      if (p.endsWith('/orders.json')) return Response.json({ id: 'po-1' });
+      return Response.json({ id: 'po-1', status: 'in-production', total_price: 1990, total_shipping: 499, total_tax: 0, shipments: [] });
+    }
+    if (p.endsWith('/authentication/getAccessToken')) return jb.apiKey === 'cj-ok' ? Response.json({ code: 200, result: true, data: { accessToken: 'cj-tok', accessTokenExpiryDate: '2027-03-01T00:00:00+08:00' } }) : Response.json({ code: 1600001, result: false, message: 'Invalid API key' });
+    if (req.headers.get('CJ-Access-Token') !== 'cj-tok') return Response.json({ code: 1600001, result: false, message: 'token' }, { status: 401 });
+    if (p.endsWith('/shopping/balance')) return Response.json({ code: 200, result: true, data: { amount: 120.5 } });
+    if (p.endsWith('/product/list')) return Response.json({ code: 200, result: true, data: { list: [{ pid: 'P1', productNameEn: 'Ceramic mug 11oz', productSku: 'CJMUG11', sellPrice: '2.10' }] } });
+    if (p.endsWith('/createOrderV2')) return Response.json({ code: 200, result: true, data: { orderId: 'CJ-ORD-1', orderAmount: 9.4, productAmount: 4.2, postageAmount: 5.2 } });
+    if (p.endsWith('/payBalanceV2')) return Response.json({ code: 200, result: true, data: null });
+    if (p.endsWith('/getOrderDetail')) return Response.json({ code: 200, result: true, data: { orderId: 'CJ-ORD-1', orderStatus: 'SHIPPED', logisticName: 'CJPacket Ordinary', trackNumber: 'CJ123', orderAmount: 9.4, productAmount: 4.2, postageAmount: 5.2 } });
+  }
   if (u.host === 'api.cloudbeds.com' || u.host === 'ohip.example.com' || u.host === 'ohip-sandbox.example.com') {
     const raw = req.method === 'GET' ? '' : await req.clone().text();
     const form = Object.fromEntries(new URLSearchParams(raw)); let jb = null; try { jb = raw ? JSON.parse(raw) : null; } catch { jb = null; }
@@ -875,4 +900,60 @@ test('Wave 5 (0.19.0): Cloudbeds and OPERA Cloud room charges', async () => {
   const man = await c.manifest();
   for (const id of ['cloudbeds', 'opera_cloud']) assert.equal(man.find((i) => i.id === id).status, 'available', id);
   for (const id of ['mews', 'opentable', 'siteminder', 'booking_com', 'expedia', 'airbnb', 'foodmandu']) assert.equal(man.find((i) => i.id === id).status, 'planned', id);
+});
+
+test('Wave 6 (0.20.0): Printful, Printify, CJdropshipping', async () => {
+  const c = await paired();
+  const now = Math.floor(Date.now() / 1000);
+  const apiKeyPass = () => pass({ iss: STRATEK, aud: 'conn-1', sub: 'merchant:1', iat: now, exp: now + 60, src: 'api_key' });
+  const saleCtx = { context: { transaction: { id: 97, amount: 2400, currency: 'NPR', reference: 'Online order #30', items: [{ id: 8, sku: 'TEE-M', name: 'Logo tee M', price: 1200, qty: 2 }], createdAt: '2026-10-01 06:00:00' }, customer: { name: 'Jane Doe', email: 'jane@x.com', phone: '+12125550111' } } };
+  const to = { recipientAddress: '5 Park Ave', recipientCity: 'New York', recipientState: 'NY', recipientPostalCode: '10016', country: 'US' };
+  const calls = (host, path) => w6Calls.filter((x) => x.host === host && (!path || x.path.includes(path)));
+  let r;
+  // ── Printful ──
+  await c.save('printful', 'live', { PRINTFUL_TOKEN: 'pf', PRINTFUL_STORE_ID: '111' });
+  assert.match((await c.act('printful', 'test')).data.result.text, /Chyau Merch \(ID 111\)/);
+  r = await c.act('printful', 'quote', { ...saleCtx, fields: to }, await apiKeyPass());
+  assert.match(r.data.result.text, /USD 26.89 \(products 21.9, shipping 4.99\)/, 'pricing is free, so agents may run it');
+  let b = calls('api.printful.com', 'estimate-costs')[0];
+  assert.deepEqual(b.body.items, [{ external_variant_id: 'TEE-M', quantity: 2 }]); assert.equal(b.body.recipient.state_code, 'NY'); assert.equal(b.headers['x-pf-store-id'], '111');
+  assert.equal((await c.act('printful', 'confirm_order', { ...saleCtx, fields: to }, await apiKeyPass())).error.code, 'APPROVAL_REQUIRED');
+  r = await c.act('printful', 'confirm_order', { ...saleCtx, fields: { ...to, skus: '4012345 x1' } });
+  assert.equal(r.success, true, JSON.stringify(r));
+  b = calls('api.printful.com', '/orders?confirm=true')[0].body;
+  assert.equal(b.external_id, 'stratek-97'); assert.deepEqual(b.items, [{ sync_variant_id: 4012345, quantity: 1 }]); assert.equal(b.recipient.name, 'Jane Doe');
+  assert.match((await c.act('printful', 'confirm_order', { ...saleCtx, fields: to })).data.result.status, /Already ordered/);
+  assert.match((await c.act('printful', 'track', saleCtx)).data.result.text, /9400111/);
+  assert.match(calls('api.printful.com').at(-1).path, /\/orders\/@stratek-97$/);
+  // ── Printify ──
+  await c.save('printify', 'live', { PRINTIFY_TOKEN: 'py', PRINTIFY_SHOP_ID: '5551' });
+  assert.match((await c.act('printify', 'test')).data.result.text, /Chyau POD \(ID 5551\)/);
+  assert.match((await c.act('printify', 'quote', { ...saleCtx, fields: to })).data.result.text, /standard USD 4.99 · express USD 12.99/);
+  assert.equal((await c.act('printify', 'confirm_order', { ...saleCtx, fields: to }, await apiKeyPass())).error.code, 'APPROVAL_REQUIRED');
+  r = await c.act('printify', 'confirm_order', { ...saleCtx, fields: { ...to, express: 'yes' } });
+  assert.equal(r.success, true, JSON.stringify(r));
+  b = calls('api.printify.com', '/shops/5551/orders.json')[0].body;
+  assert.equal(b.shipping_method, 2); assert.equal(b.address_to.first_name, 'Jane'); assert.equal(b.address_to.last_name, 'Doe'); assert.deepEqual(b.line_items, [{ sku: 'TEE-M', quantity: 2 }]);
+  assert.equal(calls('api.printify.com', 'send_to_production').length, 1);
+  assert.equal(calls('api.printify.com')[0].headers['user-agent'], 'Stratek-Connector');
+  assert.match((await c.act('printify', 'track', saleCtx)).data.result.status, /in-production/);
+  // ── CJdropshipping ──
+  await c.save('cj_dropshipping', 'live', { CJ_API_KEY: 'bad' });
+  assert.match((await c.act('cj_dropshipping', 'test')).error.message, /did not accept the API key \(Invalid API key\)/);
+  await c.save('cj_dropshipping', 'live', { CJ_API_KEY: 'cj-ok' });
+  assert.match((await c.act('cj_dropshipping', 'test')).data.result.text, /USD 120.5/);
+  assert.match((await c.act('cj_dropshipping', 'find_products', { fields: { query: 'mug' } })).data.result.text, /SKU CJMUG11, USD 2.10/);
+  r = await c.act('cj_dropshipping', 'quote', { ...saleCtx, fields: { ...to, skus: 'CJMUG11-White x3' } }, await apiKeyPass());
+  assert.match(r.data.result.text, /Order CJ-ORD-1: total USD 9.4 .*Nothing is paid yet/);
+  b = calls('developers.cjdropshipping.com', 'createOrderV2')[0].body;
+  assert.equal(b.payType, 3); assert.equal(b.logisticName, 'CJPacket Ordinary'); assert.deepEqual(b.products, [{ sku: 'CJMUG11-White', quantity: 3 }]); assert.equal(b.shippingCustomerName, 'Jane Doe');
+  assert.equal((await c.act('cj_dropshipping', 'confirm_order', { ...saleCtx, fields: to }, await apiKeyPass())).error.code, 'APPROVAL_REQUIRED');
+  r = await c.act('cj_dropshipping', 'confirm_order', { ...saleCtx, fields: to });
+  assert.equal(r.success, true, JSON.stringify(r));
+  assert.deepEqual(calls('developers.cjdropshipping.com', 'payBalanceV2')[0].body, { orderId: 'CJ-ORD-1' }); assert.equal(calls('developers.cjdropshipping.com', 'createOrderV2').length, 1, 'pays the priced order, no second order');
+  assert.match((await c.act('cj_dropshipping', 'track', saleCtx)).data.result.text, /CJ123/);
+  assert.equal(calls('developers.cjdropshipping.com', 'getAccessToken').length, 2, 'one token per key');
+  const man = await c.manifest();
+  for (const id of ['printful', 'printify', 'cj_dropshipping']) assert.equal(man.find((i) => i.id === id).status, 'available', id);
+  for (const id of ['jlcpcb', 'pcbway', 'aliexpress', 'alibaba', 'made_in_china']) assert.equal(man.find((i) => i.id === id).status, 'planned', id);
 });

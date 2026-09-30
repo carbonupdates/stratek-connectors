@@ -148,6 +148,9 @@ keys once afterwards so both live and test payment notifications are registered.
 | [ShipStation](https://www.shipstation.com/docs/api/) | Test ShipStation, Send order to ShipStation (free -- labels are bought in ShipStation), ShipStation tracking | API key + secret (+ store ID) | Live only | **Available** (v0.18.0) |
 | [ShipBob](https://developer.shipbob.com/) | Test ShipBob, Fulfil with ShipBob (needs a person), ShipBob tracking | Personal Access Token (+ ship option, channel ID) | Sandbox token | **Available** (v0.18.0) |
 | [Amazon Multi-Channel Fulfillment](https://developer-docs.amazon.com/sp-api/docs/fulfillment-outbound-api) | Preview Amazon fulfillment, Fulfil with Amazon (MCF) (needs a person), Track Amazon fulfillment | Login with Amazon client ID + secret, SP-API refresh token, marketplace ID (+ region) | SP-API sandbox | **Available** (v0.18.0) |
+| [Printful](https://developers.printful.com/docs/) | Test Printful, Price Printful order, Confirm Printful order (needs a person), Track Printful order | Private token (+ store ID) | Live only (pricing is free) | **Available** (v0.20.0) |
+| [Printify](https://developers.printify.com/) | Test Printify, Printify shipping price, Confirm Printify order (needs a person), Track Printify order | Personal access token, shop ID | Live only | **Available** (v0.20.0) |
+| [CJdropshipping](https://developers.cjdropshipping.com/) | Test CJ, Find CJ products, Price CJ order (unpaid order), Confirm CJ order (needs a person; pays from CJ balance), Track CJ order | CJ API key (+ default shipping method, warehouse country) | Live only | **Available** (v0.20.0) |
 
 ### Hotels & hospitality
 
@@ -339,6 +342,21 @@ see the POS repo's `docs/proposals/online-store.md`), gated on PayBridgeNP
 (Fonepay QR on the order page, confirmed automatically) + Pathao (live quotes,
 booking), with pickup or delivery and a test mode that uses the test keys.
 To build one, see [docs/adding-an-integration.md](docs/adding-an-integration.md).
+
+## Wave 6: print-on-demand and dropshipping (v0.20.0+)
+
+- **Printful, Printify, CJdropshipping** make and ship a sale's items straight to
+  the customer. Products go by **SKU** -- set your Stratek item SKUs as the
+  Printful variant External ID / Printify variant SKU / CJ variant SKU, or type
+  them on the button ("TEE-M x2"; Printful also takes its numeric variant IDs).
+- "Price ..." is free and anyone allowed can press it (Printful estimate, Printify
+  shipping price; for CJ it creates an **unpaid** CJ order and shows the total).
+  "Confirm ..." creates the paid order, so it **needs a person**; one order per
+  sale -- pressing again shows the one already made. CJ's confirm pays the order
+  it already priced from your CJ balance.
+- "Find CJ products" searches CJ's catalogue by name and shows each SKU and price.
+- JLCPCB, PCBWay, AliExpress and Alibaba need the business's API application
+  approved first; Made-in-China needs a partner deal. They stay Coming soon.
 
 ## Wave 5: hotels -- charge to room (v0.19.0+)
 

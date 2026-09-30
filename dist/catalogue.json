@@ -1,5 +1,5 @@
 {
- "version": "0.19.0",
+ "version": "0.20.0",
  "categories": {
   "system": "Connector",
   "payments": "Payments",
@@ -652,31 +652,36 @@
    "id": "printful",
    "name": "Printful",
    "category": "fulfilment",
-   "status": "planned",
-   "description": "Print-on-demand apparel and merch, made and shipped by Printful.",
+   "status": "available",
+   "description": "Print-on-demand: Printful prints and ships custom products for a sale.",
    "docsUrl": "https://developers.printful.com/docs/",
    "actions": [
-    "Send order to Printful",
+    "Test Printful",
+    "Price Printful order",
+    "Confirm Printful order",
     "Track Printful order"
    ],
    "secrets": [
-    "Printful private token"
+    "Printful private token",
+    "Store ID"
    ]
   },
   {
    "id": "printify",
    "name": "Printify",
    "category": "fulfilment",
-   "status": "planned",
-   "description": "Print-on-demand products from Printify's print partners.",
+   "status": "available",
+   "description": "Print-on-demand: a Printify print provider prints and ships custom products for a sale.",
    "docsUrl": "https://developers.printify.com/",
    "actions": [
-    "Send order to Printify",
+    "Test Printify",
+    "Printify shipping price",
+    "Confirm Printify order",
     "Track Printify order"
    ],
    "secrets": [
     "Printify personal access token",
-    "Printify shop ID"
+    "Shop ID"
    ]
   },
   {
@@ -718,16 +723,20 @@
    "id": "cj_dropshipping",
    "name": "CJdropshipping",
    "category": "sourcing",
-   "status": "planned",
-   "description": "Source products from China and let CJ ship them to your customers.",
+   "status": "available",
+   "description": "Find products and have CJdropshipping pack and ship a sale to the customer.",
    "docsUrl": "https://developers.cjdropshipping.com/",
    "actions": [
-    "Import CJ product",
-    "Order from CJ",
+    "Test CJ",
+    "Find CJ products",
+    "Price CJ order",
+    "Confirm CJ order",
     "Track CJ order"
    ],
    "secrets": [
-    "CJ API key"
+    "CJ API key",
+    "Default shipping method",
+    "Ship from (warehouse country)"
    ]
   },
   {

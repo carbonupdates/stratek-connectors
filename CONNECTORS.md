@@ -272,6 +272,19 @@ its Set up page.
   `webhookSetup: { where, what }` so its Set up page shows the callback URL.
 - `color` (e.g. `'#e4202a'`) colours an integration's buttons in Stratek.
 
+## 6a-8. Print-on-demand & dropshipping (v0.20.0+)
+
+- `printful` (v1, Bearer + `X-PF-Store-Id`): `/orders/estimate-costs`, `/orders?confirm=true`
+  with `external_id=stratek-<sale>`, items as `external_variant_id` (SKU) or
+  `sync_variant_id` (numeric); track `GET /orders/@stratek-<sale>`.
+- `printify` (v1, Bearer + User-Agent): `/orders/shipping.json`, `/orders.json` (line items
+  by `sku`), then `/send_to_production.json`; the order is remembered first, so a failed
+  production call is retried without a second order.
+- `cj_dropshipping` (API 2.0, `CJ-Access-Token` from `getAccessToken {apiKey}`, cached until
+  expiry): `createOrderV2` with `payType 3` (price, unpaid) or `2` (pay from balance),
+  `payBalanceV2 {orderId}`, `getOrderDetail`, `product/list`.
+- `confirm_order` is outbound by its id (`^confirm`).
+
 ## 6a-7. Hotels (v0.19.0+)
 
 - `cloudbeds` (v1.2, header `x-api-key`): `getReservations?status=checked_in`

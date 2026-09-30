@@ -1,6 +1,6 @@
 # Integrations: finished, remaining and build waves
 
-**Tally (connector 0.19.0): 40 built, 32 coming soon, 72 in total** (the Connector itself not counted).
+**Tally (connector 0.20.0): 43 built, 29 coming soon, 72 in total** (the Connector itself not counted).
 
 Coming-soon ones are already in the catalogue as scaffolds (key fields and buttons drafted, `run` not built). To build one: follow `docs/adding-an-integration.md`, write each action, set `status: 'available'`, add a test, bump the version. Buttons only -- nothing runs by itself. Anything that spends money (labels, fulfilment, PCB and dropship orders, refunds) needs a person (AI agents can only ask).
 
@@ -8,7 +8,7 @@ Coming-soon ones are already in the catalogue as scaffolds (key fields and butto
 
 | Kind | Who | Meaning |
 |---|---|---|
-| **Merchant account** | the business | Anyone can sign up and get API keys; the business pastes them in Set up. (7 remaining) |
+| **Merchant account** | the business | Anyone can sign up and get API keys; the business pastes them in Set up. (4 remaining) |
 | **Merchant approval** | the business | The provider has to accept the business first (merchant agreement, KYC, API application, seller account). Stratek can build and test these once one test account exists. (12 remaining) |
 | **Stratek partner approval** | Stratek | The provider only works with certified software partners, so **Stratek** (the software maker) must apply once; after that every business can use it with its own login. (8 remaining) |
 | **Partner deal (to confirm)** / No public API | -- | No public API yet; needs a conversation with the company first. (5 remaining) |
@@ -23,8 +23,9 @@ Setting up the connector itself never needs anyone's approval.
 - **Wave 3 (0.17.0):** WhatsApp Business, Viber, WooCommerce, Shopify, QuickBooks Online, Xero, Zoho Books, DHL Express
 - **Wave 4 (0.18.0):** FedEx, UPS, Aramex, Easyship, ShipStation, ShipBob, Amazon Multi-Channel Fulfillment, Shiprocket
 - **Wave 5 (0.19.0):** Cloudbeds, Oracle OPERA Cloud (charge to room)
+- **Wave 6 (0.20.0):** Printful, Printify, CJdropshipping
 
-## Remaining (32)
+## Remaining (29)
 
 ### Wave 5 -- hotels & hospitality (rest: need Stratek partner approval or an API)
 
@@ -40,13 +41,12 @@ Cloudbeds and OPERA Cloud are built. The ones below only open to certified softw
 | Airbnb | Bookings | Approved software partners only | Stratek partner approval |
 | Foodmandu | Food-delivery orders (Nepal) | No public API | Partner deal (to confirm) |
 
-### Wave 6 -- manufacturing, print-on-demand & sourcing
+### Wave 6 -- manufacturing, print-on-demand & sourcing (rest: need an approved app)
+
+Printful, Printify and CJdropshipping are built. The ones below need the business's API application approved first (JLCPCB, PCBWay, AliExpress, Alibaba) or a partner deal (Made-in-China); each gets built once one approved test account exists.
 
 | Integration | What it does | API | Approval |
 |---|---|---|---|
-| Printful | Print-on-demand orders | Open REST API (token) | Merchant account |
-| Printify | Print-on-demand orders | Open REST API (token) | Merchant account |
-| CJdropshipping | Import products, dropship orders | Open API (key) | Merchant account |
 | JLCPCB | Quote/order PCB, SMT, 3D | API platform -- apply with your JLCPCB account | Merchant approval |
 | PCBWay | Quote/order PCB | Partner API -- apply with your PCBWay account | Merchant approval |
 | AliExpress dropshipping | Import products, dropship orders | Open Platform app (approval) | Merchant approval |
