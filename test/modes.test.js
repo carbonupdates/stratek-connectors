@@ -44,6 +44,7 @@ const seen = [];
 const pbHooks = [];
 const stratekEvents = [];
 const tgCalls = [];
+const kCalls = []; const kState = { status: 'Initiated' }; const eCalls = []; const eState = { status: 'PENDING' }; const cCalls = []; const irdCalls = [];
 const hookCalls = []; const smsCalls = []; const gCalls = []; const gTabs = ['Sheet1']; const mcCalls = []; const hsCalls = [];
 globalThis.fetch = async (input, init) => {
   const req = input instanceof Request ? input : new Request(input, init);
@@ -94,6 +95,16 @@ globalThis.fetch = async (input, init) => {
     if (req.method === 'POST' && body.properties.email === 'old@x.com') return Response.json({ message: 'Contact already exists' }, { status: 409 });
     return Response.json({ id: '1' }, { status: req.method === 'POST' ? 201 : 200 });
   }
+  if (u.host === 'dev.khalti.com' || u.host === 'khalti.com') {
+    kCalls.push({ host: u.host, path: u.pathname, body, auth: req.headers.get('Authorization') });
+    if (req.headers.get('Authorization') !== 'Key test-secret') return Response.json({ detail: 'Invalid token.' }, { status: 401 });
+    if (u.pathname.endsWith('/epayment/initiate/')) return Response.json({ pidx: 'PIDX123', payment_url: 'https://test-pay.khalti.com/?pidx=PIDX123', expires_in: 1800 });
+    if (u.pathname.endsWith('/epayment/lookup/')) return body.pidx === 'PIDX123' ? Response.json({ pidx: 'PIDX123', total_amount: 61000, status: kState.status, transaction_id: 'KTX9' }) : Response.json({ detail: 'Not found.' }, { status: 404 });
+    if (u.pathname.includes('/merchant-transaction/')) return Response.json({ detail: 'Transaction refunded.' });
+  }
+  if (u.host === 'rc.esewa.com.np') { eCalls.push(Object.fromEntries(u.searchParams)); return Response.json({ product_code: 'EPAYTEST', transaction_uuid: u.searchParams.get('transaction_uuid'), total_amount: Number(u.searchParams.get('total_amount')), status: eState.status, ref_id: 'ES77' }); }
+  if (u.host === 'uat.connectips.com') { cCalls.push({ path: u.pathname, body, auth: req.headers.get('Authorization') }); return Response.json({ merchantId: body.merchantId, appId: body.appId, referenceId: body.referenceId, txnAmt: body.txnAmt, status: 'SUCCESS', statusDesc: 'TRANSACTION SUCCESSFULL' }); }
+  if (u.host === 'cbapi.ird.gov.np') { irdCalls.push({ path: u.pathname, body }); return new Response(body.password === 'ok' ? (irdCalls.filter((x) => x.path === u.pathname && x.body.invoice_number === body.invoice_number).length > 1 && u.pathname === '/api/bill' ? '101' : '200') : '100'); }
   if (u.host === 'api.telegram.org') {
     tgCalls.push({ method: u.pathname.split('/').pop(), body });
     if (u.pathname.endsWith('/getMe')) return Response.json({ ok: true, result: { id: 99, username: 'chyau_bot', first_name: 'Chyau' } });
@@ -434,4 +445,87 @@ test('Wave 1 (0.14.0): Webhook, Zapier, Make, Slack, Sparrow SMS, Google Sheets,
   // all eight are available in the manifest
   const m = await c.manifest();
   for (const id of ['webhook', 'zapier', 'make', 'slack', 'sparrow_sms', 'google_sheets', 'mailchimp', 'hubspot']) assert.equal(m.find((i) => i.id === id).status, 'available', id);
+});
+
+test('Wave 2 (0.15.0): Khalti, eSewa, connectIPS pay -> gateway check -> signed payment.succeeded; IRD CBMS bill + return in BS dates', async () => {
+  const c = await paired();
+  const saleCtx = { context: { transaction: { id: 77, amount: 610, currency: 'NPR', reference: 'Online order #12', items: [], bill: { total: 610, taxable: 400, vat: 52, subtotal: 558 }, createdAt: '2026-09-30 06:00:00' }, customer: { name: 'Sita Sharma', email: 'sita@x.com', phone: '9800000001' } } };
+  const ev0 = stratekEvents.length;
+  // ── Khalti (sandbox = Test keys) ──
+  await c.save('khalti', 'test', { KHALTI_SECRET_KEY: 'test-secret' });
+  let r = await c.act('khalti', 'payment_link', { ...saleCtx, mode: 'test' });
+  assert.equal(r.success, true, JSON.stringify(r));
+  assert.equal(r.data.result.qrPayload, 'https://test-pay.khalti.com/?pidx=PIDX123');
+  const init = kCalls.find((x) => x.path.endsWith('/initiate/'));
+  assert.equal(init.host, 'dev.khalti.com'); assert.equal(init.body.amount, 61000); assert.equal(init.body.return_url, `${SELF}/pay/khalti/return/test`); assert.equal(init.body.customer_info.email, 'sita@x.com');
+  let res = await go(c.env, '/pay/khalti/return/test?pidx=PIDX123&status=Completed');
+  assert.equal(res.status, 400, 'not paid yet -> no event'); assert.equal(stratekEvents.length, ev0);
+  kState.status = 'Completed';
+  res = await go(c.env, '/pay/khalti/return/test?pidx=PIDX123');
+  assert.equal(res.status, 200); assert.match(await res.text(), /Payment received/);
+  let ev = stratekEvents.at(-1).body;
+  assert.equal(ev.type, 'payment.succeeded'); assert.equal(ev.data.transactionId, '77'); assert.equal(ev.data.amount, 610); assert.equal(ev.data.integration, 'khalti'); assert.equal(ev.data.livemode, false); assert.equal(ev.mode, 'test');
+  await go(c.env, '/pay/khalti/return/test?pidx=PIDX123');
+  assert.equal(stratekEvents.length, ev0 + 1, 'reported once');
+  r = await c.act('khalti', 'refund', { ...saleCtx, mode: 'test' }, c.server);
+  assert.equal(r.success, true); assert.match(kCalls.at(-1).path, /merchant-transaction\/KTX9\/refund/);
+  const apiKeyPass = await pass({ iss: STRATEK, aud: 'conn-1', sub: 'merchant:1', iat: Math.floor(Date.now() / 1000), exp: Math.floor(Date.now() / 1000) + 60, src: 'api_key' });
+  assert.equal((await c.act('khalti', 'refund', { ...saleCtx, mode: 'test' }, apiKeyPass)).error.code, 'APPROVAL_REQUIRED');
+  // ── eSewa (UAT with EPAYTEST) ──
+  await c.save('esewa', 'test', { ESEWA_MERCHANT_CODE: 'EPAYTEST', ESEWA_SECRET_KEY: '8gBm/:&EnhH.1/q' });
+  r = await c.act('esewa', 'payment_link', { ...saleCtx, mode: 'test' });
+  const startUrl = r.data.result.qrPayload;
+  assert.match(startUrl, /\/pay\/esewa\/start\/test\/[0-9a-f]{36}$/);
+  res = await go(c.env, new URL(startUrl).pathname);
+  const page = await res.text();
+  assert.match(page, /action="https:\/\/rc-epay\.esewa\.com\.np\/api\/epay\/main\/v2\/form"/);
+  const val = (n) => page.match(new RegExp(`name="${n}" value="([^"]*)"`))[1];
+  const { createHmac } = await import('node:crypto');
+  const uuid = val('transaction_uuid');
+  assert.equal(val('total_amount'), '610.00');
+  assert.equal(val('signature'), createHmac('sha256', '8gBm/:&EnhH.1/q').update(`total_amount=610.00,transaction_uuid=${uuid},product_code=EPAYTEST`).digest('base64'));
+  const result = { transaction_code: '000AWEO', status: 'COMPLETE', total_amount: '610.0', transaction_uuid: uuid, product_code: 'EPAYTEST', signed_field_names: 'transaction_code,status,total_amount,transaction_uuid,product_code,signed_field_names' };
+  const forged = { ...result, signature: 'bad' };
+  res = await go(c.env, `/pay/esewa/return/test?data=${encodeURIComponent(btoa(JSON.stringify(forged)))}`);
+  assert.equal(res.status, 400, 'bad signature refused');
+  result.signature = createHmac('sha256', '8gBm/:&EnhH.1/q').update(result.signed_field_names.split(',').map((n) => `${n}=${result[n]}`).join(',')).digest('base64');
+  res = await go(c.env, `/pay/esewa/return/test?data=${encodeURIComponent(btoa(JSON.stringify(result)))}`);
+  assert.equal(res.status, 400, 'status API still PENDING -> not paid');
+  eState.status = 'COMPLETE';
+  res = await go(c.env, `/pay/esewa/return/test?data=${encodeURIComponent(btoa(JSON.stringify(result)))}`);
+  assert.equal(res.status, 200); ev = stratekEvents.at(-1).body;
+  assert.equal(ev.data.integration, 'esewa'); assert.equal(ev.data.providerRef, 'ES77'); assert.equal(eCalls.at(-1).total_amount, '610.00');
+  // ── connectIPS (UAT) ──
+  const { generateKeyPairSync, createVerify } = await import('node:crypto');
+  const kp = generateKeyPairSync('rsa', { modulusLength: 2048 });
+  const pkcs1 = kp.privateKey.export({ type: 'pkcs1', format: 'pem' }).replace(/\n/g, ' ');
+  await c.save('connectips', 'test', { CONNECTIPS_MERCHANT_ID: '123', CONNECTIPS_APP_ID: 'MER-123-APP-1', CONNECTIPS_APP_NAME: 'Chyau', CONNECTIPS_PASSWORD: 'pw', CONNECTIPS_PRIVATE_KEY: pkcs1 });
+  assert.match((await c.act('connectips', 'test', { mode: 'test' })).data.result.text, /pay\/connectips\/return\/test/);
+  r = await c.act('connectips', 'payment_link', { ...saleCtx, mode: 'test' });
+  res = await go(c.env, new URL(r.data.result.qrPayload).pathname);
+  const cp = await res.text();
+  const cval = (n) => cp.match(new RegExp(`name="${n}" value="([^"]*)"`))[1].replace(/&amp;/g, '&');
+  assert.match(cp, /action="https:\/\/uat\.connectips\.com\/connectipswebgw\/loginpage"/);
+  const msg = ['MERCHANTID', 'APPID', 'APPNAME', 'TXNID', 'TXNDATE', 'TXNCRNCY', 'TXNAMT', 'REFERENCEID', 'REMARKS', 'PARTICULARS'].map((n) => `${n}=${cval(n)}`).join(',') + ',TOKEN=TOKEN';
+  assert.equal(cval('TXNAMT'), '61000'); assert.match(cval('TXNDATE'), /^\d\d-\d\d-\d{4}$/);
+  assert.ok(createVerify('RSA-SHA256').update(msg).verify(kp.publicKey, cval('TOKEN'), 'base64'), 'token is a valid SHA256withRSA signature (PKCS#1 key accepted)');
+  res = await go(c.env, `/pay/connectips/return/test?TXNID=${cval('TXNID')}`);
+  assert.equal(res.status, 200); ev = stratekEvents.at(-1).body;
+  assert.equal(ev.data.integration, 'connectips'); assert.equal(cCalls.at(-1).auth, `Basic ${btoa('MER-123-APP-1:pw')}`);
+  assert.ok(createVerify('RSA-SHA256').update(`MERCHANTID=123,APPID=MER-123-APP-1,REFERENCEID=${cval('TXNID')},TXNAMT=61000`).verify(kp.publicKey, cCalls.at(-1).body.token, 'base64'));
+  // ── IRD CBMS (live only) ──
+  await c.save('ird_cbms', 'live', { IRD_USERNAME: 'u', IRD_PASSWORD: 'bad', IRD_SELLER_PAN: '600123456' });
+  assert.match((await c.act('ird_cbms', 'report_bill', saleCtx)).error.message, /did not accept/);
+  await c.save('ird_cbms', 'live', { IRD_PASSWORD: 'ok' });
+  r = await c.act('ird_cbms', 'report_bill', { ...saleCtx, fields: { buyerPan: '301234567' } });
+  assert.equal(r.success, true, JSON.stringify(r));
+  const bill = irdCalls.at(-1).body;
+  assert.equal(bill.invoice_date, '2083.06.14'); assert.equal(bill.fiscal_year, '2083.084'); assert.equal(bill.total_sales, 610); assert.equal(bill.taxable_sales_vat, 400); assert.equal(bill.vat, 52); assert.equal(bill.tax_exempted_sales, 158); assert.equal(bill.buyer_name, 'Sita Sharma'); assert.equal(bill.isrealtime, true);
+  r = await c.act('ird_cbms', 'report_bill', saleCtx);
+  assert.equal(r.data.result.status, 'Already reported');
+  r = await c.act('ird_cbms', 'report_return', { ...saleCtx, fields: { reason: 'Returned' } });
+  assert.equal(r.success, true); assert.equal(irdCalls.at(-1).path, '/api/billreturn'); assert.equal(irdCalls.at(-1).body.ref_invoice_number, '77');
+  assert.equal((await c.act('ird_cbms', 'report_bill', { ...saleCtx, mode: 'test' })).success, false, 'never in test mode');
+  const m = await c.manifest();
+  for (const id of ['khalti', 'esewa', 'connectips', 'ird_cbms']) assert.equal(m.find((i) => i.id === id).status, 'available', id);
 });

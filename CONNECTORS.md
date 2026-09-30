@@ -272,6 +272,22 @@ its Set up page.
   `webhookSetup: { where, what }` so its Set up page shows the callback URL.
 - `color` (e.g. `'#e4202a'`) colours an integration's buttons in Stratek.
 
+## 6a-4. Hosted payment pages + Nepal gateways (v0.15.0+)
+
+- `GET /pay/:int/start/:mode/:token` -> the integration's `payPage()` (e.g. an
+  auto-submitting, signed form to eSewa / connectIPS). Tokens are random, one per
+  sale charge, stored in the integration memory.
+- `GET|POST /pay/:int/return/:mode` -> `payReturn()`: verify with the gateway, then
+  `emit()` a signed `payment.succeeded` `{ transactionId, amount, currency: 'NPR',
+  provider, integration, providerRef, livemode }` (same event as PayBridgeNP).
+  Each payment is reported once (`reported` flag).
+- Actions now also receive `emit` (used by "Check ... payment" buttons, only after
+  the gateway confirms).
+- Integrations: `khalti` (KPG-2 initiate/lookup/refund), `esewa` (ePay v2 form +
+  HMAC signature + status API), `connectips` (SHA256withRSA token via WebCrypto,
+  PKCS#1 keys wrapped to PKCS#8; validatetxn with basic auth), `ird_cbms`
+  (bill / billreturn with BS dates from `_nepal.js`).
+
 ## 6a-3. Webhook, Zapier, Make, Slack, Sparrow SMS, Google Sheets, Mailchimp, HubSpot (v0.14.0+)
 
 - Button actions only (placement `transaction`, plus `settings` tests;

@@ -103,10 +103,10 @@ keys once afterwards so both live and test payment notifications are registered.
 |---|---|---|---|---|
 | [Stripe](https://docs.stripe.com/api) | Test Stripe, Pay by card (Stripe), Check card payment, Refund card payment (needs a person) | Stripe secret key | Test keys | **Available** |
 | [PayPal](https://developer.paypal.com/api/rest/) | Test PayPal, Pay with PayPal, Check PayPal payment, Refund PayPal payment (needs a person) | PayPal client ID, PayPal client secret | Test keys | **Available** |
-| [Khalti](https://docs.khalti.com/) | Pay with Khalti, Check Khalti payment | Khalti live secret key | -- | Coming soon |
-| [eSewa](https://developer.esewa.com.np/) | Pay with eSewa, Check eSewa payment | eSewa merchant (product) code, eSewa secret key | -- | Coming soon |
+| [Khalti](https://docs.khalti.com/khalti-epayment/) | Test Khalti, Pay with Khalti (QR, payment detected), Check Khalti payment, Refund Khalti payment (needs a person) | Khalti secret key | Sandbox (dev.khalti.com) | **Available** (v0.15.0) |
+| [eSewa](https://developer.esewa.com.np/pages/Epay) | Test eSewa, Pay with eSewa (QR, payment detected), Check eSewa payment | eSewa merchant (product) code, eSewa secret key | UAT (EPAYTEST) | **Available** (v0.15.0) |
 | [Fonepay dynamic QR](https://www.fonepay.com/) | Fonepay QR for this amount, Check Fonepay payment | Fonepay merchant code, Fonepay secret key, Fonepay API username (optional), Fonepay API password (optional) | -- | Coming soon |
-| [connectIPS](https://www.connectips.com/) | Pay with connectIPS | Merchant ID, App ID, App name, App password, Private key (PEM) | -- | Coming soon |
+| [connectIPS](https://doc.connectips.com/docs/connectIPS-Gateway/merchant-interface) | Test connectIPS, Pay with connectIPS (QR, payment detected), Check connectIPS payment | Merchant ID, App ID, App name, App password, Private key (PEM), connectIPS address (optional) | UAT (uat.connectips.com) | **Available** (v0.15.0) |
 | [PayBridgeNP](https://docs.paybridgenp.com/api-reference/overview) | Till, kiosk & online store payment QR (auto-detects payment), Test PayBridgeNP, Check online payment, Refund online payment (needs a person) | PayBridgeNP secret key | Test keys (Fonepay = real money) | **Available** |
 | [Razorpay (UPI)](https://razorpay.com/docs/api/) | Pay with UPI (Razorpay), Refund with Razorpay | Razorpay key ID, Razorpay key secret | -- | Coming soon |
 | [Coinbase (crypto)](https://docs.cdp.coinbase.com/coinbase-business/) | Test Coinbase, Pay with crypto (Coinbase), Check crypto payment, Refund crypto payment (needs a person) | CDP API key ID / name, CDP API private key (Ed25519, base64) | Live only | **Available** |
@@ -140,7 +140,7 @@ keys once afterwards so both live and test payment notifications are registered.
 
 | Integration | Buttons in Stratek | Keys (Set up form) | Test mode | Status |
 |---|---|---|---|---|
-| [Nepal IRD e-billing (CBMS)](https://ird.gov.np/) | Report bill to IRD | IRD CBMS username, IRD CBMS password, Seller PAN | -- | Coming soon |
+| [Nepal IRD e-billing (CBMS)](https://ird.gov.np/content/9052/cbmsapitechnicaldocumentfor/) | Check IRD settings, Report bill to IRD, Report return to IRD | IRD CBMS username, IRD CBMS password, Seller PAN, CBMS address (optional) | Live only (test sales never sent) | **Available** (v0.15.0) |
 | [QuickBooks Online](https://developer.intuit.com/app/developer/qbo/docs/get-started) | Send sale to QuickBooks | Client ID, Client secret, Refresh token, Company (realm) ID | -- | Coming soon |
 | [Xero](https://developer.xero.com/documentation/) | Send sale to Xero | Client ID, Client secret, Refresh token, Tenant ID | -- | Coming soon |
 | [Google Sheets](https://developers.google.com/workspace/sheets/api/guides/concepts) | Test Google Sheets, Copy inventory to Google Sheet, Add sale to Google Sheet | Service account key (JSON), Sheet link or ID, Tab for sales (optional) | Live only | **Available** (v0.14.0) |
@@ -308,6 +308,35 @@ see the POS repo's `docs/proposals/online-store.md`), gated on PayBridgeNP
 (Fonepay QR on the order page, confirmed automatically) + Pathao (live quotes,
 booking), with pickup or delivery and a test mode that uses the test keys.
 To build one, see [docs/adding-an-integration.md](docs/adding-an-integration.md).
+
+## Nepal payments and tax (v0.15.0+)
+
+**Khalti, eSewa, connectIPS** work like the card buttons: under the payment QR,
+"Pay with ..." shows a QR the customer scans. Khalti opens Khalti's own payment
+page; eSewa and connectIPS open a short page on this connector
+(`/pay/<integration>/start/<mode>/<token>`) that posts the signed form to the
+gateway. The gateway sends the customer back to `/pay/<integration>/return/<mode>`;
+the connector **checks the payment with the gateway** (Khalti lookup, eSewa
+signature + status API, connectIPS validatetxn) and only then sends Stratek a
+signed `payment.succeeded` event -- the sale shows **Paid online** and a person
+still presses **Settle**. "Check ... payment" on the sale does the same check by
+hand. Khalti refunds need a person (approval request for AI agents).
+
+- **Khalti:** secret key from admin.khalti.com (Live) / test-admin.khalti.com (Test).
+- **eSewa:** merchant (product) code + ePay v2 secret key. Test: EPAYTEST with the
+  UAT secret from eSewa's developer docs. Refunds: eSewa merchant portal.
+- **connectIPS:** merchant ID, app ID/name, app password, and the private key from
+  your CREDITOR.pfx (`openssl pkcs12 -in CREDITOR.pfx -nocerts -nodes`; PKCS#1 or
+  PKCS#8 PEM). Give NCHL `<connector>/pay/connectips/return/live` (and `/test` for
+  UAT) as the success and failure URL -- "Test connectIPS" shows it.
+- **Nepal IRD e-billing (CBMS):** "Report bill to IRD" sends the sale to
+  `cbapi.ird.gov.np/api/bill` with the date in Bikram Sambat (YYYY.MM.DD) and the
+  fiscal year (e.g. 2083.084, from Shrawan 1); "Report return to IRD" sends a
+  credit note. Amounts come from the Stratek bill (taxable, VAT, exempt). Each
+  sale is reported once; test-mode sales never. **CBMS is meant for tax invoices
+  from IRD-approved billing software, and Stratek's bill says "not a tax
+  invoice" -- check with IRD or your accountant before using it.** The BS calendar
+  table (2070-2099) is in `src/integrations/_nepal.js`.
 
 ## Sending sales elsewhere (v0.14.0+)
 

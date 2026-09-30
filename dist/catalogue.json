@@ -1,5 +1,5 @@
 {
- "version": "0.14.0",
+ "version": "0.15.0",
  "categories": {
   "system": "Connector",
   "payments": "Payments",
@@ -85,25 +85,28 @@
    "id": "khalti",
    "name": "Khalti",
    "category": "payments",
-   "status": "planned",
-   "description": "Khalti wallet payments (Nepal).",
-   "docsUrl": "https://docs.khalti.com/",
+   "status": "available",
+   "description": "Khalti checkout for a sale: the customer scans, pays with Khalti, and Stratek sees the payment.",
+   "docsUrl": "https://docs.khalti.com/khalti-epayment/",
    "actions": [
+    "Test Khalti",
     "Pay with Khalti",
-    "Check Khalti payment"
+    "Check Khalti payment",
+    "Refund Khalti payment"
    ],
    "secrets": [
-    "Khalti live secret key"
+    "Khalti secret key"
    ]
   },
   {
    "id": "esewa",
    "name": "eSewa",
    "category": "payments",
-   "status": "planned",
-   "description": "eSewa wallet payments (Nepal).",
-   "docsUrl": "https://developer.esewa.com.np/",
+   "status": "available",
+   "description": "eSewa checkout for a sale: the customer scans, pays with eSewa, and Stratek sees the payment.",
+   "docsUrl": "https://developer.esewa.com.np/pages/Epay",
    "actions": [
+    "Test eSewa",
     "Pay with eSewa",
     "Check eSewa payment"
    ],
@@ -134,18 +137,21 @@
    "id": "connectips",
    "name": "connectIPS",
    "category": "payments",
-   "status": "planned",
-   "description": "Bank account payments through connectIPS (Nepal).",
-   "docsUrl": "https://www.connectips.com/",
+   "status": "available",
+   "description": "Pay a sale from any Nepali bank account with connectIPS; Stratek sees the payment.",
+   "docsUrl": "https://doc.connectips.com/docs/connectIPS-Gateway/merchant-interface",
    "actions": [
-    "Pay with connectIPS"
+    "Test connectIPS",
+    "Pay with connectIPS",
+    "Check connectIPS payment"
    ],
    "secrets": [
     "Merchant ID",
     "App ID",
     "App name",
     "App password",
-    "Private key (PEM)"
+    "Private key (PEM)",
+    "connectIPS address"
    ]
   },
   {
@@ -376,16 +382,19 @@
    "id": "ird_cbms",
    "name": "Nepal IRD e-billing (CBMS)",
    "category": "accounting",
-   "status": "planned",
-   "description": "Report bills to the Inland Revenue Department (CBMS).",
-   "docsUrl": "https://ird.gov.np/",
+   "status": "available",
+   "description": "Report bills and sales returns to Nepal IRD's Central Billing Monitoring System (CBMS).",
+   "docsUrl": "https://ird.gov.np/content/9052/cbmsapitechnicaldocumentfor/",
    "actions": [
-    "Report bill to IRD"
+    "Check IRD settings",
+    "Report bill to IRD",
+    "Report return to IRD"
    ],
    "secrets": [
     "IRD CBMS username",
     "IRD CBMS password",
-    "Seller PAN"
+    "Seller PAN",
+    "CBMS address"
    ]
   },
   {

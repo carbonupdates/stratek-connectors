@@ -19,6 +19,8 @@
 //   POST /secrets/:int         save / remove keys            (Stratek pass,
 //                              signed-in session only, not API keys)
 //   GET  /event-key            public key Stratek checks this connector's events with
+//   GET  /pay/:int/start/:mode/:token   hosted payment start page (eSewa, connectIPS form post)
+//   GET|POST /pay/:int/return/:mode     gateway return; checked, then a signed payment.succeeded event
 //   POST /webhooks/:int[/test] notifications from a provider (e.g. PayBridgeNP
 //                              "payment succeeded"); checked by the integration,
 //                              then forwarded to Stratek as a signed event.
@@ -227,6 +229,28 @@ export async function handle(request, env) {
     }
   }
 
+  // Hosted payment pages (v0.15.0): the customer scans a short link to this connector,
+  //   GET /pay/:int/start/:mode/:token   -> the integration's page (e.g. an auto-submitting form to eSewa)
+  //   GET|POST /pay/:int/return/:mode    -> the gateway sends the customer back; the integration checks
+  //                                         the payment with the gateway and tells Stratek (signed event)
+  const payMatch = pathname.match(/^\/pay\/([a-z0-9_]+)\/(start|return)\/(live|test)(?:\/([A-Za-z0-9_-]{16,64}))?$/);
+  if (payMatch && (request.method === 'GET' || (payMatch[2] === 'return' && request.method === 'POST'))) {
+    const integration = findIntegration(payMatch[1]);
+    const hook = payMatch[2] === 'start' ? integration?.payPage : integration?.payReturn;
+    if (!integration || !hook || statusOf(integration) !== 'available') return messagePage('Not found', 'This payment link is not valid.', 'err', 404);
+    const mode = payMatch[3];
+    const { keys } = await loadKeys(env, db, mode);
+    if (!isReady(integration, keys, mode)) return messagePage('Not available', `${integration.name} is not set up on this shop's connector.`, 'err', 409);
+    const store = integrationStore(db, integration, mode);
+    const form = request.method === 'POST' ? Object.fromEntries(new URLSearchParams(await request.text())) : {};
+    try {
+      return await hook({ request, url, form, token: payMatch[4] || null, env: { ...env, ...keys, STRATEK_MODE: mode }, store, mode, origin: url.origin, emit: (event) => emitEvent(db, { ...event, mode }) });
+    } catch (err) {
+      console.error(`pay ${integration.id}:`, err?.message);
+      return messagePage('Payment problem', err?.message || 'Something went wrong. Please show this screen to the shop.', 'err', 400);
+    }
+  }
+
   // Where online payment pages send the customer back to.
   if (pathname === '/paid' && request.method === 'GET') {
     return messagePage('Thank you', 'Your payment was submitted. Please show this screen to the shop -- they will confirm it on their side.', 'ok', 200);
@@ -425,7 +449,7 @@ export async function handle(request, env) {
       // Integrations read their keys from env as usual; Set up form keys are merged in.
       // `store`: a small per-integration memory (e.g. which payment session belongs to which sale).
       const store = integrationStore(db, found.integration, mode);
-      const result = await found.action.run({ env: { ...env, ...keys, STRATEK_MODE: mode }, claims, fields, context: body?.context || {}, origin: url.origin, store, mode });
+      const result = await found.action.run({ env: { ...env, ...keys, STRATEK_MODE: mode }, claims, fields, context: body?.context || {}, origin: url.origin, store, mode, emit: (event) => emitEvent(db, { ...event, mode }) });
       if (result && typeof result === 'object' && mode === 'test') result.testMode = true;
       return okJson(env, request, { result });
     } catch (err) {
