@@ -272,6 +272,24 @@ its Set up page.
   `webhookSetup: { where, what }` so its Set up page shows the callback URL.
 - `color` (e.g. `'#e4202a'`) colours an integration's buttons in Stratek.
 
+## 6a-6. Shipping & fulfilment (v0.18.0+)
+
+- Shared helper `src/integrations/_ship.js`: the recipient form (`recipientFields`,
+  falls back to `context.customer`), `shipperSecrets(P)` / `shipperFrom(env, P)` for
+  the pickup address, `skuLines()` (typed "SKU x2" list, else item `sku`, else
+  `stratek-<id>`), one shipment per sale (`tx:<id>` in the integration memory),
+  `keepLabel()` / `labelResponse()` for labels served from
+  `/pay/:int/start/:mode/:token`, and `cachedToken()` for client-credential tokens
+  (kept per mode until 60 s before expiry -- one token call, not one per press).
+- Integrations: `fedex` (OAuth client credentials; Rate / Ship / Track v1),
+  `ups` (OAuth basic; Rating / Shipping v2409, Track v1), `aramex` (JSON web
+  services, ClientInfo), `easyship` (2024-09, buy_label synchronous), `shiprocket`
+  (API-user login token, 9 days; order -> assign AWB -> label), `shipstation`
+  (legacy v1, basic auth), `shipbob` (2025-07, channel found automatically),
+  `amazon_mcf` (SP-API Fulfillment Outbound 2020-07-01, LWA refresh token, no SigV4).
+- Outbound (need a person): every `create_shipment`, `shipbob/create_order`,
+  `amazon_mcf/create_fulfillment`. `shipstation/send_order` is not outbound (no cost).
+
 ## 6a-5. OAuth + wave 3 (v0.17.0+)
 
 - `GET /oauth/:int/start/:mode/:state` -> 302 to the provider (one-time state from

@@ -4,7 +4,8 @@
 // and no key form yet. The key fields and buttons below are a first draft --
 // adjust them to the real API when building it, write each action's `run`,
 // then set status to 'available'. See docs/adding-an-integration.md.
-// API: Opened to all businesses in May 2026 (Amazon Supply Chain Services); API access details to confirm when building.
+// API: Opened to all businesses in May 2026, but there is no public self-serve API yet (checked Sept 2026): Amazon onboards
+// Supply Chain customers through its sales team. Stays "Coming soon" until Amazon publishes an API; parked with the partner-deal group.
 
 import { notBuilt } from './_scaffold.js';
 

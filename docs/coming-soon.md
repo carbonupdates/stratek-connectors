@@ -1,6 +1,6 @@
 # Integrations: finished, remaining and build waves
 
-**Tally (connector 0.17.0): 30 built, 42 coming soon, 72 in total** (the Connector itself not counted).
+**Tally (connector 0.18.0): 38 built, 34 coming soon, 72 in total** (the Connector itself not counted).
 
 Coming-soon ones are already in the catalogue as scaffolds (key fields and buttons drafted, `run` not built). To build one: follow `docs/adding-an-integration.md`, write each action, set `status: 'available'`, add a test, bump the version. Buttons only -- nothing runs by itself. Anything that spends money (labels, fulfilment, PCB and dropship orders, refunds) needs a person (AI agents can only ask).
 
@@ -8,10 +8,10 @@ Coming-soon ones are already in the catalogue as scaffolds (key fields and butto
 
 | Kind | Who | Meaning |
 |---|---|---|
-| **Merchant account** | the business | Anyone can sign up and get API keys; the business pastes them in Set up. (16 remaining) |
-| **Merchant approval** | the business | The provider has to accept the business first (merchant agreement, KYC, API application, seller account). Stratek can build and test these once one test account exists. (14 remaining) |
+| **Merchant account** | the business | Anyone can sign up and get API keys; the business pastes them in Set up. (8 remaining) |
+| **Merchant approval** | the business | The provider has to accept the business first (merchant agreement, KYC, API application, seller account). Stratek can build and test these once one test account exists. (13 remaining) |
 | **Stratek partner approval** | Stratek | The provider only works with certified software partners, so **Stratek** (the software maker) must apply once; after that every business can use it with its own login. (8 remaining) |
-| **Partner deal (to confirm)** / No public API | -- | No public API yet; needs a conversation with the company first. (4 remaining) |
+| **Partner deal (to confirm)** / No public API | -- | No public API yet; needs a conversation with the company first. (5 remaining) |
 
 Setting up the connector itself never needs anyone's approval.
 
@@ -21,22 +21,9 @@ Setting up the connector itself never needs anyone's approval.
 - **Wave 1 (0.14.0):** Webhook, Zapier, Make, Slack, Sparrow SMS, Google Sheets, Mailchimp, HubSpot
 - **Wave 2 (0.15.0):** Khalti, eSewa, connectIPS, Nepal IRD e-billing (CBMS)
 - **Wave 3 (0.17.0):** WhatsApp Business, Viber, WooCommerce, Shopify, QuickBooks Online, Xero, Zoho Books, DHL Express
+- **Wave 4 (0.18.0):** FedEx, UPS, Aramex, Easyship, ShipStation, ShipBob, Amazon Multi-Channel Fulfillment, Shiprocket
 
-## Remaining (42)
-
-### Wave 4 -- shipping & fulfilment
-
-| Integration | What it does | API | Approval |
-|---|---|---|---|
-| FedEx | Rates, labels, tracking | Open developer portal (OAuth) | Merchant account |
-| UPS | Rates, labels, tracking | Open developer portal (OAuth) | Merchant account |
-| Aramex | Rates, shipments, tracking | Web services; credentials from your Aramex account manager | Merchant account |
-| Easyship | Compare couriers, labels, tracking | Open REST API (token) | Merchant account |
-| ShipStation | Send orders, track | Open REST API (key/secret) | Merchant account |
-| ShipBob | Fulfil orders from ShipBob warehouses | Open REST API (token) | Merchant account |
-| Amazon Multi-Channel Fulfillment | Fulfil from your FBA stock | SP-API Fulfillment Outbound; your own private SP-API app | Merchant approval |
-| Amazon Supply Chain Services | Freight, storage, distribution | Opened to all businesses May 2026; API details to confirm | Merchant account |
-| Shiprocket | India shipping (INR shops) | Open REST API (API user) | Merchant account |
+## Remaining (34)
 
 ### Wave 5 -- hotels & hospitality
 
@@ -90,5 +77,6 @@ Setting up the connector itself never needs anyone's approval.
 | Yango Delivery | Same-day courier | Claims API with a Yango business account | Merchant account |
 | Pick & Drop | Courier (Nepal) | No public API found | Partner deal (to confirm) |
 | inDrive | Courier / rides | No public delivery API | No public API |
+| Amazon Supply Chain Services | Freight, storage, distribution | Opened to all businesses May 2026, but no public self-serve API yet (checked Sept 2026) -- Amazon onboards through its sales team | Partner deal (to confirm) |
 
 Sources: [Amazon Supply Chain Services (May 2026)](https://press.aboutamazon.com/2026/5/amazon-launches-amazon-supply-chain-services-opening-its-logistics-network-to-all-businesses), [SP-API Fulfillment Outbound](https://developer-docs.amazon.com/sp-api/docs/fulfillment-outbound-api), [JLCPCB API platform](https://api.jlcpcb.com/), [PCBWay partner API](https://api-partner.pcbway.com/), [Cloudbeds API](https://www.cloudbeds.com/api/), [Mews API](https://www.mews.com/en/products/api).

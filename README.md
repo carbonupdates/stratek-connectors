@@ -69,6 +69,8 @@ CJdropshipping, Made-in-China.com), hotels & hospitality (Cloudbeds, Mews, Oracl
 OPERA Cloud, SiteMinder, Booking.com, Expedia, Airbnb, OpenTable, Foodmandu),
 payments (IME Pay, Prabhu Pay, WeChat Pay, Alipay+ direct, Paytm, Payoneer),
 marketplaces (Amazon Seller, Etsy, eBay, TikTok Shop), Viber and Zoho Books.
+Viber and Zoho Books were built in v0.17.0; the shipping and fulfilment ones (all but
+Amazon Supply Chain Services, which has no public API yet) in v0.18.0.
 **[docs/coming-soon.md](docs/coming-soon.md)** has the finished / remaining tally and every
 scaffold by build wave, with who has to be approved (the business or Stratek). They are not in the table
 below yet; each moves into it when it is built.
@@ -132,12 +134,20 @@ keys once afterwards so both live and test payment notifications are registered.
 | [Pick & Drop](https://pickndropnepal.com/) | Send with Pick & Drop | Pick & Drop API key | -- | Coming soon |
 | inDrive | Send with inDrive | inDrive API key | -- | Coming soon |
 | [DHL Express](https://developer.dhl.com/api-reference/dhl-express-mydhl-api) | Get DHL rate, Ship with DHL (needs a person; label PDF), Track DHL shipment | MyDHL API key + secret, DHL Express account number, shipper name/phone/address/city (+ postal code, country) | Test credentials | **Available** (v0.17.0) |
+| [FedEx](https://developer.fedex.com/api/en-us/home.html) | Get FedEx rate, Ship with FedEx (needs a person; label PDF), Track FedEx shipment | FedEx API key + secret key, FedEx account number, shipper name/phone/address/city (+ state, postal code, country, service) | Test keys | **Available** (v0.18.0) |
+| [UPS](https://developer.ups.com/) | Get UPS rate, Ship with UPS (needs a person; label image), Track UPS shipment | UPS client ID + secret, UPS account (shipper) number, shipper address (+ service code) | Test site (same keys) | **Available** (v0.18.0) |
+| [Aramex](https://www.aramex.com/us/en/developers-solution-center) | Get Aramex rate, Ship with Aramex (needs a person; Aramex label link), Track Aramex shipment | API username + password, account number, PIN, entity (+ country), shipper address | Test credentials | **Available** (v0.18.0) |
+| [Easyship](https://developers.easyship.com/) | Compare Easyship rates, Ship with Easyship (needs a person; buys the label), Track Easyship shipment | Easyship API token, shipper address (+ email, HS code) | Sandbox token | **Available** (v0.18.0) |
+| [Shiprocket](https://apidocs.shiprocket.in/) | Check Shiprocket couriers, Ship with Shiprocket (needs a person; INR sales only), Track Shiprocket shipment | API user email + password, pickup location nickname, pickup PIN code | Live only | **Available** (v0.18.0) |
 
 ### Manufacturing & fulfilment
 
 | Integration | Buttons in Stratek | Keys (Set up form) | Test mode | Status |
 |---|---|---|---|---|
 | [Slant 3D](https://slant3dapi.com/documentation/introduction) | Test Slant 3D, Quote 3D print (Slant 3D), Confirm 3D print order (needs a person), Track 3D print | Slant 3D API key, Platform ID (optional) | Live only | **Available** |
+| [ShipStation](https://www.shipstation.com/docs/api/) | Test ShipStation, Send order to ShipStation (free -- labels are bought in ShipStation), ShipStation tracking | API key + secret (+ store ID) | Live only | **Available** (v0.18.0) |
+| [ShipBob](https://developer.shipbob.com/) | Test ShipBob, Fulfil with ShipBob (needs a person), ShipBob tracking | Personal Access Token (+ ship option, channel ID) | Sandbox token | **Available** (v0.18.0) |
+| [Amazon Multi-Channel Fulfillment](https://developer-docs.amazon.com/sp-api/docs/fulfillment-outbound-api) | Preview Amazon fulfillment, Fulfil with Amazon (MCF) (needs a person), Track Amazon fulfillment | Login with Amazon client ID + secret, SP-API refresh token, marketplace ID (+ region) | SP-API sandbox | **Available** (v0.18.0) |
 
 ### Messages & notifications
 
@@ -322,6 +332,29 @@ see the POS repo's `docs/proposals/online-store.md`), gated on PayBridgeNP
 (Fonepay QR on the order page, confirmed automatically) + Pathao (live quotes,
 booking), with pickup or delivery and a test mode that uses the test keys.
 To build one, see [docs/adding-an-integration.md](docs/adding-an-integration.md).
+
+## Wave 4: shipping and fulfilment (v0.18.0+)
+
+- **Carriers -- FedEx, UPS, Aramex, Easyship, Shiprocket (and DHL):** on a sale,
+  "Get rate" asks the carrier for prices; "Ship with ..." books a paid shipment,
+  so it **needs a person** (AI agents and API keys only get an approval request);
+  "Track" shows the latest scan. Your pickup address is set once in Set up. The
+  delivery form fills the name, phone and email from an online-store order. One
+  shipment per sale: pressing again shows the one already booked. Labels open
+  from a link (FedEx / UPS / Easyship labels are kept on this connector at
+  `/pay/<integration>/start/<mode>/<token>`; Aramex and Shiprocket host their own).
+  International FedEx shipments send a commercial-invoice line per sale item.
+- **Try them in test mode first:** FedEx, UPS, Aramex, Easyship have test
+  credentials / sandboxes (nothing is collected or charged). Shiprocket has no
+  test mode and ships INR sales only.
+- **Warehouses -- ShipStation, ShipBob, Amazon Multi-Channel Fulfillment:**
+  products go by **SKU**: the sale items' SKUs, or type them on the button
+  ("MUG-01 x2, TEE-M x1"). "Send order to ShipStation" costs nothing (labels
+  are bought in ShipStation), so anyone allowed can press it; ShipBob and Amazon
+  charge for fulfilment, so those need a person. "Preview Amazon fulfillment"
+  shows the fees and arrival date per speed first.
+- **Amazon Supply Chain Services** stays Coming soon: Amazon has no public
+  self-serve API for it yet (Sept 2026).
 
 ## Wave 3: WhatsApp, Viber, stores and accounting, DHL (v0.17.0+)
 

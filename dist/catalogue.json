@@ -1,5 +1,5 @@
 {
- "version": "0.17.0",
+ "version": "0.18.0",
  "categories": {
   "system": "Connector",
   "payments": "Payments",
@@ -405,7 +405,7 @@
    "id": "fedex",
    "name": "FedEx",
    "category": "delivery",
-   "status": "planned",
+   "status": "available",
    "description": "International and domestic shipping with FedEx: rates, labels and tracking.",
    "docsUrl": "https://developer.fedex.com/api/en-us/home.html",
    "actions": [
@@ -414,17 +414,25 @@
     "Track FedEx shipment"
    ],
    "secrets": [
-    "FedEx API key (client ID)",
+    "FedEx API key",
     "FedEx secret key",
-    "FedEx account number"
+    "FedEx account number",
+    "Shipper (your business) name",
+    "Shipper phone",
+    "Shipper street address",
+    "Shipper city",
+    "Shipper state / province code",
+    "Shipper postal code",
+    "Shipper country code",
+    "Service"
    ]
   },
   {
    "id": "ups",
    "name": "UPS",
    "category": "delivery",
-   "status": "planned",
-   "description": "Ship with UPS: rates, labels and tracking.",
+   "status": "available",
+   "description": "International and domestic shipping with UPS: rates, labels and tracking.",
    "docsUrl": "https://developer.ups.com/",
    "actions": [
     "Get UPS rate",
@@ -434,14 +442,22 @@
    "secrets": [
     "UPS client ID",
     "UPS client secret",
-    "UPS account (shipper) number"
+    "UPS account (shipper) number",
+    "Shipper (your business) name",
+    "Shipper phone",
+    "Shipper street address",
+    "Shipper city",
+    "Shipper state / province code",
+    "Shipper postal code",
+    "Shipper country code",
+    "Service code"
    ]
   },
   {
    "id": "aramex",
    "name": "Aramex",
    "category": "delivery",
-   "status": "planned",
+   "status": "available",
    "description": "International courier with Aramex: rates, shipments and tracking.",
    "docsUrl": "https://www.aramex.com/us/en/developers-solution-center",
    "actions": [
@@ -454,56 +470,76 @@
     "Aramex API password",
     "Aramex account number",
     "Account PIN",
-    "Account entity (e.g. KTM)",
-    "Account country code (e.g. NP)"
+    "Account entity",
+    "Account country code",
+    "Shipper (your business) name",
+    "Shipper phone",
+    "Shipper street address",
+    "Shipper city",
+    "Shipper postal code",
+    "Shipper country code"
    ]
   },
   {
    "id": "easyship",
    "name": "Easyship",
    "category": "delivery",
-   "status": "planned",
-   "description": "Compare hundreds of couriers and print labels for international orders with Easyship.",
+   "status": "available",
+   "description": "Compare 250+ couriers and buy labels through one Easyship account.",
    "docsUrl": "https://developers.easyship.com/",
    "actions": [
-    "Get Easyship rate",
+    "Compare Easyship rates",
     "Ship with Easyship",
     "Track Easyship shipment"
    ],
    "secrets": [
-    "Easyship API access token"
+    "Easyship API token",
+    "Shipper (your business) name",
+    "Shipper phone",
+    "Shipper street address",
+    "Shipper city",
+    "Shipper state / province code",
+    "Shipper postal code",
+    "Shipper country code",
+    "Shipper email",
+    "HS code of what you usually ship"
    ]
   },
   {
    "id": "shipstation",
    "name": "ShipStation",
-   "category": "delivery",
-   "status": "planned",
-   "description": "Send orders to ShipStation to print labels with your carriers.",
+   "category": "fulfilment",
+   "status": "available",
+   "description": "Send sales to ShipStation to pick, pack and label, and see the tracking number.",
    "docsUrl": "https://www.shipstation.com/docs/api/",
    "actions": [
+    "Test ShipStation",
     "Send order to ShipStation",
-    "Track ShipStation shipment"
+    "ShipStation tracking"
    ],
    "secrets": [
     "ShipStation API key",
-    "ShipStation API secret"
+    "ShipStation API secret",
+    "Store ID"
    ]
   },
   {
    "id": "shiprocket",
    "name": "Shiprocket",
    "category": "delivery",
-   "status": "planned",
+   "status": "available",
    "description": "Ship orders across India with Shiprocket (for INR shops).",
    "docsUrl": "https://apidocs.shiprocket.in/",
    "actions": [
+    "Check Shiprocket couriers",
     "Ship with Shiprocket",
     "Track Shiprocket shipment"
    ],
    "secrets": [
     "Shiprocket API user email",
-    "Shiprocket API user password"
+    "Shiprocket API user password",
+    "Pickup location nickname",
+    "Pickup PIN code"
    ]
   },
   {
@@ -528,8 +564,8 @@
    "id": "amazon_mcf",
    "name": "Amazon Multi-Channel Fulfillment",
    "category": "fulfilment",
-   "status": "planned",
-   "description": "Fulfil orders from your Amazon (FBA) inventory with Multi-Channel Fulfillment.",
+   "status": "available",
+   "description": "Amazon ships your Stratek sales from your FBA inventory (Multi-Channel Fulfillment).",
    "docsUrl": "https://developer-docs.amazon.com/sp-api/docs/fulfillment-outbound-api",
    "actions": [
     "Preview Amazon fulfillment",
@@ -565,15 +601,18 @@
    "id": "shipbob",
    "name": "ShipBob",
    "category": "fulfilment",
-   "status": "planned",
-   "description": "Store and fulfil orders with ShipBob warehouses (US, EU, Australia).",
+   "status": "available",
+   "description": "ShipBob warehouses pick, pack and ship your sales from your stock there.",
    "docsUrl": "https://developer.shipbob.com/",
    "actions": [
+    "Test ShipBob",
     "Fulfil with ShipBob",
-    "Track ShipBob order"
+    "ShipBob tracking"
    ],
    "secrets": [
-    "ShipBob personal access token"
+    "ShipBob Personal Access Token",
+    "Ship option",
+    "Channel ID"
    ]
   },
   {

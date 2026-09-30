@@ -118,3 +118,12 @@ the files as they are, without a build step.
 Rules: never log or return secret values; keep each action under Cloudflare's
 free-plan limits (10 ms CPU, 50 outbound requests per call); return one of the
 result types in [CONNECTORS.md](../CONNECTORS.md).
+
+## Shared helpers (src/integrations/)
+
+Reuse these instead of writing your own: `_util.js` (sale(), money in minor
+units), `_hooks.js` (customerOf(), sale payloads, https-only URLs), `_nepal.js`
+(BS dates, hosted form / result pages, emitPaid), `_oauth.js` (Connect buttons,
+token refresh), `_sync.js` (inventory push, 20 per press) and `_ship.js`
+(delivery form, pickup address, SKU lists, labels, one shipment per sale,
+cached access tokens). Anything that spends money sets `outbound: true`.

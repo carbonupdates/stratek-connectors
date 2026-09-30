@@ -46,6 +46,7 @@ const stratekEvents = [];
 const tgCalls = [];
 const kCalls = []; const kState = { status: 'Initiated' }; const eCalls = []; const eState = { status: 'PENDING' }; const cCalls = []; const irdCalls = [];
 const waCalls = []; const viCalls = []; const wooCalls = []; const shCalls = []; const oaCalls = []; const qbCalls = []; const xeCalls = []; const zoCalls = []; const dhCalls = [];
+const w4Calls = [];
 const hookCalls = []; const smsCalls = []; const gCalls = []; const gTabs = ['Sheet1']; const mcCalls = []; const hsCalls = [];
 globalThis.fetch = async (input, init) => {
   const req = input instanceof Request ? input : new Request(input, init);
@@ -83,6 +84,60 @@ globalThis.fetch = async (input, init) => {
   if (u.host === 'api.xero.com') { xeCalls.push({ method: req.method, path: u.pathname, body, tenant: req.headers.get('xero-tenant-id') }); if (u.pathname === '/connections') return Response.json([{ tenantId: 'T-1', tenantType: 'ORGANISATION', tenantName: 'Demo Company' }]); if (u.pathname.endsWith('/Organisation')) return Response.json({ Organisations: [{ Name: 'Demo Company (Global)', BaseCurrency: 'USD' }] }); return Response.json({ Invoices: [{ InvoiceID: 'inv-1', InvoiceNumber: 'INV-0042' }] }); }
   if (u.host === 'www.zohoapis.com') { zoCalls.push({ method: req.method, path: u.pathname + u.search, body }); if (u.pathname.endsWith('/organizations')) return Response.json({ code: 0, organizations: [{ organization_id: 'O1', name: 'Chyau Pvt', currency_code: 'NPR', is_default_org: true }] }); if (u.pathname.endsWith('/contacts') && req.method === 'GET') return Response.json({ code: 0, contacts: [] }); if (u.pathname.endsWith('/contacts')) return Response.json({ code: 0, contact: { contact_id: 'C9' } }); return Response.json({ code: 0, invoice: { invoice_id: 'I1', invoice_number: 'INV-000001' } }); }
   if (u.host === 'express.api.dhl.com') { dhCalls.push({ method: req.method, path: u.pathname + u.search, body, auth: req.headers.get('Authorization') }); if (u.pathname.endsWith('/rates')) return Response.json({ products: [{ productName: 'EXPRESS WORLDWIDE', totalPrice: [{ currencyType: 'BILLC', priceCurrency: 'NPR', price: 7420 }], deliveryCapabilities: { estimatedDeliveryDateAndTime: '2026-10-04T23:59:00' } }] }); if (u.pathname.endsWith('/shipments')) return Response.json({ shipmentTrackingNumber: '1234567890', documents: [{ typeCode: 'label', content: btoa('%PDF-1.4 fake') }] }); return Response.json({ shipments: [{ status: 'transit', events: [{ description: 'Processed at KATHMANDU', date: '2026-10-02' }] }] }); }
+  if (['apis-sandbox.fedex.com', 'wwwcie.ups.com', 'ws.dev.aramex.net', 'public-api.easyship.com', 'ssapi.shipstation.com', 'sandbox-api.shipbob.com', 'api.amazon.com', 'sandbox.sellingpartnerapi-na.amazon.com', 'apiv2.shiprocket.in'].includes(u.host)) {
+    const raw = req.method === 'GET' ? '' : await req.clone().text();
+    let jb = null; try { jb = raw ? JSON.parse(raw) : null; } catch { jb = Object.fromEntries(new URLSearchParams(raw)); }
+    const p = u.pathname; w4Calls.push({ host: u.host, method: req.method, path: p + u.search, body: jb, headers: Object.fromEntries(req.headers) });
+    const pdf = btoa('%PDF-1.4 fake');
+    if (u.host === 'apis-sandbox.fedex.com') {
+      if (p === '/oauth/token') return Response.json({ access_token: 'fx-tok', expires_in: 3600 });
+      if (p.startsWith('/rate/')) return Response.json({ output: { rateReplyDetails: [{ serviceName: 'FedEx International Priority', ratedShipmentDetails: [{ currency: 'USD', totalNetCharge: 61.2 }] }] } });
+      if (p.startsWith('/ship/')) return Response.json({ output: { transactionShipments: [{ masterTrackingNumber: '794600000001', pieceResponses: [{ packageDocuments: [{ encodedLabel: pdf }] }] }] } });
+      return Response.json({ output: { completeTrackResults: [{ trackResults: [{ latestStatusDetail: { statusByLocale: 'In transit', description: 'Departed FedEx hub', scanLocation: { city: 'DELHI' } } }] }] } });
+    }
+    if (u.host === 'wwwcie.ups.com') {
+      if (p.includes('/oauth/')) return Response.json({ access_token: 'ups-tok', expires_in: '14399' });
+      if (p.includes('/rating/')) return Response.json({ RateResponse: { RatedShipment: [{ Service: { Code: '65' }, TotalCharges: { CurrencyCode: 'USD', MonetaryValue: '58.10' } }] } });
+      if (p.includes('/shipments/')) return Response.json({ ShipmentResponse: { ShipmentResults: { ShipmentIdentificationNumber: '1Z999AA10123456784', ShipmentCharges: { TotalCharges: { CurrencyCode: 'USD', MonetaryValue: '58.10' } }, PackageResults: { TrackingNumber: '1Z999AA10123456784', ShippingLabel: { GraphicImage: btoa('GIF89a') } } } } });
+      return Response.json({ trackResponse: { shipment: [{ package: [{ currentStatus: { description: 'On the Way' }, activity: [{ status: { description: 'Departed from Facility' }, location: { address: { city: 'Louisville' } } }] }] }] } });
+    }
+    if (u.host === 'ws.dev.aramex.net') {
+      if (jb?.ClientInfo?.Password !== 'axp') return Response.json({ HasErrors: true, Notifications: [{ Code: 'ERR01', Message: 'Invalid username or password' }] });
+      if (p.endsWith('/CalculateRate')) return Response.json({ HasErrors: false, TotalAmount: { CurrencyCode: 'NPR', Value: 6120 } });
+      if (p.endsWith('/CreateShipments')) return Response.json({ HasErrors: false, Shipments: [{ ID: '44000000001', HasErrors: false, ShipmentLabel: { LabelURL: 'http://ws.dev.aramex.net/content/rpt_cache/44000000001.pdf' } }] });
+      return Response.json({ HasErrors: false, TrackingResults: [{ Key: '44000000001', Value: [{ UpdateDescription: 'Record created.', UpdateLocation: 'Kathmandu, Nepal' }] }] });
+    }
+    if (u.host === 'public-api.easyship.com') {
+      if (p.endsWith('/rates')) return Response.json({ rates: [{ courier_service: { id: 'cs1', name: 'USPS Priority' }, total_charge: 31.5, currency: 'USD', min_delivery_time: 5, max_delivery_time: 9 }] });
+      if (req.method === 'POST' && p.endsWith('/shipments')) return Response.json({ shipment: { easyship_shipment_id: 'ESNP000123', label_state: 'generated', courier_service: { name: 'USPS Priority' }, trackings: [{ tracking_number: '9400100000000000000001' }], shipping_documents: [{ category: 'label', format: 'pdf', base64_encoded_strings: [pdf] }] } }, { status: 201 });
+      return Response.json({ shipment: { courier_service: { name: 'USPS Priority' }, trackings: [{ tracking_number: '9400100000000000000001', tracking_state: 'in_transit' }] } });
+    }
+    if (u.host === 'ssapi.shipstation.com') {
+      if (p === '/stores') return Response.json([{ storeId: 11, storeName: 'Chyau Online' }]);
+      if (p === '/orders/createorder') return Response.json({ orderId: 9001, orderNumber: jb.orderNumber });
+      return Response.json({ shipments: [{ carrierCode: 'dhl_express', trackingNumber: 'JD01', shipDate: '2026-10-01', voided: false }] });
+    }
+    if (u.host === 'sandbox-api.shipbob.com') {
+      if (p === '/2025-07/channel') return Response.json([{ id: 555, name: 'Stratek', scopes: ['orders_read', 'orders_write'] }]);
+      if (p === '/2025-07/order') return Response.json({ id: 7001, status: 'Processing' }, { status: 201 });
+      return Response.json([{ status: 'Completed', tracking: { carrier: 'USPS', tracking_number: '9200', tracking_url: 'https://tools.usps.com/x' } }]);
+    }
+    if (u.host === 'api.amazon.com') return Response.json({ access_token: 'Atza|x', expires_in: 3600 });
+    if (u.host === 'sandbox.sellingpartnerapi-na.amazon.com') {
+      if (p.endsWith('/preview')) return Response.json({ payload: { fulfillmentPreviews: [{ shippingSpeedCategory: 'Standard', isFulfillable: true, estimatedFees: [{ name: 'FBAPerUnitFulfillmentFee', amount: { currencyCode: 'USD', value: '6.40' } }], fulfillmentPreviewShipments: [{ latestArrivalDate: '2026-10-06T07:00:00Z' }] }, { shippingSpeedCategory: 'Priority', isFulfillable: false, unfulfillablePreviewItems: [{ sellerSku: 'MUG-01' }] }] } });
+      if (req.method === 'POST' && p.endsWith('/fulfillmentOrders')) return Response.json({});
+      if (p.includes('/tracking')) return Response.json({ payload: { currentStatus: 'IN_TRANSIT', estimatedArrivalDate: '2026-10-05T00:00:00Z' } });
+      return Response.json({ payload: { fulfillmentOrder: { fulfillmentOrderStatus: 'Complete' }, fulfillmentShipments: [{ fulfillmentShipmentPackage: [{ packageNumber: 1, carrierCode: 'AMZN_US', trackingNumber: 'TBA000111' }] }] } });
+    }
+    if (u.host === 'apiv2.shiprocket.in') {
+      if (p.endsWith('/auth/login')) return jb.password === 'srp' ? Response.json({ token: 'sr-tok' }) : Response.json({ message: 'Invalid email and password combination' }, { status: 403 });
+      if (p.includes('/serviceability')) return Response.json({ data: { available_courier_companies: [{ courier_name: 'Delhivery Surface', rate: 72, etd: 'Oct 04, 2026' }, { courier_name: 'Xpressbees', rate: 65 }] } });
+      if (p.endsWith('/orders/create/adhoc')) return Response.json({ order_id: 3001, shipment_id: 4001, status: 'NEW' });
+      if (p.endsWith('/assign/awb')) return Response.json({ awb_assign_status: 1, response: { data: { awb_code: '1411111111', courier_name: 'Xpressbees' } } });
+      if (p.endsWith('/generate/label')) return Response.json({ label_created: 1, label_url: 'https://kr-shipmultichannel.s3.amazonaws.com/label.pdf' });
+      return Response.json({ tracking_data: { shipment_track: [{ current_status: 'PICKED UP', edd: '2026-10-04' }], shipment_track_activities: [{ activity: 'Shipment picked up', location: 'Delhi' }] } });
+    }
+  }
   if (['hooks.example.test', 'hooks.zapier.com', 'hook.eu2.make.com', 'hooks.slack.com'].includes(u.host)) { hookCalls.push({ host: u.host, headers: Object.fromEntries(req.headers), body, raw: await req.clone().text() }); return new Response('ok'); }
   if (u.host === 'api.sparrowsms.com') {
     const form = req.method === 'POST' ? Object.fromEntries(new URLSearchParams(await req.clone().text())) : Object.fromEntries(u.searchParams);
@@ -661,4 +716,106 @@ test('Wave 3 (0.17.0): WhatsApp, Viber, WooCommerce, Shopify, QuickBooks / Xero 
   assert.match((await c.act('dhl', 'track', { ...saleCtx, mode: 'test' })).data.result.text, /KATHMANDU/);
   const man = await c.manifest();
   for (const id of ['whatsapp', 'viber', 'woocommerce', 'shopify', 'quickbooks', 'xero', 'zoho_books', 'dhl']) assert.equal(man.find((i) => i.id === id).status, 'available', id);
+});
+
+test('Wave 4 (0.18.0): FedEx, UPS, Aramex, Easyship, ShipStation, ShipBob, Amazon MCF, Shiprocket', async () => {
+  const c = await paired();
+  const now = Math.floor(Date.now() / 1000);
+  const apiKeyPass = () => pass({ iss: STRATEK, aud: 'conn-1', sub: 'merchant:1', iat: now, exp: now + 60, src: 'api_key' });
+  const saleCtx = { context: { transaction: { id: 91, amount: 565, currency: 'NPR', reference: 'Online order #20', items: [{ id: 5, name: 'Oyster pack', price: 250, qty: 2 }], createdAt: '2026-09-30 06:00:00' }, customer: { name: 'John Smith', email: 'john@x.com', phone: '+12125550100' } } };
+  const to = { recipientAddress: '1 Main St', recipientCity: 'New York', recipientState: 'NY', recipientPostalCode: '10001', country: 'US', weight: 1.5 };
+  const shipper = (P) => ({ [`${P}_SHIPPER_NAME`]: 'Chyau Bio', [`${P}_SHIPPER_PHONE`]: '9800000000', [`${P}_SHIPPER_ADDRESS`]: 'Jhamsikhel', [`${P}_SHIPPER_CITY`]: 'Lalitpur', [`${P}_SHIPPER_POSTAL_CODE`]: '44700' });
+  const calls = (host, path) => w4Calls.filter((x) => x.host === host && (!path || x.path.includes(path)));
+  const openLabel = async (r) => go(c.env, new URL(r.data.result.url).pathname);
+  let r;
+  // ── FedEx ──
+  await c.save('fedex', 'test', { FEDEX_CLIENT_ID: 'fid', FEDEX_CLIENT_SECRET: 'fsec', FEDEX_ACCOUNT_NUMBER: '740561073', ...shipper('FEDEX') });
+  r = await c.act('fedex', 'quote', { ...saleCtx, mode: 'test', fields: { weight: 1.5, country: 'us', city: 'New York' } });
+  assert.match(r.data.result.text, /International Priority: USD 61.2/);
+  r = await c.act('fedex', 'create_shipment', { ...saleCtx, mode: 'test', fields: to });
+  assert.equal(r.success, true, JSON.stringify(r));
+  let b = calls('apis-sandbox.fedex.com', '/ship/').at(-1).body.requestedShipment;
+  assert.equal(b.serviceType, 'INTERNATIONAL_PRIORITY'); assert.equal(b.recipients[0].contact.personName, 'John Smith', 'customer fills the name'); assert.equal(b.customsClearanceDetail.commodities[0].quantity, 2); assert.equal(b.recipients[0].address.stateOrProvinceCode, 'NY');
+  assert.equal(calls('apis-sandbox.fedex.com', '/oauth/token').length, 1, 'token reused');
+  assert.equal((await openLabel(r)).headers.get('content-type'), 'application/pdf');
+  r = await c.act('fedex', 'create_shipment', { ...saleCtx, mode: 'test', fields: to });
+  assert.match(r.data.result.text, /already booked/); assert.equal(calls('apis-sandbox.fedex.com', '/ship/').length, 1, 'no second booking');
+  assert.match((await c.act('fedex', 'track', { ...saleCtx, mode: 'test' })).data.result.text, /DELHI/);
+  // ── UPS ──
+  await c.save('ups', 'test', { UPS_CLIENT_ID: 'uid', UPS_CLIENT_SECRET: 'usec', UPS_ACCOUNT_NUMBER: 'A1B2C3', ...shipper('UPS') });
+  assert.match((await c.act('ups', 'quote', { ...saleCtx, mode: 'test', fields: { weight: 2, country: 'US' } })).data.result.text, /Worldwide Saver: USD 58.10/);
+  assert.match(calls('wwwcie.ups.com', '/oauth/')[0].headers.authorization, /^Basic /);
+  r = await c.act('ups', 'create_shipment', { ...saleCtx, mode: 'test', fields: to });
+  assert.equal(r.success, true, JSON.stringify(r));
+  b = calls('wwwcie.ups.com', '/shipments/').at(-1).body.ShipmentRequest.Shipment;
+  assert.equal(b.Service.Code, '65'); assert.equal(b.PaymentInformation.ShipmentCharge[0].BillShipper.AccountNumber, 'A1B2C3');
+  assert.equal((await openLabel(r)).headers.get('content-type'), 'image/gif');
+  assert.match((await c.act('ups', 'track', { ...saleCtx, mode: 'test' })).data.result.text, /Louisville/);
+  // ── Aramex ──
+  await c.save('aramex', 'test', { ARAMEX_USERNAME: 'u', ARAMEX_PASSWORD: 'bad', ARAMEX_ACCOUNT_NUMBER: '20016', ARAMEX_ACCOUNT_PIN: '331421', ARAMEX_ENTITY: 'ktm', ...shipper('ARAMEX') });
+  r = await c.act('aramex', 'quote', { ...saleCtx, mode: 'test', fields: { weight: 1, country: 'AE', city: 'Dubai' } });
+  assert.match(r.error.message, /Invalid username or password/);
+  await c.save('aramex', 'test', { ARAMEX_USERNAME: 'u', ARAMEX_PASSWORD: 'axp', ARAMEX_ACCOUNT_NUMBER: '20016', ARAMEX_ACCOUNT_PIN: '331421', ARAMEX_ENTITY: 'ktm', ...shipper('ARAMEX') });
+  assert.match((await c.act('aramex', 'quote', { ...saleCtx, mode: 'test', fields: { weight: 1, country: 'AE', city: 'Dubai' } })).data.result.text, /NPR 6120/);
+  r = await c.act('aramex', 'create_shipment', { ...saleCtx, mode: 'test', fields: to });
+  assert.equal(r.success, true, JSON.stringify(r));
+  b = calls('ws.dev.aramex.net', 'CreateShipments').at(-1).body;
+  assert.equal(b.ClientInfo.AccountEntity, 'KTM'); assert.equal(b.Shipments[0].Details.ProductGroup, 'EXP'); assert.match(b.Shipments[0].ShippingDateTime, /^\/Date\(\d+\)\/$/);
+  assert.match(r.data.result.url, /^https:\/\/ws\.dev\.aramex\.net\//, 'label link made https');
+  assert.match((await c.act('aramex', 'track', { ...saleCtx, mode: 'test' })).data.result.text, /Kathmandu/);
+  // ── Easyship ──
+  await c.save('easyship', 'test', { EASYSHIP_TOKEN: 'sand_x', EASYSHIP_HS_CODE: '0709.59', ...shipper('EASYSHIP') });
+  assert.match((await c.act('easyship', 'quote', { ...saleCtx, mode: 'test', fields: { weight: 1, country: 'US', state: 'ny', postalCode: '10001' } })).data.result.text, /USPS Priority: USD 31.5, 5-9 days/);
+  r = await c.act('easyship', 'create_shipment', { ...saleCtx, mode: 'test', fields: to });
+  assert.equal(r.success, true, JSON.stringify(r));
+  b = calls('public-api.easyship.com', '/shipments').at(-1).body;
+  assert.equal(b.shipping_settings.buy_label, true); assert.equal(b.parcels[0].items[0].hs_code, '0709.59'); assert.equal(b.destination_address.country_alpha2, 'US');
+  assert.equal((await openLabel(r)).headers.get('content-type'), 'application/pdf');
+  assert.match((await c.act('easyship', 'track', { ...saleCtx, mode: 'test' })).data.result.status, /in_transit/);
+  // ── ShipStation (no money moves -> no approval needed) ──
+  await c.save('shipstation', 'live', { SHIPSTATION_API_KEY: 'k', SHIPSTATION_API_SECRET: 's' });
+  assert.match((await c.act('shipstation', 'test')).data.result.text, /Chyau Online \(ID 11\)/);
+  r = await c.act('shipstation', 'send_order', { ...saleCtx, fields: { ...to, skus: 'OYS-250 x2' } }, await apiKeyPass());
+  assert.equal(r.success, true, JSON.stringify(r));
+  b = calls('ssapi.shipstation.com', 'createorder').at(-1).body;
+  assert.equal(b.orderNumber, 'S91'); assert.deepEqual(b.items.map((i) => [i.sku, i.quantity]), [['OYS-250', 2]]); assert.equal(b.shipTo.state, 'NY');
+  assert.match((await c.act('shipstation', 'track', saleCtx)).data.result.text, /JD01/);
+  // ── ShipBob ──
+  await c.save('shipbob', 'test', { SHIPBOB_TOKEN: 'pat' });
+  assert.match((await c.act('shipbob', 'test', { mode: 'test' })).data.result.text, /channel 555/);
+  r = await c.act('shipbob', 'create_order', { ...saleCtx, mode: 'test', fields: to });
+  assert.equal(r.success, true, JSON.stringify(r));
+  const sbo = calls('sandbox-api.shipbob.com', '/2025-07/order').find((x) => x.method === 'POST');
+  assert.equal(sbo.headers.shipbob_channel_id, '555'); assert.equal(sbo.body.products[0].reference_id, 'stratek-5', 'sale item id as SKU'); assert.equal(sbo.body.shipping_method, 'Standard');
+  assert.match((await c.act('shipbob', 'track', { ...saleCtx, mode: 'test' })).data.result.text, /USPS · 9200/);
+  // ── Amazon MCF ──
+  await c.save('amazon_mcf', 'test', { AMAZON_LWA_CLIENT_ID: 'amzn1.application-oa2-client.x', AMAZON_LWA_CLIENT_SECRET: 'sec', AMAZON_REFRESH_TOKEN: 'Atzr|x', AMAZON_MARKETPLACE_ID: 'ATVPDKIKX0DER' });
+  r = await c.act('amazon_mcf', 'preview', { ...saleCtx, mode: 'test', fields: { ...to, skus: 'MUG-01 x2' } });
+  assert.match(r.data.result.text, /Standard: USD 6.40, arrives by 2026-10-06/); assert.match(r.data.result.text, /Priority: not possible \(MUG-01\)/);
+  assert.equal(calls('sandbox.sellingpartnerapi-na.amazon.com', 'preview')[0].headers['x-amz-access-token'], 'Atza|x');
+  assert.equal(calls('api.amazon.com')[0].body.grant_type, 'refresh_token');
+  r = await c.act('amazon_mcf', 'create_fulfillment', { ...saleCtx, mode: 'test', fields: { ...to, skus: 'MUG-01 x2', speed: 'expedited' } });
+  assert.equal(r.success, true, JSON.stringify(r));
+  b = calls('sandbox.sellingpartnerapi-na.amazon.com').find((x) => x.method === 'POST' && x.path.endsWith('/fulfillmentOrders')).body;
+  assert.equal(b.sellerFulfillmentOrderId, 'stratek-91'); assert.equal(b.shippingSpeedCategory, 'Expedited'); assert.equal(b.items[0].quantity, 2);
+  assert.match((await c.act('amazon_mcf', 'track', { ...saleCtx, mode: 'test' })).data.result.text, /TBA000111/);
+  // ── Shiprocket (INR only) ──
+  await c.save('shiprocket', 'live', { SHIPROCKET_EMAIL: 'api@chyau.in', SHIPROCKET_PASSWORD: 'srp', SHIPROCKET_PICKUP_LOCATION: 'Primary', SHIPROCKET_PICKUP_PINCODE: '110001' });
+  assert.match((await c.act('shiprocket', 'quote', { fields: { weight: 0.5, recipientPostalCode: '560001' } })).data.result.text, /^Xpressbees: INR 65/);
+  const inr = { context: { ...saleCtx.context, transaction: { ...saleCtx.context.transaction, id: 92, currency: 'INR' } } };
+  assert.match((await c.act('shiprocket', 'create_shipment', { ...saleCtx, fields: { ...to, country: 'IN' } })).error.message, /not in INR/);
+  r = await c.act('shiprocket', 'create_shipment', { ...inr, fields: { recipientAddress: '12 MG Road', recipientCity: 'Bengaluru', recipientState: 'Karnataka', recipientPostalCode: '560001', weight: 0.5 } });
+  assert.equal(r.success, true, JSON.stringify(r));
+  b = calls('apiv2.shiprocket.in', '/orders/create/adhoc').at(-1).body;
+  assert.equal(b.billing_customer_name, 'John'); assert.equal(b.billing_last_name, 'Smith'); assert.equal(b.billing_phone, '2125550100'); assert.equal(b.pickup_location, 'Primary');
+  assert.equal(r.data.result.url, 'https://kr-shipmultichannel.s3.amazonaws.com/label.pdf');
+  assert.equal(calls('apiv2.shiprocket.in', '/auth/login').length, 1, 'token reused');
+  assert.match((await c.act('shiprocket', 'track', inr)).data.result.text, /Delhi/);
+  // every spend button needs a person
+  for (const [id, act] of [['fedex', 'create_shipment'], ['ups', 'create_shipment'], ['aramex', 'create_shipment'], ['easyship', 'create_shipment'], ['shipbob', 'create_order'], ['amazon_mcf', 'create_fulfillment'], ['shiprocket', 'create_shipment']]) {
+    assert.equal((await c.act(id, act, { ...saleCtx, mode: 'test', fields: to }, await apiKeyPass())).error.code, 'APPROVAL_REQUIRED', id);
+  }
+  const man = await c.manifest();
+  for (const id of ['fedex', 'ups', 'aramex', 'easyship', 'shipstation', 'shipbob', 'amazon_mcf', 'shiprocket']) assert.equal(man.find((i) => i.id === id).status, 'available', id);
+  assert.equal(man.find((i) => i.id === 'amazon_scs').status, 'planned');
 });
