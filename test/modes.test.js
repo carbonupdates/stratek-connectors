@@ -49,6 +49,7 @@ const waCalls = []; const viCalls = []; const wooCalls = []; const shCalls = [];
 const w4Calls = [];
 const w5Calls = [];
 const w6Calls = [];
+const w7Calls = []; const w7State = {};
 const hookCalls = []; const smsCalls = []; const gCalls = []; const gTabs = ['Sheet1']; const mcCalls = []; const hsCalls = [];
 globalThis.fetch = async (input, init) => {
   const req = input instanceof Request ? input : new Request(input, init);
@@ -85,6 +86,41 @@ globalThis.fetch = async (input, init) => {
   if (u.host === 'sandbox-quickbooks.api.intuit.com') { qbCalls.push({ method: req.method, path: u.pathname + u.search, body, auth: req.headers.get('Authorization') }); if (u.pathname.includes('/query')) { const q = u.searchParams.get('query'); return Response.json({ QueryResponse: q.includes('from Item') ? {} : { Account: [{ Id: '79' }] } }); } if (u.pathname.endsWith('/item')) return Response.json({ Item: { Id: '33' } }); if (u.pathname.includes('/companyinfo/')) return Response.json({ CompanyInfo: { CompanyName: 'Sandbox Co' } }); return Response.json({ SalesReceipt: { Id: '145', DocNumber: '1037' } }); }
   if (u.host === 'api.xero.com') { xeCalls.push({ method: req.method, path: u.pathname, body, tenant: req.headers.get('xero-tenant-id') }); if (u.pathname === '/connections') return Response.json([{ tenantId: 'T-1', tenantType: 'ORGANISATION', tenantName: 'Demo Company' }]); if (u.pathname.endsWith('/Organisation')) return Response.json({ Organisations: [{ Name: 'Demo Company (Global)', BaseCurrency: 'USD' }] }); return Response.json({ Invoices: [{ InvoiceID: 'inv-1', InvoiceNumber: 'INV-0042' }] }); }
   if (u.host === 'www.zohoapis.com') { zoCalls.push({ method: req.method, path: u.pathname + u.search, body }); if (u.pathname.endsWith('/organizations')) return Response.json({ code: 0, organizations: [{ organization_id: 'O1', name: 'Chyau Pvt', currency_code: 'NPR', is_default_org: true }] }); if (u.pathname.endsWith('/contacts') && req.method === 'GET') return Response.json({ code: 0, contacts: [] }); if (u.pathname.endsWith('/contacts')) return Response.json({ code: 0, contact: { contact_id: 'C9' } }); return Response.json({ code: 0, invoice: { invoice_id: 'I1', invoice_number: 'INV-000001' } }); }
+  if (['api.razorpay.com', 'securegw-stage.paytm.in', 'securegw.paytm.in', 'api.sandbox.ebay.com', 'api.ebay.com', 'sandbox.sellingpartnerapi-eu.amazon.com'].includes(u.host) || (u.host === 'api.amazon.com' && w7State.amazon)) {
+    const raw = req.method === 'GET' ? '' : await req.clone().text(); let jb = null; try { jb = raw ? JSON.parse(raw) : null; } catch { jb = Object.fromEntries(new URLSearchParams(raw)); }
+    const p = u.pathname; w7Calls.push({ host: u.host, method: req.method, path: p + u.search, body: jb, raw, headers: Object.fromEntries(req.headers) });
+    if (u.host === 'api.razorpay.com') {
+      if (p === '/v1/payment_links' && req.method === 'GET') return Response.json({ count: 0, payment_links: [] });
+      if (p === '/v1/payment_links') return Response.json({ id: 'plink_1', short_url: 'https://rzp.io/i/abc', status: 'created', amount: jb.amount });
+      if (p === '/v1/payment_links/plink_1') return Response.json(w7State.rzPaid ? { id: 'plink_1', status: 'paid', amount: 150000, amount_paid: 150000, payments: [{ payment_id: 'pay_9', method: 'upi', status: 'captured' }] } : { id: 'plink_1', status: 'created', amount: 150000, payments: [] });
+      if (p.endsWith('/refund')) return Response.json({ id: 'rfnd_1', status: 'processed', amount: jb.amount || 150000 });
+    }
+    if (u.host.startsWith('securegw')) {
+      const { createDecipheriv, createHash } = await import('node:crypto');
+      const env = JSON.parse(raw); const bodyStr = raw.slice(raw.indexOf('"body":') + 7, -1);
+      const d = createDecipheriv('aes-128-cbc', Buffer.from('abcdEFGH12345678'), Buffer.from('@@@@&&&&####$$$$'));
+      const plain = Buffer.concat([d.update(Buffer.from(env.head.signature, 'base64')), d.final()]).toString();
+      const salt = plain.slice(64); const okSig = createHash('sha256').update(`${bodyStr}|${salt}`).digest('hex') === plain.slice(0, 64);
+      w7Calls.at(-1).sigOk = okSig;
+      if (!okSig) return Response.json({ body: { resultInfo: { resultStatus: 'FAILED', resultMsg: 'Checksum mismatch' } } });
+      if (p === '/link/create') return Response.json({ body: { resultInfo: { resultStatus: 'SUCCESS' }, linkId: 7001, shortUrl: 'https://paytm.me/x-ab12', linkUrl: 'https://paytm.me/long' } });
+      if (p === '/link/fetchTransaction') return Response.json({ body: { resultInfo: { resultStatus: 'SUCCESS' }, orders: w7State.ptPaid ? [{ orderId: 'ORD1', txnId: 'TXN1', txnAmount: '1500.00', orderStatus: 'SUCCESS', paymentMode: 'UPI' }] : [] } });
+      return Response.json({ body: { resultInfo: { resultStatus: 'SUCCESS' }, links: [] } });
+    }
+    if (u.host.endsWith('ebay.com')) {
+      if (p === '/identity/v1/oauth2/token') return Response.json({ access_token: 'v^1.1#tok', expires_in: 7200 });
+      if (p === '/sell/inventory/v1/inventory_item' && req.method === 'GET') return Response.json({ total: 3 });
+      if (p.startsWith('/sell/inventory/v1/inventory_item/')) return new Response(null, { status: 204 });
+      if (p === '/sell/inventory/v1/offer') return u.searchParams.get('sku') === 'OYS-250' ? Response.json({ offers: [{ offerId: 'OF1', pricingSummary: { price: { currency: 'USD', value: '1.50' } } }] }) : Response.json({ errors: [{ message: 'No offer' }] }, { status: 404 });
+      if (p.endsWith('/bulk_update_price_quantity')) return Response.json({ responses: [{ statusCode: 200 }] });
+      if (p === '/sell/fulfillment/v1/order') return Response.json({ orders: [{ orderId: '12-345', orderFulfillmentStatus: 'NOT_STARTED', pricingSummary: { total: { currency: 'USD', value: '9.99' } }, buyer: { username: 'bob' } }] });
+    }
+    if (u.host === 'api.amazon.com') return Response.json({ access_token: 'Atza|seller', expires_in: 3600 });
+    if (u.host === 'sandbox.sellingpartnerapi-eu.amazon.com') {
+      if (p.startsWith('/orders/v0/orders')) return Response.json({ payload: { Orders: [{ AmazonOrderId: '171-1', OrderStatus: 'Unshipped', OrderTotal: { CurrencyCode: 'INR', Amount: '499.00' } }] } });
+      if (p.startsWith('/listings/')) return p.endsWith('/NOPE') ? Response.json({ sku: 'NOPE', status: 'INVALID', issues: [{ message: 'SKU not found' }] }) : Response.json({ sku: 'x', status: 'ACCEPTED' });
+    }
+  }
   if (u.host === 'express.api.dhl.com') { dhCalls.push({ method: req.method, path: u.pathname + u.search, body, auth: req.headers.get('Authorization') }); if (u.pathname.endsWith('/rates')) return Response.json({ products: [{ productName: 'EXPRESS WORLDWIDE', totalPrice: [{ currencyType: 'BILLC', priceCurrency: 'NPR', price: 7420 }], deliveryCapabilities: { estimatedDeliveryDateAndTime: '2026-10-04T23:59:00' } }] }); if (u.pathname.endsWith('/shipments')) return Response.json({ shipmentTrackingNumber: '1234567890', documents: [{ typeCode: 'label', content: btoa('%PDF-1.4 fake') }] }); return Response.json({ shipments: [{ status: 'transit', events: [{ description: 'Processed at KATHMANDU', date: '2026-10-02' }] }] }); }
   if (u.host === 'api.printful.com' || u.host === 'api.printify.com' || u.host === 'developers.cjdropshipping.com') {
     const raw = req.method === 'GET' ? '' : await req.clone().text(); let jb = null; try { jb = raw ? JSON.parse(raw) : null; } catch { jb = null; }
@@ -956,4 +992,75 @@ test('Wave 6 (0.20.0): Printful, Printify, CJdropshipping', async () => {
   const man = await c.manifest();
   for (const id of ['printful', 'printify', 'cj_dropshipping']) assert.equal(man.find((i) => i.id === id).status, 'available', id);
   for (const id of ['jlcpcb', 'pcbway', 'aliexpress', 'alibaba', 'made_in_china']) assert.equal(man.find((i) => i.id === id).status, 'planned', id);
+});
+
+test('Wave 7 (0.21.0): Razorpay, Paytm, eBay, Amazon Seller', async () => {
+  const c = await paired();
+  const now = Math.floor(Date.now() / 1000);
+  const apiKeyPass = () => pass({ iss: STRATEK, aud: 'conn-1', sub: 'merchant:1', iat: now, exp: now + 60, src: 'api_key' });
+  const inr = { context: { transaction: { id: 99, amount: 1500, currency: 'INR', reference: 'Till', items: [] } } };
+  const npr = { context: { transaction: { id: 100, amount: 1500, currency: 'NPR', reference: 'Till', items: [] } } };
+  const menuCtx = { context: { menu: { currency: 'NPR', items: [{ id: 1, sku: 'OYS-250', name: 'Oyster pack', price: 250, available: true, description: 'Fresh', photo: 'https://strateknepal.com/media/menu/1.jpg' }, { id: 2, name: 'Shiitake', price: 400, available: false }] } } };
+  const calls = (host, path) => w7Calls.filter((x) => x.host === host && (!path || x.path.includes(path)));
+  let r;
+  // ── Razorpay ──
+  await c.save('razorpay', 'test', { RAZORPAY_KEY_ID: 'rzp_test_abc', RAZORPAY_KEY_SECRET: 'sec', RAZORPAY_WEBHOOK_SECRET: 'whsec' });
+  assert.match((await c.act('razorpay', 'test', { mode: 'test' })).data.result.text, /TEST keys work\. Webhook secret saved/);
+  assert.match((await c.act('razorpay', 'payment_link', { ...npr, mode: 'test' })).error.message, /only takes payments in INR/);
+  r = await c.act('razorpay', 'payment_link', { ...inr, mode: 'test' });
+  assert.equal(r.data.result.type, 'qr'); assert.equal(r.data.result.qrPayload, 'https://rzp.io/i/abc');
+  assert.equal(calls('api.razorpay.com', '/v1/payment_links').find((x) => x.method === 'POST').body.amount, 150000);
+  assert.match((await c.act('razorpay', 'check', { ...inr, mode: 'test' })).data.result.status, /Waiting/);
+  // signed webhook -> checked with Razorpay -> one payment.succeeded
+  w7State.rzPaid = true; stratekEvents.length = 0;
+  const hook = JSON.stringify({ event: 'payment_link.paid', payload: { payment_link: { entity: { id: 'plink_1' } } } });
+  const { createHmac } = await import('node:crypto');
+  let res = await go(c.env, '/webhooks/razorpay/test', { method: 'POST', headers: { 'X-Razorpay-Signature': 'bad' }, body: hook });
+  assert.equal(res.status, 401);
+  res = await go(c.env, '/webhooks/razorpay/test', { method: 'POST', headers: { 'X-Razorpay-Signature': createHmac('sha256', 'whsec').update(hook).digest('hex') }, body: hook });
+  assert.equal(res.status, 200);
+  assert.equal(stratekEvents.length, 1); const ev = stratekEvents[0].body;
+  assert.equal(ev.data.currency, 'INR'); assert.equal(ev.data.amount, 1500); assert.equal(ev.data.providerRef, 'pay_9'); assert.equal(ev.data.livemode, false);
+  assert.match((await c.act('razorpay', 'check', { ...inr, mode: 'test' })).data.result.status, /Paid/);
+  assert.equal(stratekEvents.length, 1, 'reported once');
+  assert.equal((await c.act('razorpay', 'refund', { ...inr, mode: 'test', fields: {} }, await apiKeyPass())).error.code, 'APPROVAL_REQUIRED');
+  r = await c.act('razorpay', 'refund', { ...inr, mode: 'test', fields: { amount: 500 } });
+  assert.equal(r.success, true, JSON.stringify(r)); assert.equal(calls('api.razorpay.com', '/payments/pay_9/refund')[0].body.amount, 50000);
+  // ── Paytm (checksum verified by the stand-in) ──
+  await c.save('paytm', 'test', { PAYTM_MID: 'MID123', PAYTM_MERCHANT_KEY: 'abcdEFGH12345678' });
+  r = await c.act('paytm', 'payment_link', { ...inr, mode: 'test' });
+  assert.equal(r.success, true, JSON.stringify(r)); assert.equal(r.data.result.qrPayload, 'https://paytm.me/x-ab12');
+  const pc = calls('securegw-stage.paytm.in', '/link/create')[0];
+  assert.equal(pc.sigOk, true, 'Paytm checksum matches'); assert.equal(pc.body.body.mid, 'MID123'); assert.equal(pc.body.body.amount, '1500.00'); assert.equal(pc.body.body.linkName, 'Sale99');
+  assert.match((await c.act('paytm', 'check', { ...inr, mode: 'test' })).data.result.status, /Waiting/);
+  w7State.ptPaid = true; stratekEvents.length = 0;
+  assert.match((await c.act('paytm', 'check', { ...inr, mode: 'test' })).data.result.status, /Paid/);
+  assert.equal(stratekEvents.length, 1); assert.equal(stratekEvents[0].body.data.providerRef, 'TXN1');
+  await c.act('paytm', 'check', { ...inr, mode: 'test' }); assert.equal(stratekEvents.length, 1, 'reported once');
+  // ── eBay (sandbox) ──
+  await c.save('ebay', 'test', { EBAY_CLIENT_ID: 'app', EBAY_CLIENT_SECRET: 'sec', EBAY_REFRESH_TOKEN: 'v^1.1#r', EBAY_PRICE_FACTOR: '0.0075' });
+  assert.match((await c.act('ebay', 'test', { mode: 'test' })).data.result.text, /3 inventory items on eBay \(sandbox\)/);
+  r = await c.act('ebay', 'sync_listings', { ...menuCtx, mode: 'test' }, await apiKeyPass());
+  assert.equal(r.success, true, JSON.stringify(r)); assert.match(r.data.result.text, /2 added.*Prices updated on 1 published listing/);
+  const inv = calls('api.sandbox.ebay.com', '/inventory_item/OYS-250')[0];
+  assert.equal(inv.method, 'PUT'); assert.equal(inv.body.availability.shipToLocationAvailability.quantity, 10); assert.equal(inv.body.product.imageUrls[0], 'https://strateknepal.com/media/menu/1.jpg');
+  assert.equal(calls('api.sandbox.ebay.com', '/inventory_item/stratek-2')[0].body.availability.shipToLocationAvailability.quantity, 0);
+  assert.deepEqual(calls('api.sandbox.ebay.com', 'bulk_update_price_quantity')[0].body.requests[0].offers[0].price, { currency: 'USD', value: '1.88' });
+  assert.equal(calls('api.sandbox.ebay.com', '/oauth2/token')[0].body.grant_type, 'refresh_token');
+  assert.match((await c.act('ebay', 'sync_listings', { ...menuCtx, mode: 'test' })).data.result.text, /2 already up to date/);
+  assert.match((await c.act('ebay', 'orders', { mode: 'test' })).data.result.text, /12-345 NOT_STARTED USD 9.99/);
+  // ── Amazon Seller (SP-API sandbox, EU) ──
+  w7State.amazon = true;
+  await c.save('amazon_seller', 'test', { AMAZON_SELLER_LWA_CLIENT_ID: 'amzn1.x', AMAZON_SELLER_LWA_CLIENT_SECRET: 's', AMAZON_SELLER_REFRESH_TOKEN: 'Atzr|s', AMAZON_SELLER_ID: 'A2SELLER', AMAZON_SELLER_MARKETPLACE_ID: 'A21TJRUUN4KGV', AMAZON_SELLER_REGION: 'eu', AMAZON_SELLER_PRICE_FACTOR: '0.62', AMAZON_SELLER_CURRENCY: 'INR' });
+  assert.match((await c.act('amazon_seller', 'test', { mode: 'test' })).data.result.text, /A21TJRUUN4KGV \(sandbox\)/);
+  const menu2 = { context: { menu: { items: [...menuCtx.context.menu.items, { id: 3, sku: 'NOPE', name: 'Not on Amazon', price: 100, available: true }] } } };
+  r = await c.act('amazon_seller', 'sync_listings', { ...menu2, mode: 'test' });
+  assert.equal(r.success, true, JSON.stringify(r)); assert.match(r.data.result.text, /2 added.*Problems: Not on Amazon: NOPE: SKU not found/);
+  const pa = calls('sandbox.sellingpartnerapi-eu.amazon.com', '/listings/2021-08-01/items/A2SELLER/OYS-250')[0];
+  assert.equal(pa.method, 'PATCH'); assert.match(pa.path, /marketplaceIds=A21TJRUUN4KGV/);
+  assert.equal(pa.body.patches[0].value[0].quantity, 10); assert.equal(pa.body.patches[1].value[0].our_price[0].schedule[0].value_with_tax, 155); assert.equal(pa.body.patches[1].value[0].currency, 'INR');
+  assert.match((await c.act('amazon_seller', 'orders', { mode: 'test' })).data.result.text, /171-1 Unshipped INR 499.00/);
+  const man = await c.manifest();
+  for (const id of ['razorpay', 'paytm', 'ebay', 'amazon_seller']) assert.equal(man.find((i) => i.id === id).status, 'available', id);
+  for (const id of ['ime_pay', 'prabhu_pay', 'payoneer', 'wechat_pay', 'alipay', 'etsy', 'tiktok_shop', 'daraz']) assert.equal(man.find((i) => i.id === id).status, 'planned', id);
 });

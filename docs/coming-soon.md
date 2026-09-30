@@ -1,6 +1,6 @@
 # Integrations: finished, remaining and build waves
 
-**Tally (connector 0.20.0): 43 built, 29 coming soon, 72 in total** (the Connector itself not counted).
+**Tally (connector 0.21.0): 47 built, 25 coming soon, 72 in total** (the Connector itself not counted).
 
 Coming-soon ones are already in the catalogue as scaffolds (key fields and buttons drafted, `run` not built). To build one: follow `docs/adding-an-integration.md`, write each action, set `status: 'available'`, add a test, bump the version. Buttons only -- nothing runs by itself. Anything that spends money (labels, fulfilment, PCB and dropship orders, refunds) needs a person (AI agents can only ask).
 
@@ -8,8 +8,8 @@ Coming-soon ones are already in the catalogue as scaffolds (key fields and butto
 
 | Kind | Who | Meaning |
 |---|---|---|
-| **Merchant account** | the business | Anyone can sign up and get API keys; the business pastes them in Set up. (4 remaining) |
-| **Merchant approval** | the business | The provider has to accept the business first (merchant agreement, KYC, API application, seller account). Stratek can build and test these once one test account exists. (12 remaining) |
+| **Merchant account** | the business | Anyone can sign up and get API keys; the business pastes them in Set up. (1 remaining) |
+| **Merchant approval** | the business | The provider has to accept the business first (merchant agreement, KYC, API application, seller account). Stratek can build and test these once one test account exists. (11 remaining) |
 | **Stratek partner approval** | Stratek | The provider only works with certified software partners, so **Stratek** (the software maker) must apply once; after that every business can use it with its own login. (8 remaining) |
 | **Partner deal (to confirm)** / No public API | -- | No public API yet; needs a conversation with the company first. (5 remaining) |
 
@@ -24,8 +24,9 @@ Setting up the connector itself never needs anyone's approval.
 - **Wave 4 (0.18.0):** FedEx, UPS, Aramex, Easyship, ShipStation, ShipBob, Amazon Multi-Channel Fulfillment, Shiprocket
 - **Wave 5 (0.19.0):** Cloudbeds, Oracle OPERA Cloud (charge to room)
 - **Wave 6 (0.20.0):** Printful, Printify, CJdropshipping
+- **Wave 7 (0.21.0):** Razorpay (UPI), Paytm, eBay, Amazon Seller
 
-## Remaining (29)
+## Remaining (25)
 
 ### Wave 5 -- hotels & hospitality (rest: need Stratek partner approval or an API)
 
@@ -53,20 +54,18 @@ Printful, Printify and CJdropshipping are built. The ones below need the busines
 | Alibaba.com | Supplier search, orders | Open Platform app (approval) | Merchant approval |
 | Made-in-China.com | Supplier search | Partner access to confirm | Partner deal (to confirm) |
 
-### Wave 7 -- more payments & marketplaces
+### Wave 7 -- more payments & marketplaces (rest: need approval or a partner programme)
+
+Razorpay, Paytm, eBay and Amazon Seller are built. IME Pay and Prabhu Pay share their API only with contracted merchants; WeChat Pay and Alipay+ need an acquirer; Etsy and Daraz need the app approved (Etsy also needs a Connect login with PKCE, planned in the OAuth helper); Payoneer and TikTok Shop need Stratek as a partner.
 
 | Integration | What it does | API | Approval |
 |---|---|---|---|
 | IME Pay | Wallet checkout (Nepal) | Merchant e-payment API | Merchant approval |
 | Prabhu Pay | Wallet checkout (Nepal) | Merchant API | Merchant approval |
-| Razorpay (UPI) | Cards/UPI (INR shops) | Open API (KYC account) | Merchant account |
-| Paytm | Paytm/UPI (INR shops) | Payment Gateway API (KYC account) | Merchant account |
 | Payoneer | Payment requests | API partner programme | Stratek partner approval |
 | WeChat Pay | Visitors from China | Cross-border merchant account through an acquirer | Merchant approval |
 | Alipay+ (direct) | Visitors (Fonepay QRs already take Alipay+) | Acquiring partner onboarding | Merchant approval |
-| Amazon Seller | Listings and orders | SP-API; your own private app | Merchant approval |
 | Etsy | Listings and orders | Open API v3 (app key approval) | Merchant approval |
-| eBay | Listings and orders | Sell APIs (open developer programme) | Merchant account |
 | TikTok Shop | Products and orders | Partner Center app | Stratek partner approval |
 | Daraz | Products and orders | Open Platform app (approval) | Merchant approval |
 

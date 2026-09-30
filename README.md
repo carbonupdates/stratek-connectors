@@ -122,7 +122,8 @@ keys once afterwards so both live and test payment notifications are registered.
 | [Fonepay dynamic QR](https://www.fonepay.com/) | Fonepay QR for this amount, Check Fonepay payment | Fonepay merchant code, Fonepay secret key, Fonepay API username (optional), Fonepay API password (optional) | -- | Coming soon |
 | [connectIPS](https://doc.connectips.com/docs/connectIPS-Gateway/merchant-interface) | Test connectIPS, Pay with connectIPS (QR, payment detected), Check connectIPS payment | Merchant ID, App ID, App name, App password, Private key (PEM), connectIPS address (optional) | UAT (uat.connectips.com) | **Available** (v0.15.0) |
 | [PayBridgeNP](https://docs.paybridgenp.com/api-reference/overview) | Till, kiosk & online store payment QR (auto-detects payment), Test PayBridgeNP, Check online payment, Refund online payment (needs a person) | PayBridgeNP secret key | Test keys (Fonepay = real money) | **Available** |
-| [Razorpay (UPI)](https://razorpay.com/docs/api/) | Pay with UPI (Razorpay), Refund with Razorpay | Razorpay key ID, Razorpay key secret | -- | Coming soon |
+| [Razorpay (UPI)](https://razorpay.com/docs/api/payments/payment-links/) | Test Razorpay, Pay with UPI / card (Razorpay) (QR, payment detected by webhook or check), Check Razorpay payment, Refund Razorpay payment (needs a person) | Key ID, key secret (+ webhook secret) | Test keys (rzp_test_) | **Available** (v0.21.0, INR) |
+| [Paytm](https://business.paytm.com/docs/api/create-link-api) | Test Paytm, Pay with Paytm / UPI (QR), Check Paytm payment | Paytm MID, merchant key | Staging MID/key | **Available** (v0.21.0, INR) |
 | [Coinbase (crypto)](https://docs.cdp.coinbase.com/coinbase-business/) | Test Coinbase, Pay with crypto (Coinbase), Check crypto payment, Refund crypto payment (needs a person) | CDP API key ID / name, CDP API private key (Ed25519, base64) | Live only | **Available** |
 
 ### Delivery & rides
@@ -187,6 +188,8 @@ keys once afterwards so both live and test payment notifications are registered.
 | [WooCommerce](https://woocommerce.github.io/woocommerce-rest-api-docs/) | Test WooCommerce, Sync inventory to WooCommerce, Latest WooCommerce orders | Store address (https), Consumer key, Consumer secret | Live only (staging store) | **Available** (v0.17.0) |
 | [Daraz](https://open.daraz.com/) | Sync stock to Daraz | App key, App secret, Access token | -- | Coming soon |
 | [Meta Catalog (Facebook & Instagram Shop)](https://developers.facebook.com/docs/marketing-api/catalog-batch/) | Test Meta Catalog, Sync menu to Facebook/Instagram Shop | Catalog ID, System user access token, Shop web address (optional), Graph API version (optional) | Test keys | **Available** |
+| [eBay](https://developer.ebay.com/api-docs/sell/inventory/overview.html) | Test eBay, Sync inventory to eBay (details, stock, price with a factor), Latest eBay orders | App client ID + secret, seller refresh token (+ default stock, price factor) | Sandbox keys | **Available** (v0.21.0) |
+| [Amazon Seller](https://developer-docs.amazon.com/sp-api/docs/listings-items-api-v2021-08-01-reference) | Test Amazon Seller, Sync stock to Amazon (price with a factor), Latest Amazon orders | LWA client ID + secret, refresh token, seller ID, marketplace ID (+ region, stock, price factor, currency) | SP-API sandbox | **Available** (v0.21.0) |
 
 ### Customers & marketing
 
@@ -342,6 +345,24 @@ see the POS repo's `docs/proposals/online-store.md`), gated on PayBridgeNP
 (Fonepay QR on the order page, confirmed automatically) + Pathao (live quotes,
 booking), with pickup or delivery and a test mode that uses the test keys.
 To build one, see [docs/adding-an-integration.md](docs/adding-an-integration.md).
+
+## Wave 7: Indian payments and marketplaces (v0.21.0+)
+
+- **Razorpay and Paytm** (INR shops): under the payment QR, "Pay with ..." shows a
+  QR of a payment link (UPI, cards, netbanking / Paytm wallet). Razorpay tells the
+  connector by a signed webhook (add it in Razorpay with the secret; the Set up page
+  shows the URL) and "Check" asks Razorpay / Paytm directly; either way the sale is
+  marked **Paid online** once and a person still presses **Settle**. Razorpay
+  refunds need a person. Paytm requests are signed with Paytm's checksum.
+- **eBay and Amazon Seller:** "Sync" pushes new and changed Stratek items (20 per
+  press) by SKU. eBay: title, description, photo and stock go to eBay inventory
+  items (publish each once in Seller Hub); Amazon: stock of listings that already
+  exist. Prices change only if you set a **price factor** (Stratek price x factor,
+  e.g. NPR -> USD), because the marketplace currency differs from the shop's.
+  "Latest orders" shows the last five.
+- IME Pay and Prabhu Pay (API only for contracted merchants), WeChat Pay and
+  Alipay+ (acquirer), Etsy and Daraz (app approval), Payoneer and TikTok Shop
+  (Stratek partner) stay Coming soon.
 
 ## Wave 6: print-on-demand and dropshipping (v0.20.0+)
 

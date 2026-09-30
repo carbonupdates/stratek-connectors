@@ -272,6 +272,20 @@ its Set up page.
   `webhookSetup: { where, what }` so its Set up page shows the callback URL.
 - `color` (e.g. `'#e4202a'`) colours an integration's buttons in Stratek.
 
+## 6a-9. Razorpay, Paytm, eBay, Amazon Seller (v0.21.0+)
+
+- `razorpay`: Payment Links (`POST /v1/payment_links`, amount in paise, INR only);
+  `link:<id>` -> sale in the integration memory; webhook `payment_link.paid` checked with
+  `X-Razorpay-Signature` (HMAC-SHA256 hex of the raw body, webhook secret) and then with
+  `GET /payment_links/{id}` before emitting `payment.succeeded` (currency INR, once).
+- `paytm`: `/link/create`, `/link/fetchTransaction`; `head.signature` = Paytm checksum
+  (`paytmSignature()`: AES-128-CBC with IV `@@@@&&&&####$$$$` of sha256(body|salt)+salt).
+- `ebay`: refresh-token grant (cached), `PUT inventory_item/{sku}`, optional
+  `GET offer?sku=` + `bulk_update_price_quantity` (25 per call) when `EBAY_PRICE_FACTOR` is set.
+- `amazon_seller`: LWA refresh token, `PATCH /listings/2021-08-01/items/{sellerId}/{sku}`
+  (`fulfillment_availability`, optional `purchasable_offer` with factor + currency),
+  `GET /orders/v0/orders`.
+
 ## 6a-8. Print-on-demand & dropshipping (v0.20.0+)
 
 - `printful` (v1, Bearer + `X-PF-Store-Id`): `/orders/estimate-costs`, `/orders?confirm=true`

@@ -1,5 +1,5 @@
 {
- "version": "0.20.0",
+ "version": "0.21.0",
  "categories": {
   "system": "Connector",
   "payments": "Payments",
@@ -178,16 +178,19 @@
    "id": "razorpay",
    "name": "Razorpay (UPI)",
    "category": "payments",
-   "status": "planned",
-   "description": "UPI, cards and payment links for customers from India.",
-   "docsUrl": "https://razorpay.com/docs/api/",
+   "status": "available",
+   "description": "UPI, cards, netbanking and wallets for INR shops (Razorpay Payment Links).",
+   "docsUrl": "https://razorpay.com/docs/api/payments/payment-links/",
    "actions": [
-    "Pay with UPI (Razorpay)",
-    "Refund with Razorpay"
+    "Test Razorpay",
+    "Pay with UPI / card (Razorpay)",
+    "Check Razorpay payment",
+    "Refund Razorpay payment"
    ],
    "secrets": [
     "Razorpay key ID",
-    "Razorpay key secret"
+    "Razorpay key secret",
+    "Webhook secret"
    ]
   },
   {
@@ -279,16 +282,17 @@
    "id": "paytm",
    "name": "Paytm",
    "category": "payments",
-   "status": "planned",
-   "description": "Paytm and UPI checkout (India, for INR shops).",
-   "docsUrl": "https://business.paytm.com/docs",
+   "status": "available",
+   "description": "Paytm, UPI and cards for INR shops (Paytm Payment Links).",
+   "docsUrl": "https://business.paytm.com/docs/api/create-link-api",
    "actions": [
-    "Pay with Paytm",
+    "Test Paytm",
+    "Pay with Paytm / UPI",
     "Check Paytm payment"
    ],
    "secrets": [
-    "Paytm merchant ID",
-    "Merchant key"
+    "Paytm MID (merchant ID)",
+    "Paytm merchant key"
    ]
   },
   {
@@ -1134,18 +1138,24 @@
    "id": "amazon_seller",
    "name": "Amazon Seller",
    "category": "commerce",
-   "status": "planned",
-   "description": "Sell on Amazon: sync your inventory as listings and bring Amazon orders in.",
-   "docsUrl": "https://developer-docs.amazon.com/sp-api/",
+   "status": "available",
+   "description": "Keep your Amazon listings' stock (and price) in step with Stratek, and see the latest Amazon orders.",
+   "docsUrl": "https://developer-docs.amazon.com/sp-api/docs/listings-items-api-v2021-08-01-reference",
    "actions": [
-    "Sync inventory to Amazon",
-    "Amazon orders"
+    "Test Amazon Seller",
+    "Sync stock to Amazon",
+    "Latest Amazon orders"
    ],
    "secrets": [
     "Login with Amazon client ID",
-    "Client secret",
-    "Refresh token",
-    "Marketplace ID"
+    "Login with Amazon client secret",
+    "Selling Partner refresh token",
+    "Seller ID (merchant token)",
+    "Marketplace ID",
+    "SP-API region (na, eu, fe)",
+    "Stock to show for available items",
+    "Price factor (Stratek price x factor = Amazon price)",
+    "Marketplace currency"
    ]
   },
   {
@@ -1169,17 +1179,20 @@
    "id": "ebay",
    "name": "eBay",
    "category": "commerce",
-   "status": "planned",
-   "description": "List products on eBay and bring orders in.",
-   "docsUrl": "https://developer.ebay.com/",
+   "status": "available",
+   "description": "Keep eBay inventory (details, stock, price) in step with Stratek, and see the latest eBay orders.",
+   "docsUrl": "https://developer.ebay.com/api-docs/sell/inventory/overview.html",
    "actions": [
+    "Test eBay",
     "Sync inventory to eBay",
-    "eBay orders"
+    "Latest eBay orders"
    ],
    "secrets": [
-    "eBay app ID",
-    "eBay cert ID",
-    "User refresh token"
+    "eBay app Client ID",
+    "eBay app Client Secret",
+    "Seller refresh token",
+    "Stock to show for available items",
+    "Price factor (Stratek price x factor = eBay price)"
    ]
   },
   {
