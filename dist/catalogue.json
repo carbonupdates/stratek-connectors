@@ -1,5 +1,5 @@
 {
- "version": "0.21.0",
+ "version": "0.22.0",
  "categories": {
   "system": "Connector",
   "payments": "Payments",
@@ -121,10 +121,11 @@
    "id": "fonepay",
    "name": "Fonepay dynamic QR",
    "category": "payments",
-   "status": "planned",
-   "description": "Fonepay QR with the exact amount, confirmed automatically (Nepal).",
+   "status": "available",
+   "description": "Fonepay QR with the exact amount, straight from Fonepay (your own merchant API access).",
    "docsUrl": "https://www.fonepay.com/",
    "actions": [
+    "Test Fonepay",
     "Fonepay QR for this amount",
     "Check Fonepay payment"
    ],
@@ -341,16 +342,21 @@
    "id": "yango",
    "name": "Yango Delivery",
    "category": "delivery",
-   "status": "planned",
-   "description": "Same-day courier deliveries with Yango.",
-   "docsUrl": "https://yango.com/",
+   "status": "available",
+   "description": "Same-day courier deliveries with Yango Delivery (where it operates).",
+   "docsUrl": "https://yango.delivery/",
    "actions": [
+    "Yango price",
     "Send with Yango",
     "Track Yango delivery"
    ],
    "secrets": [
     "Yango Delivery API token",
-    "Pickup address"
+    "Pickup address",
+    "Pickup map pin (latitude, longitude)",
+    "Pickup contact name",
+    "Pickup contact phone (with country code)",
+    "Courier type"
    ]
   },
   {

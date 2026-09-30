@@ -1,6 +1,6 @@
 # Integrations: finished, remaining and build waves
 
-**Tally (connector 0.21.0): 47 built, 25 coming soon, 72 in total** (the Connector itself not counted).
+**Tally (connector 0.22.0): 49 built, 23 coming soon, 72 in total** (the Connector itself not counted).
 
 Coming-soon ones are already in the catalogue as scaffolds (key fields and buttons drafted, `run` not built). To build one: follow `docs/adding-an-integration.md`, write each action, set `status: 'available'`, add a test, bump the version. Buttons only -- nothing runs by itself. Anything that spends money (labels, fulfilment, PCB and dropship orders, refunds) needs a person (AI agents can only ask).
 
@@ -8,8 +8,8 @@ Coming-soon ones are already in the catalogue as scaffolds (key fields and butto
 
 | Kind | Who | Meaning |
 |---|---|---|
-| **Merchant account** | the business | Anyone can sign up and get API keys; the business pastes them in Set up. (1 remaining) |
-| **Merchant approval** | the business | The provider has to accept the business first (merchant agreement, KYC, API application, seller account). Stratek can build and test these once one test account exists. (11 remaining) |
+| **Merchant account** | the business | Anyone can sign up and get API keys; the business pastes them in Set up. (0 remaining) |
+| **Merchant approval** | the business | The provider has to accept the business first (merchant agreement, KYC, API application, seller account). Stratek can build and test these once one test account exists. (10 remaining) |
 | **Stratek partner approval** | Stratek | The provider only works with certified software partners, so **Stratek** (the software maker) must apply once; after that every business can use it with its own login. (8 remaining) |
 | **Partner deal (to confirm)** / No public API | -- | No public API yet; needs a conversation with the company first. (5 remaining) |
 
@@ -25,8 +25,9 @@ Setting up the connector itself never needs anyone's approval.
 - **Wave 5 (0.19.0):** Cloudbeds, Oracle OPERA Cloud (charge to room)
 - **Wave 6 (0.20.0):** Printful, Printify, CJdropshipping
 - **Wave 7 (0.21.0):** Razorpay (UPI), Paytm, eBay, Amazon Seller
+- **Wave 8 (0.22.0):** Fonepay dynamic QR (direct), Yango Delivery
 
-## Remaining (25)
+## Remaining (23)
 
 ### Wave 5 -- hotels & hospitality (rest: need Stratek partner approval or an API)
 
@@ -69,12 +70,12 @@ Razorpay, Paytm, eBay and Amazon Seller are built. IME Pay and Prabhu Pay share 
 | TikTok Shop | Products and orders | Partner Center app | Stratek partner approval |
 | Daraz | Products and orders | Open Platform app (approval) | Merchant approval |
 
-### Wave 8 -- parked (need partner accounts or a public API)
+### Wave 8 -- no public API (rest)
+
+Fonepay dynamic QR (direct, with your own Fonepay API agreement) and Yango Delivery are built. These three have no public API to build against; they stay listed until the company offers one.
 
 | Integration | What it does | API | Approval |
 |---|---|---|---|
-| Fonepay dynamic QR (direct) | Fonepay QR without an aggregator | Merchant API through a bank / Fonepay agreement (PayBridgeNP covers it today) | Merchant approval |
-| Yango Delivery | Same-day courier | Claims API with a Yango business account | Merchant account |
 | Pick & Drop | Courier (Nepal) | No public API found | Partner deal (to confirm) |
 | inDrive | Courier / rides | No public delivery API | No public API |
 | Amazon Supply Chain Services | Freight, storage, distribution | Opened to all businesses May 2026, but no public self-serve API yet (checked Sept 2026) -- Amazon onboards through its sales team | Partner deal (to confirm) |

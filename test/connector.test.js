@@ -112,16 +112,16 @@ test('Set up form: keys saved in the connector, masked, session passes only', as
   assert.equal(page.status, 200);
   assert.match(page.headers.get('content-security-policy'), /connect-src 'self'/);
   assert.match(await page.text(), /Set up Demo/);
-  assert.equal((await go(env, '/setup/yango')).status, 409, 'planned integration has no form yet');
+  assert.equal((await go(env, '/setup/indrive')).status, 409, 'planned integration has no form yet');
   assert.equal((await go(env, '/setup/nope')).status, 404);
 
   let m = (await (await go(env, '/manifest', { headers: H(session) })).json()).data.integrations;
   const demo = m.find((i) => i.id === 'demo');
   assert.equal(demo.ready, false); assert.equal(demo.setup, true); assert.deepEqual(demo.missingSecrets, ['DEMO_KEY']);
-  const stripe = m.find((i) => i.id === 'yango');
+  const stripe = m.find((i) => i.id === 'indrive');
   assert.equal(stripe.status, 'planned'); assert.equal(stripe.ready, false); assert.equal(stripe.setup, false); assert.equal(stripe.category, 'delivery');
   assert.equal((await go(env, '/actions/demo/go', { method: 'POST', headers: H(session), body: '{}' })).status, 409, 'not ready');
-  assert.equal((await go(env, '/actions/yango/create_delivery', { method: 'POST', headers: H(session), body: '{}' })).status, 409, 'planned');
+  assert.equal((await go(env, '/actions/indrive/create_delivery', { method: 'POST', headers: H(session), body: '{}' })).status, 409, 'planned');
 
   assert.equal((await go(env, '/secrets/demo', { method: 'POST', headers: H(apiKey), body: JSON.stringify({ values: { DEMO_KEY: 'x' } }) })).status, 403, 'API-key pass cannot set keys');
   assert.equal((await go(env, '/secrets/demo', { method: 'POST', headers: H(session), body: JSON.stringify({ values: { OTHER: 'x' } }) })).status, 400, 'unknown key name');

@@ -50,6 +50,7 @@ const w4Calls = [];
 const w5Calls = [];
 const w6Calls = [];
 const w7Calls = []; const w7State = {};
+const w8Calls = []; const w8State = {};
 const hookCalls = []; const smsCalls = []; const gCalls = []; const gTabs = ['Sheet1']; const mcCalls = []; const hsCalls = [];
 globalThis.fetch = async (input, init) => {
   const req = input instanceof Request ? input : new Request(input, init);
@@ -120,6 +121,25 @@ globalThis.fetch = async (input, init) => {
       if (p.startsWith('/orders/v0/orders')) return Response.json({ payload: { Orders: [{ AmazonOrderId: '171-1', OrderStatus: 'Unshipped', OrderTotal: { CurrencyCode: 'INR', Amount: '499.00' } }] } });
       if (p.startsWith('/listings/')) return p.endsWith('/NOPE') ? Response.json({ sku: 'NOPE', status: 'INVALID', issues: [{ message: 'SKU not found' }] }) : Response.json({ sku: 'x', status: 'ACCEPTED' });
     }
+  }
+  if (u.host === 'uat-new-merchant-api.fonepay.com' || u.host === 'merchantapi.fonepay.com' || u.host === 'b2b.taxi.yandex.net') {
+    const raw = await req.clone().text(); let jb = null; try { jb = raw ? JSON.parse(raw) : null; } catch { jb = null; }
+    const p = u.pathname; w8Calls.push({ host: u.host, method: req.method, path: p + u.search, body: jb, headers: Object.fromEntries(req.headers) });
+    if (u.host.includes('fonepay')) {
+      const { createHmac } = await import('node:crypto');
+      const msg = p.endsWith('Download') ? `${jb.amount},${jb.prn},${jb.merchantCode},${jb.remarks1},${jb.remarks2}` : `${jb.prn},${jb.merchantCode}`;
+      const ok = createHmac('sha512', 'fp-secret').update(msg).digest('hex') === jb.dataValidation;
+      w8Calls.at(-1).sigOk = ok;
+      if (jb.password !== 'fp-pass') return Response.json({ message: 'Invalid credentials' }, { status: 401 });
+      if (!ok) return Response.json({ success: false, message: 'Data validation failed' }, { status: 400 });
+      if (p.endsWith('Download')) return Response.json({ qrMessage: '000201010212153137910524005204460000000NBQM5303524540' + jb.amount, status: 'CREATED', thirdpartyQrWebSocketUrl: 'wss://ws.fonepay.com/x' });
+      return Response.json({ paymentStatus: w8State.fpPaid ? 'success' : 'pending', fonepayTraceId: w8State.fpPaid ? 'FT12345' : null, prn: jb.prn });
+    }
+    if (req.headers.get('authorization') !== 'Bearer yg-tok') return Response.json({ message: 'unauthorized' }, { status: 401 });
+    if (p.endsWith('/check-price')) return Response.json({ price: '4.20', currency_rules: { code: 'AED' }, eta: 12, distance_meters: 5300 });
+    if (p.endsWith('/claims/create')) return Response.json({ id: 'claim-77', status: 'new', version: 1 });
+    if (p.endsWith('/claims/info')) { w8State.infos = (w8State.infos || 0) + 1; return Response.json(w8State.infos === 1 ? { id: 'claim-77', status: 'estimating', version: 1 } : w8State.accepted ? { id: 'claim-77', status: 'performer_found', performer_info: { courier_name: 'Ali', car_model: 'Toyota' } } : { id: 'claim-77', status: 'ready_for_approval', version: 2, pricing: { offer: { price: '4.20' }, currency: 'AED' } }); }
+    if (p.endsWith('/claims/accept')) { w8State.accepted = true; return Response.json({ id: 'claim-77', status: 'accepted' }); }
   }
   if (u.host === 'express.api.dhl.com') { dhCalls.push({ method: req.method, path: u.pathname + u.search, body, auth: req.headers.get('Authorization') }); if (u.pathname.endsWith('/rates')) return Response.json({ products: [{ productName: 'EXPRESS WORLDWIDE', totalPrice: [{ currencyType: 'BILLC', priceCurrency: 'NPR', price: 7420 }], deliveryCapabilities: { estimatedDeliveryDateAndTime: '2026-10-04T23:59:00' } }] }); if (u.pathname.endsWith('/shipments')) return Response.json({ shipmentTrackingNumber: '1234567890', documents: [{ typeCode: 'label', content: btoa('%PDF-1.4 fake') }] }); return Response.json({ shipments: [{ status: 'transit', events: [{ description: 'Processed at KATHMANDU', date: '2026-10-02' }] }] }); }
   if (u.host === 'api.printful.com' || u.host === 'api.printify.com' || u.host === 'developers.cjdropshipping.com') {
@@ -1063,4 +1083,52 @@ test('Wave 7 (0.21.0): Razorpay, Paytm, eBay, Amazon Seller', async () => {
   const man = await c.manifest();
   for (const id of ['razorpay', 'paytm', 'ebay', 'amazon_seller']) assert.equal(man.find((i) => i.id === id).status, 'available', id);
   for (const id of ['ime_pay', 'prabhu_pay', 'payoneer', 'wechat_pay', 'alipay', 'etsy', 'tiktok_shop', 'daraz']) assert.equal(man.find((i) => i.id === id).status, 'planned', id);
+});
+
+test('Wave 8 (0.22.0): Fonepay dynamic QR (direct) and Yango Delivery', async () => {
+  const c = await paired();
+  const now = Math.floor(Date.now() / 1000);
+  const apiKeyPass = () => pass({ iss: STRATEK, aud: 'conn-1', sub: 'merchant:1', iat: now, exp: now + 60, src: 'api_key' });
+  const npr = { context: { transaction: { id: 101, amount: 450, currency: 'NPR', reference: 'Till', items: [{ name: 'Tea', price: 150, qty: 3 }] }, customer: { name: 'Hari KC', phone: '+971501234567' } } };
+  const calls = (host, path) => w8Calls.filter((x) => x.host === host && (!path || x.path.includes(path)));
+  let r;
+  // ── Fonepay (UAT) ──
+  await c.save('fonepay', 'test', { FONEPAY_MERCHANT_CODE: 'NBQM', FONEPAY_SECRET_KEY: 'fp-secret', FONEPAY_USERNAME: 'u', FONEPAY_PASSWORD: 'bad' });
+  assert.match((await c.act('fonepay', 'test', { mode: 'test' })).error.message, /did not accept the API username/);
+  await c.save('fonepay', 'test', { FONEPAY_MERCHANT_CODE: 'NBQM', FONEPAY_SECRET_KEY: 'fp-secret', FONEPAY_USERNAME: 'u', FONEPAY_PASSWORD: 'fp-pass' });
+  assert.match((await c.act('fonepay', 'test', { mode: 'test' })).data.result.text, /Merchant NBQM accepted \(UAT\)/);
+  assert.match((await c.act('fonepay', 'dynamic_qr', { context: { transaction: { id: 5, amount: 10, currency: 'INR' } }, mode: 'test' })).error.message, /NPR/);
+  r = await c.act('fonepay', 'dynamic_qr', { ...npr, mode: 'test' });
+  assert.equal(r.data.result.type, 'qr'); assert.match(r.data.result.qrPayload, /^000201.*NBQM.*450$/);
+  const q = calls('uat-new-merchant-api.fonepay.com', 'Download')[0];
+  assert.equal(q.sigOk, true, 'HMAC-SHA512 over AMOUNT,PRN,MERCHANT-CODE,REMARKS1,REMARKS2'); assert.equal(q.body.amount, '450'); assert.equal(q.body.remarks2, 'Sale 101');
+  r = await c.act('fonepay', 'dynamic_qr', { ...npr, mode: 'test' });
+  assert.equal(calls('uat-new-merchant-api.fonepay.com', 'Download').length, 1, 'same amount -> same QR');
+  assert.match((await c.act('fonepay', 'check', { ...npr, mode: 'test' })).data.result.status, /Waiting/);
+  w8State.fpPaid = true; stratekEvents.length = 0;
+  assert.match((await c.act('fonepay', 'check', { ...npr, mode: 'test' })).data.result.status, /Paid/);
+  assert.equal(stratekEvents.length, 1); assert.equal(stratekEvents[0].body.data.providerRef, 'FT12345'); assert.equal(stratekEvents[0].body.data.amount, 450);
+  assert.equal(calls('uat-new-merchant-api.fonepay.com', 'GetStatus').at(-1).sigOk, true);
+  await c.act('fonepay', 'check', { ...npr, mode: 'test' }); assert.equal(stratekEvents.length, 1, 'reported once');
+  // ── Yango Delivery ──
+  await c.save('yango', 'live', { YANGO_API_TOKEN: 'yg-tok', YANGO_PICKUP_ADDRESS: 'Jhamsikhel, Lalitpur', YANGO_PICKUP_COORDS: '27.6710, 85.3140', YANGO_CONTACT_NAME: 'Chyau Bio', YANGO_CONTACT_PHONE: '+9779800000000' });
+  const drop = { recipientAddress: 'Marina Walk 5', recipientCity: 'Dubai', recipientPin: '25.0800, 55.1400', weight: 2 };
+  r = await c.act('yango', 'quote', { ...npr, fields: drop }, await apiKeyPass());
+  assert.match(r.data.result.text, /AED 4.20, courier in ~12 min \(5.3 km\)/, 'pricing is free, agents may run it');
+  const cp = calls('b2b.taxi.yandex.net', 'check-price')[0].body;
+  assert.deepEqual(cp.route_points[0].coordinates, [85.314, 27.671], 'longitude first'); assert.deepEqual(cp.route_points[1].coordinates, [55.14, 25.08]); assert.equal(cp.requirements.taxi_class, 'express');
+  assert.match((await c.act('yango', 'quote', { ...npr, fields: { ...drop, recipientPin: 'somewhere' } })).error.message, /latitude, longitude/);
+  assert.equal((await c.act('yango', 'create_delivery', { ...npr, fields: drop }, await apiKeyPass())).error.code, 'APPROVAL_REQUIRED');
+  r = await c.act('yango', 'create_delivery', { ...npr, fields: drop });
+  assert.match(r.data.result.status, /Pricing/, 'first press: Yango still estimating');
+  const cr = calls('b2b.taxi.yandex.net', 'claims/create')[0].body;
+  assert.equal(cr.route_points[1].contact.name, 'Hari KC'); assert.equal(cr.items[0].quantity, 3); assert.equal(cr.items[0].cost_currency, 'NPR'); assert.equal(cr.route_points[0].type, 'source');
+  r = await c.act('yango', 'create_delivery', { ...npr, fields: drop });
+  assert.match(r.data.result.status, /Courier ordered/); assert.match(r.data.result.text, /AED 4.20/);
+  assert.equal(calls('b2b.taxi.yandex.net', 'claims/create').length, 1, 'no second claim'); assert.deepEqual(calls('b2b.taxi.yandex.net', 'claims/accept')[0].body, { version: 2 });
+  assert.match((await c.act('yango', 'create_delivery', { ...npr, fields: drop })).data.result.text, /already ordered/);
+  assert.match((await c.act('yango', 'track', npr)).data.result.text, /Ali · Toyota/);
+  const man = await c.manifest();
+  for (const id of ['fonepay', 'yango']) assert.equal(man.find((i) => i.id === id).status, 'available', id);
+  for (const id of ['pickndrop', 'indrive', 'amazon_scs']) assert.equal(man.find((i) => i.id === id).status, 'planned', id);
 });

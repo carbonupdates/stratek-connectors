@@ -119,7 +119,7 @@ keys once afterwards so both live and test payment notifications are registered.
 | [PayPal](https://developer.paypal.com/api/rest/) | Test PayPal, Pay with PayPal, Check PayPal payment, Refund PayPal payment (needs a person) | PayPal client ID, PayPal client secret | Test keys | **Available** |
 | [Khalti](https://docs.khalti.com/khalti-epayment/) | Test Khalti, Pay with Khalti (QR, payment detected), Check Khalti payment, Refund Khalti payment (needs a person) | Khalti secret key | Sandbox (dev.khalti.com) | **Available** (v0.15.0) |
 | [eSewa](https://developer.esewa.com.np/pages/Epay) | Test eSewa, Pay with eSewa (QR, payment detected), Check eSewa payment | eSewa merchant (product) code, eSewa secret key | UAT (EPAYTEST) | **Available** (v0.15.0) |
-| [Fonepay dynamic QR](https://www.fonepay.com/) | Fonepay QR for this amount, Check Fonepay payment | Fonepay merchant code, Fonepay secret key, Fonepay API username (optional), Fonepay API password (optional) | -- | Coming soon |
+| [Fonepay dynamic QR](https://www.fonepay.com/) | Test Fonepay, Fonepay QR for this amount (under the payment QR), Check Fonepay payment | Fonepay merchant code, secret key, API username, API password (your own Fonepay dynamic-QR API agreement) | UAT credentials | **Available** (v0.22.0) |
 | [connectIPS](https://doc.connectips.com/docs/connectIPS-Gateway/merchant-interface) | Test connectIPS, Pay with connectIPS (QR, payment detected), Check connectIPS payment | Merchant ID, App ID, App name, App password, Private key (PEM), connectIPS address (optional) | UAT (uat.connectips.com) | **Available** (v0.15.0) |
 | [PayBridgeNP](https://docs.paybridgenp.com/api-reference/overview) | Till, kiosk & online store payment QR (auto-detects payment), Test PayBridgeNP, Check online payment, Refund online payment (needs a person) | PayBridgeNP secret key | Test keys (Fonepay = real money) | **Available** |
 | [Razorpay (UPI)](https://razorpay.com/docs/api/payments/payment-links/) | Test Razorpay, Pay with UPI / card (Razorpay) (QR, payment detected by webhook or check), Check Razorpay payment, Refund Razorpay payment (needs a person) | Key ID, key secret (+ webhook secret) | Test keys (rzp_test_) | **Available** (v0.21.0, INR) |
@@ -131,7 +131,7 @@ keys once afterwards so both live and test payment notifications are registered.
 | Integration | Buttons in Stratek | Keys (Set up form) | Test mode | Status |
 |---|---|---|---|---|
 | [Pathao](https://merchant.pathao.com/courier/developer-api) | Test Pathao, Send with Pathao (needs a person), Track Pathao delivery | Pathao API base URL, Client ID, Client secret, Pathao merchant login email, Pathao merchant password, Store ID (optional), Webhook secret (optional, delivery notifications) | Test keys | **Available** |
-| [Yango Delivery](https://yango.com/) | Send with Yango, Track Yango delivery | Yango Delivery API token, Pickup address | -- | Coming soon |
+| [Yango Delivery](https://yango.delivery/) | Yango price, Send with Yango (needs a person), Track Yango delivery | API token, pickup address (+ map pin), pickup contact name + phone (+ courier type) | Live only (price is free) | **Available** (v0.22.0, where Yango Delivery operates) |
 | [Pick & Drop](https://pickndropnepal.com/) | Send with Pick & Drop | Pick & Drop API key | -- | Coming soon |
 | inDrive | Send with inDrive | inDrive API key | -- | Coming soon |
 | [DHL Express](https://developer.dhl.com/api-reference/dhl-express-mydhl-api) | Get DHL rate, Ship with DHL (needs a person; label PDF), Track DHL shipment | MyDHL API key + secret, DHL Express account number, shipper name/phone/address/city (+ postal code, country) | Test credentials | **Available** (v0.17.0) |
@@ -345,6 +345,23 @@ see the POS repo's `docs/proposals/online-store.md`), gated on PayBridgeNP
 (Fonepay QR on the order page, confirmed automatically) + Pathao (live quotes,
 booking), with pickup or delivery and a test mode that uses the test keys.
 To build one, see [docs/adding-an-integration.md](docs/adding-an-integration.md).
+
+## Wave 8: Fonepay direct and Yango (v0.22.0+)
+
+- **Fonepay dynamic QR (direct):** for businesses with their own Fonepay dynamic-QR
+  API agreement (merchant code, secret key, API username / password from Fonepay
+  or the bank). "Fonepay QR for this amount" under the payment QR shows a Fonepay
+  QR with the exact amount (bank and wallet apps, UPI, Alipay+, UnionPay);
+  "Check Fonepay payment" asks Fonepay and marks the sale **Paid online** once.
+  Fonepay direct has no notifications to the connector, so the till / kiosk QR
+  that detects payments by itself is still PayBridgeNP.
+- **Yango Delivery:** "Yango price" (free) and "Send with Yango" (orders a paid
+  courier, so it needs a person). Yango first prices the delivery; if it is still
+  pricing, press "Send with Yango" again a few seconds later -- it orders the
+  courier once. A map pin ("latitude, longitude") for the pickup and the drop-off
+  gives exact prices. Only where Yango Delivery operates.
+- Pick & Drop, inDrive and Amazon Supply Chain Services have no public API, so
+  they stay Coming soon.
 
 ## Wave 7: Indian payments and marketplaces (v0.21.0+)
 

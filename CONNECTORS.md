@@ -272,6 +272,18 @@ its Set up page.
   `webhookSetup: { where, what }` so its Set up page shows the callback URL.
 - `color` (e.g. `'#e4202a'`) colours an integration's buttons in Stratek.
 
+## 6a-10. Fonepay direct and Yango (v0.22.0+)
+
+- `fonepay`: `thirdPartyDynamicQrDownload` / `thirdPartyDynamicQrGetStatus` on
+  merchantapi.fonepay.com (UAT: uat-new-merchant-api.fonepay.com); `dataValidation` =
+  HMAC-SHA512 hex (secret key) of `AMOUNT,PRN,MERCHANT-CODE,REMARKS1,REMARKS2` /
+  `PRN,MERCHANT-CODE`. The QR result's `qrPayload` is Fonepay's EMV string, so Stratek
+  shows the "Pay with" networks row. Check -> `payment.succeeded` (NPR) once.
+- `yango`: Claims API v2 (b2b.taxi.yandex.net, Bearer): `check-price`, `claims/create`
+  (`request_id` per sale), `claims/info`, `claims/accept {version}` only when the claim is
+  `ready_for_approval`; coordinates are `[lon, lat]` from a "lat, lon" pin (`lonLat()`).
+  `create_delivery` is outbound by its id.
+
 ## 6a-9. Razorpay, Paytm, eBay, Amazon Seller (v0.21.0+)
 
 - `razorpay`: Payment Links (`POST /v1/payment_links`, amount in paise, INR only);
