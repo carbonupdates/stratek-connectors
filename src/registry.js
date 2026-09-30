@@ -18,8 +18,10 @@ export const INTEGRATIONS = [core, ...CATALOGUE];
 export const CATEGORIES = {
   system: 'Connector',
   payments: 'Payments',
-  delivery: 'Delivery & rides',
+  delivery: 'Delivery, shipping & rides',
   fulfilment: 'Manufacturing & fulfilment',
+  sourcing: 'Suppliers & sourcing',
+  hospitality: 'Hotels & hospitality',
   messaging: 'Messages & notifications',
   accounting: 'Accounting & tax',
   commerce: 'Online stores & marketplaces',

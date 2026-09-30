@@ -1,10 +1,12 @@
 {
- "version": "0.15.0",
+ "version": "0.16.0",
  "categories": {
   "system": "Connector",
   "payments": "Payments",
-  "delivery": "Delivery & rides",
+  "delivery": "Delivery, shipping & rides",
   "fulfilment": "Manufacturing & fulfilment",
+  "sourcing": "Suppliers & sourcing",
+  "hospitality": "Hotels & hospitality",
   "messaging": "Messages & notifications",
   "accounting": "Accounting & tax",
   "commerce": "Online stores & marketplaces",
@@ -207,6 +209,105 @@
    ]
   },
   {
+   "id": "ime_pay",
+   "name": "IME Pay",
+   "category": "payments",
+   "status": "planned",
+   "description": "IME Pay wallet checkout (Nepal).",
+   "docsUrl": "https://www.imepay.com.np/",
+   "actions": [
+    "Pay with IME Pay",
+    "Check IME Pay payment"
+   ],
+   "secrets": [
+    "IME Pay merchant code",
+    "API user",
+    "API password",
+    "Module name"
+   ]
+  },
+  {
+   "id": "prabhu_pay",
+   "name": "Prabhu Pay",
+   "category": "payments",
+   "status": "planned",
+   "description": "Prabhu Pay wallet checkout (Nepal).",
+   "docsUrl": "https://prabhupay.com/",
+   "actions": [
+    "Pay with Prabhu Pay",
+    "Check Prabhu Pay payment"
+   ],
+   "secrets": [
+    "Prabhu Pay merchant ID",
+    "Secret key"
+   ]
+  },
+  {
+   "id": "wechat_pay",
+   "name": "WeChat Pay",
+   "category": "payments",
+   "status": "planned",
+   "description": "WeChat Pay for Chinese visitors (cross-border).",
+   "docsUrl": "https://pay.weixin.qq.com/wiki/doc/api_external/en/index.shtml",
+   "actions": [
+    "Pay with WeChat Pay",
+    "Check WeChat Pay payment"
+   ],
+   "secrets": [
+    "Merchant ID",
+    "API v3 key",
+    "App ID"
+   ]
+  },
+  {
+   "id": "alipay",
+   "name": "Alipay+ (direct)",
+   "category": "payments",
+   "status": "planned",
+   "description": "Alipay+ wallets for visitors, as their own checkout (Fonepay QRs already accept Alipay+).",
+   "docsUrl": "https://docs.alipayplus.com/",
+   "actions": [
+    "Pay with Alipay+",
+    "Check Alipay+ payment"
+   ],
+   "secrets": [
+    "Client ID",
+    "Private key (PEM)"
+   ]
+  },
+  {
+   "id": "paytm",
+   "name": "Paytm",
+   "category": "payments",
+   "status": "planned",
+   "description": "Paytm and UPI checkout (India, for INR shops).",
+   "docsUrl": "https://business.paytm.com/docs",
+   "actions": [
+    "Pay with Paytm",
+    "Check Paytm payment"
+   ],
+   "secrets": [
+    "Paytm merchant ID",
+    "Merchant key"
+   ]
+  },
+  {
+   "id": "payoneer",
+   "name": "Payoneer",
+   "category": "payments",
+   "status": "planned",
+   "description": "Request payments from international clients with Payoneer.",
+   "docsUrl": "https://developer.payoneer.com/",
+   "actions": [
+    "Request payment (Payoneer)",
+    "Check Payoneer payment"
+   ],
+   "secrets": [
+    "Payoneer client ID",
+    "Payoneer client secret"
+   ]
+  },
+  {
    "id": "pathao",
    "name": "Pathao",
    "category": "delivery",
@@ -294,6 +395,111 @@
    ]
   },
   {
+   "id": "fedex",
+   "name": "FedEx",
+   "category": "delivery",
+   "status": "planned",
+   "description": "International and domestic shipping with FedEx: rates, labels and tracking.",
+   "docsUrl": "https://developer.fedex.com/api/en-us/home.html",
+   "actions": [
+    "Get FedEx rate",
+    "Ship with FedEx",
+    "Track FedEx shipment"
+   ],
+   "secrets": [
+    "FedEx API key (client ID)",
+    "FedEx secret key",
+    "FedEx account number"
+   ]
+  },
+  {
+   "id": "ups",
+   "name": "UPS",
+   "category": "delivery",
+   "status": "planned",
+   "description": "Ship with UPS: rates, labels and tracking.",
+   "docsUrl": "https://developer.ups.com/",
+   "actions": [
+    "Get UPS rate",
+    "Ship with UPS",
+    "Track UPS shipment"
+   ],
+   "secrets": [
+    "UPS client ID",
+    "UPS client secret",
+    "UPS account (shipper) number"
+   ]
+  },
+  {
+   "id": "aramex",
+   "name": "Aramex",
+   "category": "delivery",
+   "status": "planned",
+   "description": "International courier with Aramex: rates, shipments and tracking.",
+   "docsUrl": "https://www.aramex.com/us/en/developers-solution-center",
+   "actions": [
+    "Get Aramex rate",
+    "Ship with Aramex",
+    "Track Aramex shipment"
+   ],
+   "secrets": [
+    "Aramex API username",
+    "Aramex API password",
+    "Aramex account number",
+    "Account PIN",
+    "Account entity (e.g. KTM)",
+    "Account country code (e.g. NP)"
+   ]
+  },
+  {
+   "id": "easyship",
+   "name": "Easyship",
+   "category": "delivery",
+   "status": "planned",
+   "description": "Compare hundreds of couriers and print labels for international orders with Easyship.",
+   "docsUrl": "https://developers.easyship.com/",
+   "actions": [
+    "Get Easyship rate",
+    "Ship with Easyship",
+    "Track Easyship shipment"
+   ],
+   "secrets": [
+    "Easyship API access token"
+   ]
+  },
+  {
+   "id": "shipstation",
+   "name": "ShipStation",
+   "category": "delivery",
+   "status": "planned",
+   "description": "Send orders to ShipStation to print labels with your carriers.",
+   "docsUrl": "https://www.shipstation.com/docs/api/",
+   "actions": [
+    "Send order to ShipStation",
+    "Track ShipStation shipment"
+   ],
+   "secrets": [
+    "ShipStation API key",
+    "ShipStation API secret"
+   ]
+  },
+  {
+   "id": "shiprocket",
+   "name": "Shiprocket",
+   "category": "delivery",
+   "status": "planned",
+   "description": "Ship orders across India with Shiprocket (for INR shops).",
+   "docsUrl": "https://apidocs.shiprocket.in/",
+   "actions": [
+    "Ship with Shiprocket",
+    "Track Shiprocket shipment"
+   ],
+   "secrets": [
+    "Shiprocket API user email",
+    "Shiprocket API user password"
+   ]
+  },
+  {
    "id": "slant3d",
    "name": "Slant 3D",
    "category": "fulfilment",
@@ -309,6 +515,329 @@
    "secrets": [
     "Slant 3D API key",
     "Platform ID"
+   ]
+  },
+  {
+   "id": "amazon_mcf",
+   "name": "Amazon Multi-Channel Fulfillment",
+   "category": "fulfilment",
+   "status": "planned",
+   "description": "Fulfil orders from your Amazon (FBA) inventory with Multi-Channel Fulfillment.",
+   "docsUrl": "https://developer-docs.amazon.com/sp-api/docs/fulfillment-outbound-api",
+   "actions": [
+    "Preview Amazon fulfillment",
+    "Fulfil with Amazon (MCF)",
+    "Track Amazon fulfillment"
+   ],
+   "secrets": [
+    "Login with Amazon client ID",
+    "Login with Amazon client secret",
+    "Selling Partner refresh token",
+    "Marketplace ID",
+    "SP-API region (na, eu, fe)"
+   ]
+  },
+  {
+   "id": "amazon_scs",
+   "name": "Amazon Supply Chain Services",
+   "category": "fulfilment",
+   "status": "planned",
+   "description": "Amazon's logistics network for any business: freight, storage and distribution.",
+   "docsUrl": "https://supplychain.amazon.com/",
+   "actions": [
+    "Ship with Amazon Supply Chain",
+    "Track Amazon Supply Chain shipment"
+   ],
+   "secrets": [
+    "Amazon Supply Chain client ID",
+    "Amazon Supply Chain client secret",
+    "Account ID"
+   ]
+  },
+  {
+   "id": "shipbob",
+   "name": "ShipBob",
+   "category": "fulfilment",
+   "status": "planned",
+   "description": "Store and fulfil orders with ShipBob warehouses (US, EU, Australia).",
+   "docsUrl": "https://developer.shipbob.com/",
+   "actions": [
+    "Fulfil with ShipBob",
+    "Track ShipBob order"
+   ],
+   "secrets": [
+    "ShipBob personal access token"
+   ]
+  },
+  {
+   "id": "jlcpcb",
+   "name": "JLCPCB",
+   "category": "fulfilment",
+   "status": "planned",
+   "description": "Order PCBs, PCB assembly (SMT), stencils and 3D prints from JLCPCB (China).",
+   "docsUrl": "https://api.jlcpcb.com/",
+   "actions": [
+    "Quote PCB (JLCPCB)",
+    "Order PCB (JLCPCB)",
+    "Track JLCPCB order"
+   ],
+   "secrets": [
+    "JLCPCB API app key",
+    "JLCPCB API app secret"
+   ]
+  },
+  {
+   "id": "pcbway",
+   "name": "PCBWay",
+   "category": "fulfilment",
+   "status": "planned",
+   "description": "Quote and order PCBs and assembly from PCBWay (China).",
+   "docsUrl": "https://api-partner.pcbway.com/",
+   "actions": [
+    "Quote PCB (PCBWay)",
+    "Order PCB (PCBWay)",
+    "Track PCBWay order"
+   ],
+   "secrets": [
+    "PCBWay partner API key"
+   ]
+  },
+  {
+   "id": "printful",
+   "name": "Printful",
+   "category": "fulfilment",
+   "status": "planned",
+   "description": "Print-on-demand apparel and merch, made and shipped by Printful.",
+   "docsUrl": "https://developers.printful.com/docs/",
+   "actions": [
+    "Send order to Printful",
+    "Track Printful order"
+   ],
+   "secrets": [
+    "Printful private token"
+   ]
+  },
+  {
+   "id": "printify",
+   "name": "Printify",
+   "category": "fulfilment",
+   "status": "planned",
+   "description": "Print-on-demand products from Printify's print partners.",
+   "docsUrl": "https://developers.printify.com/",
+   "actions": [
+    "Send order to Printify",
+    "Track Printify order"
+   ],
+   "secrets": [
+    "Printify personal access token",
+    "Printify shop ID"
+   ]
+  },
+  {
+   "id": "alibaba",
+   "name": "Alibaba.com",
+   "category": "sourcing",
+   "status": "planned",
+   "description": "Find suppliers and products on Alibaba.com and track your sourcing orders.",
+   "docsUrl": "https://openapi.alibaba.com/",
+   "actions": [
+    "Search Alibaba suppliers",
+    "Track Alibaba order"
+   ],
+   "secrets": [
+    "Alibaba Open Platform app key",
+    "App secret",
+    "Access token"
+   ]
+  },
+  {
+   "id": "aliexpress",
+   "name": "AliExpress dropshipping",
+   "category": "sourcing",
+   "status": "planned",
+   "description": "Import AliExpress products into your inventory and place dropshipping orders.",
+   "docsUrl": "https://openservice.aliexpress.com/",
+   "actions": [
+    "Import AliExpress product",
+    "Order from AliExpress",
+    "Track AliExpress order"
+   ],
+   "secrets": [
+    "AliExpress app key",
+    "App secret",
+    "Access token"
+   ]
+  },
+  {
+   "id": "cj_dropshipping",
+   "name": "CJdropshipping",
+   "category": "sourcing",
+   "status": "planned",
+   "description": "Source products from China and let CJ ship them to your customers.",
+   "docsUrl": "https://developers.cjdropshipping.com/",
+   "actions": [
+    "Import CJ product",
+    "Order from CJ",
+    "Track CJ order"
+   ],
+   "secrets": [
+    "CJ API key"
+   ]
+  },
+  {
+   "id": "made_in_china",
+   "name": "Made-in-China.com",
+   "category": "sourcing",
+   "status": "planned",
+   "description": "Find verified Chinese manufacturers and send enquiries.",
+   "docsUrl": "https://www.made-in-china.com/",
+   "actions": [
+    "Search Made-in-China suppliers"
+   ],
+   "secrets": [
+    "Made-in-China API key"
+   ]
+  },
+  {
+   "id": "cloudbeds",
+   "name": "Cloudbeds",
+   "category": "hospitality",
+   "status": "planned",
+   "description": "Hotel PMS: charge a restaurant, bar or shop sale to a guest's room, and see arrivals.",
+   "docsUrl": "https://www.cloudbeds.com/api/",
+   "actions": [
+    "Charge to room (Cloudbeds)",
+    "Today's arrivals (Cloudbeds)"
+   ],
+   "secrets": [
+    "Cloudbeds API key",
+    "Property ID"
+   ]
+  },
+  {
+   "id": "mews",
+   "name": "Mews",
+   "category": "hospitality",
+   "status": "planned",
+   "description": "Hotel PMS: post sales to a guest's bill and see guests in house.",
+   "docsUrl": "https://mews-systems.gitbook.io/connector-api/",
+   "actions": [
+    "Charge to room (Mews)",
+    "Guests in house (Mews)"
+   ],
+   "secrets": [
+    "Mews client token",
+    "Mews access token",
+    "Service ID (your outlet)"
+   ]
+  },
+  {
+   "id": "opera_cloud",
+   "name": "Oracle OPERA Cloud",
+   "category": "hospitality",
+   "status": "planned",
+   "description": "Post sales to guest folios in Oracle OPERA Cloud (hotels and resorts).",
+   "docsUrl": "https://docs.oracle.com/en/industries/hospitality/integration-platform/",
+   "actions": [
+    "Charge to room (OPERA)"
+   ],
+   "secrets": [
+    "OHIP client ID",
+    "OHIP client secret",
+    "OHIP app key",
+    "Hotel ID",
+    "OHIP gateway URL"
+   ]
+  },
+  {
+   "id": "siteminder",
+   "name": "SiteMinder",
+   "category": "hospitality",
+   "status": "planned",
+   "description": "Channel manager: keep room availability and rates in sync across booking sites.",
+   "docsUrl": "https://developer.siteminder.com/",
+   "actions": [
+    "Room availability (SiteMinder)"
+   ],
+   "secrets": [
+    "SiteMinder API key",
+    "Property ID"
+   ]
+  },
+  {
+   "id": "booking_com",
+   "name": "Booking.com",
+   "category": "hospitality",
+   "status": "planned",
+   "description": "See Booking.com reservations for your property.",
+   "docsUrl": "https://connect.booking.com/",
+   "actions": [
+    "Booking.com reservations"
+   ],
+   "secrets": [
+    "Connectivity username",
+    "Connectivity password",
+    "Hotel ID"
+   ]
+  },
+  {
+   "id": "expedia",
+   "name": "Expedia Group",
+   "category": "hospitality",
+   "status": "planned",
+   "description": "See Expedia and Hotels.com reservations for your property.",
+   "docsUrl": "https://developers.expediagroup.com/supply/lodging",
+   "actions": [
+    "Expedia reservations"
+   ],
+   "secrets": [
+    "EQC username",
+    "EQC password",
+    "Hotel ID"
+   ]
+  },
+  {
+   "id": "airbnb",
+   "name": "Airbnb",
+   "category": "hospitality",
+   "status": "planned",
+   "description": "See Airbnb bookings for your listings.",
+   "docsUrl": "https://www.airbnb.com/partner",
+   "actions": [
+    "Airbnb bookings"
+   ],
+   "secrets": [
+    "Airbnb API access token"
+   ]
+  },
+  {
+   "id": "opentable",
+   "name": "OpenTable",
+   "category": "hospitality",
+   "status": "planned",
+   "description": "Restaurant table reservations from OpenTable.",
+   "docsUrl": "https://platform.opentable.com/",
+   "actions": [
+    "Today's bookings (OpenTable)"
+   ],
+   "secrets": [
+    "OpenTable client ID",
+    "OpenTable client secret",
+    "Restaurant ID"
+   ]
+  },
+  {
+   "id": "foodmandu",
+   "name": "Foodmandu",
+   "category": "hospitality",
+   "status": "planned",
+   "description": "Receive Foodmandu food-delivery orders (Nepal).",
+   "docsUrl": "https://foodmandu.com/",
+   "actions": [
+    "Foodmandu orders"
+   ],
+   "secrets": [
+    "Foodmandu partner key"
    ]
   },
   {
@@ -361,6 +890,20 @@
    ],
    "secrets": [
     "Telegram bot token"
+   ]
+  },
+  {
+   "id": "viber",
+   "name": "Viber",
+   "category": "messaging",
+   "status": "planned",
+   "description": "Order updates and receipts on Viber (popular in Nepal).",
+   "docsUrl": "https://developers.viber.com/docs/api/rest-bot-api/",
+   "actions": [
+    "Send receipt on Viber"
+   ],
+   "secrets": [
+    "Viber bot token"
    ]
   },
   {
@@ -450,6 +993,23 @@
    ]
   },
   {
+   "id": "zoho_books",
+   "name": "Zoho Books",
+   "category": "accounting",
+   "status": "planned",
+   "description": "Send sales to Zoho Books as invoices.",
+   "docsUrl": "https://www.zoho.com/books/api/v3/",
+   "actions": [
+    "Send sale to Zoho Books"
+   ],
+   "secrets": [
+    "Zoho client ID",
+    "Zoho client secret",
+    "Refresh token",
+    "Organization ID"
+   ]
+  },
+  {
    "id": "shopify",
    "name": "Shopify",
    "category": "commerce",
@@ -491,6 +1051,75 @@
    "docsUrl": "https://open.daraz.com/",
    "actions": [
     "Sync stock to Daraz"
+   ],
+   "secrets": [
+    "App key",
+    "App secret",
+    "Access token"
+   ]
+  },
+  {
+   "id": "amazon_seller",
+   "name": "Amazon Seller",
+   "category": "commerce",
+   "status": "planned",
+   "description": "Sell on Amazon: sync your inventory as listings and bring Amazon orders in.",
+   "docsUrl": "https://developer-docs.amazon.com/sp-api/",
+   "actions": [
+    "Sync inventory to Amazon",
+    "Amazon orders"
+   ],
+   "secrets": [
+    "Login with Amazon client ID",
+    "Client secret",
+    "Refresh token",
+    "Marketplace ID"
+   ]
+  },
+  {
+   "id": "etsy",
+   "name": "Etsy",
+   "category": "commerce",
+   "status": "planned",
+   "description": "Sell handmade and craft products on Etsy: listings and orders.",
+   "docsUrl": "https://developers.etsy.com/",
+   "actions": [
+    "Sync inventory to Etsy",
+    "Etsy orders"
+   ],
+   "secrets": [
+    "Etsy API key (keystring)",
+    "OAuth access token",
+    "Shop ID"
+   ]
+  },
+  {
+   "id": "ebay",
+   "name": "eBay",
+   "category": "commerce",
+   "status": "planned",
+   "description": "List products on eBay and bring orders in.",
+   "docsUrl": "https://developer.ebay.com/",
+   "actions": [
+    "Sync inventory to eBay",
+    "eBay orders"
+   ],
+   "secrets": [
+    "eBay app ID",
+    "eBay cert ID",
+    "User refresh token"
+   ]
+  },
+  {
+   "id": "tiktok_shop",
+   "name": "TikTok Shop",
+   "category": "commerce",
+   "status": "planned",
+   "description": "Sell through TikTok Shop: products and orders.",
+   "docsUrl": "https://partner.tiktokshop.com/docv2",
+   "actions": [
+    "Sync inventory to TikTok Shop",
+    "TikTok Shop orders"
    ],
    "secrets": [
     "App key",

@@ -61,6 +61,18 @@ code not written yet) -- Stratek lists them but shows no buttons until a
 connector update makes them available. Key fields may change when each one is
 built.
 
+**v0.16.0 adds 38 more Coming-soon scaffolds** -- shipping (FedEx, UPS, Aramex,
+Easyship, ShipStation, Shiprocket), fulfilment (Amazon Multi-Channel Fulfillment,
+Amazon Supply Chain Services, ShipBob, Printful, Printify), PCB and manufacturing
+(JLCPCB, PCBWay), suppliers & sourcing (Alibaba.com, AliExpress dropshipping,
+CJdropshipping, Made-in-China.com), hotels & hospitality (Cloudbeds, Mews, Oracle
+OPERA Cloud, SiteMinder, Booking.com, Expedia, Airbnb, OpenTable, Foodmandu),
+payments (IME Pay, Prabhu Pay, WeChat Pay, Alipay+ direct, Paytm, Payoneer),
+marketplaces (Amazon Seller, Etsy, eBay, TikTok Shop), Viber and Zoho Books.
+**[docs/coming-soon.md](docs/coming-soon.md)** lists every scaffold by build wave,
+with what each needs (open API or partner access). They are not in the table
+below yet; each moves into it when it is built.
+
 ### AI agents and money (v0.9.0+)
 
 Agents connected to Stratek (API keys, MCP) can run safe actions -- tests,

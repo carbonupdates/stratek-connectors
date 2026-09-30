@@ -31,6 +31,7 @@ export default {
   actions: [
     {
       id: "create_shipment",
+      outbound: true,
       label: "Ship with DHL",
       placement: [
         "transaction"
