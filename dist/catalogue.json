@@ -1,5 +1,5 @@
 {
- "version": "0.13.0",
+ "version": "0.14.0",
  "categories": {
   "system": "Connector",
   "payments": "Payments",
@@ -153,7 +153,7 @@
    "name": "PayBridgeNP",
    "category": "payments",
    "status": "available",
-   "description": "Fonepay QR at the till and kiosk that detects payment by itself (eSewa, Khalti, Fonepay aggregator, Nepal).",
+   "description": "Fonepay QR at the till and kiosk that detects payment by itself -- any Nepali bank or wallet app, plus UPI, Alipay+ and UnionPay (eSewa, Khalti, Fonepay aggregator, Nepal).",
    "docsUrl": "https://docs.paybridgenp.com/api-reference/overview",
    "actions": [
     "Test PayBridgeNP",
@@ -325,15 +325,17 @@
    "id": "sparrow_sms",
    "name": "Sparrow SMS",
    "category": "messaging",
-   "status": "planned",
-   "description": "SMS receipts and alerts (Nepal).",
-   "docsUrl": "https://sparrowsms.com/",
+   "status": "available",
+   "description": "SMS receipts to customers in Nepal.",
+   "docsUrl": "https://docs.sparrowsms.com/sms/documentation/",
    "actions": [
+    "Test Sparrow SMS",
+    "Send test SMS",
     "Send receipt by SMS"
    ],
    "secrets": [
     "Sparrow SMS token",
-    "Sender ID"
+    "Sender identity (From)"
    ]
   },
   {
@@ -359,10 +361,11 @@
    "id": "slack",
    "name": "Slack",
    "category": "messaging",
-   "status": "planned",
-   "description": "Sale alerts to a Slack channel.",
+   "status": "available",
+   "description": "Post sales to a Slack channel.",
    "docsUrl": "https://api.slack.com/messaging/webhooks",
    "actions": [
+    "Test Slack",
     "Post sale to Slack"
    ],
    "secrets": [
@@ -423,15 +426,18 @@
    "id": "google_sheets",
    "name": "Google Sheets",
    "category": "accounting",
-   "status": "planned",
-   "description": "Add each sale as a row in a Google Sheet.",
-   "docsUrl": "https://developers.google.com/sheets/api",
+   "status": "available",
+   "description": "Add sales as rows to your Google Sheet and copy your inventory into it.",
+   "docsUrl": "https://developers.google.com/workspace/sheets/api/guides/concepts",
    "actions": [
+    "Test Google Sheets",
+    "Copy inventory to Google Sheet",
     "Add sale to Google Sheet"
    ],
    "secrets": [
     "Service account key (JSON)",
-    "Sheet ID"
+    "Sheet link or ID",
+    "Tab for sales"
    ]
   },
   {
@@ -505,25 +511,28 @@
    "id": "mailchimp",
    "name": "Mailchimp",
    "category": "marketing",
-   "status": "planned",
-   "description": "Add customers to a Mailchimp audience.",
-   "docsUrl": "https://mailchimp.com/developer/marketing/api/",
+   "status": "available",
+   "description": "Add customers to your Mailchimp audience (they confirm by email first).",
+   "docsUrl": "https://mailchimp.com/developer/marketing/api/list-members/",
    "actions": [
+    "Test Mailchimp",
     "Add customer to Mailchimp"
    ],
    "secrets": [
     "Mailchimp API key",
-    "Audience ID"
+    "Audience ID",
+    "New contacts are"
    ]
   },
   {
    "id": "hubspot",
    "name": "HubSpot",
    "category": "marketing",
-   "status": "planned",
-   "description": "Save customers and sales in HubSpot CRM.",
-   "docsUrl": "https://developers.hubspot.com/docs/api/overview",
+   "status": "available",
+   "description": "Add customers to HubSpot as contacts.",
+   "docsUrl": "https://developers.hubspot.com/docs/api/crm/contacts",
    "actions": [
+    "Test HubSpot",
     "Add customer to HubSpot"
    ],
    "secrets": [
@@ -551,10 +560,12 @@
    "id": "webhook",
    "name": "Webhook",
    "category": "automation",
-   "status": "planned",
-   "description": "Send each sale to any address you choose (for your own systems).",
-   "docsUrl": null,
+   "status": "available",
+   "description": "Send a sale or your inventory as JSON to any address you choose (your own system, n8n, Pipedream...).",
+   "docsUrl": "https://github.com/carbonupdates/stratek-connectors#webhook",
    "actions": [
+    "Test webhook",
+    "Send inventory to webhook",
     "Send sale to webhook"
    ],
    "secrets": [
@@ -566,10 +577,11 @@
    "id": "zapier",
    "name": "Zapier",
    "category": "automation",
-   "status": "planned",
-   "description": "Start a Zap for each sale (connects to thousands of apps).",
-   "docsUrl": "https://zapier.com/apps/webhook/integrations",
+   "status": "available",
+   "description": "Send sales to a Zapier catch hook and connect them to thousands of apps.",
+   "docsUrl": "https://help.zapier.com/hc/en-us/articles/8496288690317",
    "actions": [
+    "Test Zapier",
     "Send sale to Zapier"
    ],
    "secrets": [
@@ -580,10 +592,11 @@
    "id": "make",
    "name": "Make",
    "category": "automation",
-   "status": "planned",
-   "description": "Start a Make scenario for each sale.",
+   "status": "available",
+   "description": "Send sales to a Make scenario (custom webhook) and automate the rest.",
    "docsUrl": "https://www.make.com/en/help/tools/webhooks",
    "actions": [
+    "Test Make",
     "Send sale to Make"
    ],
    "secrets": [

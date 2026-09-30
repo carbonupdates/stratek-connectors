@@ -44,6 +44,7 @@ const seen = [];
 const pbHooks = [];
 const stratekEvents = [];
 const tgCalls = [];
+const hookCalls = []; const smsCalls = []; const gCalls = []; const gTabs = ['Sheet1']; const mcCalls = []; const hsCalls = [];
 globalThis.fetch = async (input, init) => {
   const req = input instanceof Request ? input : new Request(input, init);
   const u = new URL(req.url);
@@ -66,6 +67,33 @@ globalThis.fetch = async (input, init) => {
     if (u.pathname.endsWith('/orders')) return Response.json({ data: { consignment_id: 'NP9', order_status: 'Pending' } });
   }
   if (u.host === 'graph.facebook.com') return Response.json({ events_received: 1 });
+  if (['hooks.example.test', 'hooks.zapier.com', 'hook.eu2.make.com', 'hooks.slack.com'].includes(u.host)) { hookCalls.push({ host: u.host, headers: Object.fromEntries(req.headers), body, raw: await req.clone().text() }); return new Response('ok'); }
+  if (u.host === 'api.sparrowsms.com') {
+    const form = req.method === 'POST' ? Object.fromEntries(new URLSearchParams(await req.clone().text())) : Object.fromEntries(u.searchParams);
+    smsCalls.push({ path: u.pathname, form });
+    if (form.token !== 'sp-ok') return Response.json({ response_code: 1002, response: 'Invalid Token' }, { status: 403 });
+    if (u.pathname.endsWith('/credit/')) return Response.json({ credits_available: 90, credits_consumed: 10, response_code: 200 });
+    return Response.json({ count: 1, response_code: 200, response: '1 mesages has been queued for delivery' });
+  }
+  if (u.host === 'oauth2.googleapis.com') { gCalls.push({ token: true }); return Response.json({ access_token: 'ya29.x', expires_in: 3600 }); }
+  if (u.host === 'sheets.googleapis.com') {
+    gCalls.push({ method: req.method, path: decodeURIComponent(u.pathname + u.search), body });
+    if (req.method === 'GET') return Response.json({ properties: { title: 'Chyau sales' }, sheets: gTabs.map((t) => ({ properties: { title: t } })) });
+    if (u.pathname.endsWith(':batchUpdate')) { gTabs.push(body.requests[0].addSheet.properties.title); return Response.json({}); }
+    return Response.json({ updates: { updatedRows: 1 } });
+  }
+  if (u.host === 'us21.api.mailchimp.com') {
+    mcCalls.push({ method: req.method, path: u.pathname, body, auth: req.headers.get('Authorization') });
+    if (req.method === 'GET') return Response.json({ name: 'Customers', stats: { member_count: 3 } });
+    if (body.email_address === 'old@x.com') return Response.json({ title: 'Member Exists', detail: 'already' }, { status: 400 });
+    return Response.json({ id: 'm1', status: body.status });
+  }
+  if (u.host === 'api.hubapi.com') {
+    hsCalls.push({ method: req.method, path: u.pathname + u.search, body });
+    if (req.method === 'GET') return Response.json({ results: [] });
+    if (req.method === 'POST' && body.properties.email === 'old@x.com') return Response.json({ message: 'Contact already exists' }, { status: 409 });
+    return Response.json({ id: '1' }, { status: req.method === 'POST' ? 201 : 200 });
+  }
   if (u.host === 'api.telegram.org') {
     tgCalls.push({ method: u.pathname.split('/').pop(), body });
     if (u.pathname.endsWith('/getMe')) return Response.json({ ok: true, result: { id: 99, username: 'chyau_bot', first_name: 'Chyau' } });
@@ -339,4 +367,71 @@ test('Telegram (0.13.0): bot setup, one-time link, only the linked account, aler
   await c.act('telegram', 'unlink');
   assert.equal(c.env._map.get('data:telegram:owner'), undefined);
   assert.equal((await c.act('telegram', 'alert', { fields: { text: 'x' } }, c.server)).success, false, 'no alerts once unlinked');
+});
+
+test('Wave 1 (0.14.0): Webhook, Zapier, Make, Slack, Sparrow SMS, Google Sheets, Mailchimp, HubSpot', async () => {
+  const c = await paired();
+  const saleCtx = { context: { transaction: { id: 42, amount: 610, currency: 'NPR', reference: 'Online order #12', items: [{ name: 'Oyster pack', price: 250, qty: 2 }], createdAt: '2026-09-30 05:00:00' }, customer: { name: 'Sita Sharma', email: 'sita@x.com', phone: '9800000001' } } };
+  // Webhook: signed JSON
+  await c.save('webhook', 'live', { WEBHOOK_URL: 'https://hooks.example.test/in', WEBHOOK_SECRET: 's3cret' });
+  let r = await c.act('webhook', 'send', saleCtx);
+  assert.equal(r.success, true, JSON.stringify(r));
+  let h = hookCalls.at(-1);
+  assert.equal(h.body.type, 'sale'); assert.equal(h.body.sale.id, '42'); assert.equal(h.body.customer.email, 'sita@x.com');
+  const [, t, v1] = h.headers['x-stratek-signature'].match(/^t=(\d+),v1=([0-9a-f]{64})$/);
+  const { createHmac } = await import('node:crypto');
+  assert.equal(v1, createHmac('sha256', 's3cret').update(`${t}.${h.raw}`).digest('hex'), 'signature checks out');
+  r = await c.act('webhook', 'send_inventory', { context: { menu: { currency: 'NPR', items: [{ id: 1, name: 'Oyster', price: 250 }] } } });
+  assert.equal(hookCalls.at(-1).body.inventory.items.length, 1);
+  await c.save('webhook', 'live', { WEBHOOK_URL: 'http://insecure.test/' });
+  assert.match((await c.act('webhook', 'test')).error.message, /https/);
+  // Zapier / Make: host checked
+  await c.save('zapier', 'live', { ZAPIER_HOOK_URL: 'https://evil.test/x' });
+  assert.match((await c.act('zapier', 'send', saleCtx)).error.message, /doesn't look like a Zapier/);
+  await c.save('zapier', 'live', { ZAPIER_HOOK_URL: 'https://hooks.zapier.com/hooks/catch/1/abc/' });
+  assert.equal((await c.act('zapier', 'send', saleCtx)).success, true);
+  await c.save('make', 'live', { MAKE_WEBHOOK_URL: 'https://hook.eu2.make.com/abc' });
+  assert.equal((await c.act('make', 'test')).success, true);
+  assert.equal(hookCalls.at(-1).body.type, 'test');
+  // Slack
+  await c.save('slack', 'live', { SLACK_WEBHOOK_URL: 'https://hooks.slack.com/services/T/B/x' });
+  await c.act('slack', 'notify', saleCtx);
+  assert.match(hookCalls.at(-1).body.text, /Sale #42.*Rs 610/); assert.deepEqual(Object.keys(hookCalls.at(-1).body), ['text']);
+  // Sparrow SMS
+  await c.save('sparrow_sms', 'live', { SPARROW_SMS_TOKEN: 'sp-bad', SPARROW_SMS_FROM: 'InfoSMS' });
+  assert.match((await c.act('sparrow_sms', 'test')).error.message, /token/);
+  await c.save('sparrow_sms', 'live', { SPARROW_SMS_TOKEN: 'sp-ok' });
+  assert.match((await c.act('sparrow_sms', 'test')).data.result.text, /Credits available: 90/);
+  assert.match((await c.act('sparrow_sms', 'send_receipt', { ...saleCtx, fields: { phone: '12345' } })).error.message, /Nepali mobile/);
+  r = await c.act('sparrow_sms', 'send_receipt', { ...saleCtx, fields: { phone: '+977 980-000-0001' } });
+  assert.equal(r.success, true); assert.equal(smsCalls.at(-1).form.to, '9800000001'); assert.match(smsCalls.at(-1).form.text, /Receipt #42, Rs 610/);
+  // Google Sheets (service account JWT signed with a real RSA key)
+  const { generateKeyPairSync } = await import('node:crypto');
+  const pk = generateKeyPairSync('rsa', { modulusLength: 2048 }).privateKey.export({ type: 'pkcs8', format: 'pem' });
+  await c.save('google_sheets', 'live', { GOOGLE_SERVICE_ACCOUNT_JSON: JSON.stringify({ client_email: 'stratek@proj.iam.gserviceaccount.com', private_key: pk }), GOOGLE_SHEET_ID: 'https://docs.google.com/spreadsheets/d/1AbCdEfGhIjKlMnOpQrStUvWxYz0123456789/edit#gid=0' });
+  assert.match((await c.act('google_sheets', 'test')).data.result.text, /Chyau sales/);
+  r = await c.act('google_sheets', 'add_row', saleCtx);
+  assert.equal(r.success, true, JSON.stringify(r));
+  assert.ok(gTabs.includes('Sales'), 'Sales tab made');
+  const append = gCalls.find((x) => x.path?.includes(':append'));
+  assert.match(append.path, /1AbCdEfGhIjKlMnOpQrStUvWxYz0123456789/); assert.equal(append.body.values[0][1], 42); assert.equal(append.body.values[0][4], 610);
+  r = await c.act('google_sheets', 'export_inventory', { context: { menu: { currency: 'NPR', items: [{ id: 7, name: 'Shiitake', price: 400, available: true }] } } });
+  assert.equal(r.success, true); assert.ok(gTabs.includes('Inventory'));
+  assert.equal(gCalls.filter((x) => x.token).length, 1, 'token cached');
+  // Mailchimp: double opt-in by default
+  await c.save('mailchimp', 'live', { MAILCHIMP_API_KEY: 'abc123-us21', MAILCHIMP_AUDIENCE_ID: 'aud1' });
+  assert.match((await c.act('mailchimp', 'test')).data.result.text, /Customers/);
+  r = await c.act('mailchimp', 'add_customer', { ...saleCtx, fields: {} });
+  assert.equal(mcCalls.at(-1).body.status, 'pending'); assert.equal(mcCalls.at(-1).body.email_address, 'sita@x.com'); assert.equal(mcCalls.at(-1).body.merge_fields.FNAME, 'Sita');
+  r = await c.act('mailchimp', 'add_customer', { ...saleCtx, fields: { email: 'old@x.com' } });
+  assert.match(r.data.result.title, /Already/);
+  // HubSpot: create, or update on conflict
+  await c.save('hubspot', 'live', { HUBSPOT_TOKEN: 'pat-na1-x' });
+  r = await c.act('hubspot', 'add_customer', { ...saleCtx, fields: {} });
+  assert.equal(r.data.result.title, 'Added to HubSpot'); assert.equal(hsCalls.at(-1).body.properties.phone, '9800000001');
+  r = await c.act('hubspot', 'add_customer', { ...saleCtx, fields: { email: 'old@x.com' } });
+  assert.equal(r.data.result.title, 'Updated in HubSpot'); assert.match(hsCalls.at(-1).path, /idProperty=email/);
+  // all eight are available in the manifest
+  const m = await c.manifest();
+  for (const id of ['webhook', 'zapier', 'make', 'slack', 'sparrow_sms', 'google_sheets', 'mailchimp', 'hubspot']) assert.equal(m.find((i) => i.id === id).status, 'available', id);
 });

@@ -272,6 +272,20 @@ its Set up page.
   `webhookSetup: { where, what }` so its Set up page shows the callback URL.
 - `color` (e.g. `'#e4202a'`) colours an integration's buttons in Stratek.
 
+## 6a-3. Webhook, Zapier, Make, Slack, Sparrow SMS, Google Sheets, Mailchimp, HubSpot (v0.14.0+)
+
+- Button actions only (placement `transaction`, plus `settings` tests;
+  `send_inventory` / `export_inventory` use `context: ['menu']`). Nothing runs by itself.
+- Shared helpers in `src/integrations/_hooks.js`: `hookUrl` (https, optional host
+  check), `salePayload` (the JSON above), `postJson` (10 s timeout, readable
+  errors, optional HMAC signature `X-Stratek-Signature: t=..,v1=..` over `"<t>.<body>"`).
+- Stratek adds `context.customer` `{ name, email, phone }` for online-store orders
+  (server side for API keys / approved requests; the dashboard fills it in from
+  the Online orders list). Fields like `email` / `phone` stay optional in the
+  manifest so API callers can rely on the context; the action checks them.
+- Google Sheets: RS256 JWT with WebCrypto (`pkcs8` import of the service account
+  key), token cached in the integration memory; tabs created with `batchUpdate`.
+
 ## 6a-2. Telegram (v0.13.0+)
 
 - Integration `telegram` (category `messaging`, live only): key `TELEGRAM_BOT_TOKEN`.

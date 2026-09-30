@@ -55,7 +55,7 @@ export default {
   status: 'available',
   qrProvider: true,
   color: '#1f6feb',
-  description: 'Fonepay QR at the till and kiosk that detects payment by itself (eSewa, Khalti, Fonepay aggregator, Nepal).',
+  description: 'Fonepay QR at the till and kiosk that detects payment by itself -- any Nepali bank or wallet app, plus UPI, Alipay+ and UnionPay (eSewa, Khalti, Fonepay aggregator, Nepal).',
   docsUrl: 'https://docs.paybridgenp.com/api-reference/overview',
   secrets: [
     { name: 'PAYBRIDGE_SECRET_KEY', label: 'PayBridgeNP secret key', hint: 'From your PayBridgeNP dashboard, live project (starts with sk_live_; needs permission for payments and webhooks). Connect your Fonepay merchant account inside PayBridgeNP first. Live Fonepay QRs need the Pro plan.' },

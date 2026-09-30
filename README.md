@@ -132,9 +132,9 @@ keys once afterwards so both live and test payment notifications are registered.
 | Integration | Buttons in Stratek | Keys (Set up form) | Test mode | Status |
 |---|---|---|---|---|
 | [WhatsApp Business](https://developers.facebook.com/docs/whatsapp/cloud-api) | Send receipt on WhatsApp, Send payment QR on WhatsApp | WhatsApp access token, WhatsApp phone number ID | -- | Coming soon |
-| [Sparrow SMS](https://sparrowsms.com/) | Send receipt by SMS | Sparrow SMS token, Sender ID | -- | Coming soon |
+| [Sparrow SMS](https://docs.sparrowsms.com/sms/documentation/) | Test Sparrow SMS (credits), Send test SMS, Send receipt by SMS | Sparrow SMS token, Sender identity (From) | Live only | **Available** (v0.14.0) |
 | [Telegram](https://core.telegram.org/bots/api) | Owner alerts from Stratek, chat with the AI employee, Post sale to Telegram, Send test message | Telegram bot token | Live only | **Available** (v0.13.0) |
-| [Slack](https://api.slack.com/messaging/webhooks) | Post sale to Slack | Slack incoming webhook URL | -- | Coming soon |
+| [Slack](https://api.slack.com/messaging/webhooks) | Test Slack, Post sale to Slack | Slack incoming webhook URL | Live only | **Available** (v0.14.0) |
 
 ### Accounting & tax
 
@@ -143,7 +143,7 @@ keys once afterwards so both live and test payment notifications are registered.
 | [Nepal IRD e-billing (CBMS)](https://ird.gov.np/) | Report bill to IRD | IRD CBMS username, IRD CBMS password, Seller PAN | -- | Coming soon |
 | [QuickBooks Online](https://developer.intuit.com/app/developer/qbo/docs/get-started) | Send sale to QuickBooks | Client ID, Client secret, Refresh token, Company (realm) ID | -- | Coming soon |
 | [Xero](https://developer.xero.com/documentation/) | Send sale to Xero | Client ID, Client secret, Refresh token, Tenant ID | -- | Coming soon |
-| [Google Sheets](https://developers.google.com/sheets/api) | Add sale to Google Sheet | Service account key (JSON), Sheet ID | -- | Coming soon |
+| [Google Sheets](https://developers.google.com/workspace/sheets/api/guides/concepts) | Test Google Sheets, Copy inventory to Google Sheet, Add sale to Google Sheet | Service account key (JSON), Sheet link or ID, Tab for sales (optional) | Live only | **Available** (v0.14.0) |
 
 ### Online stores & marketplaces
 
@@ -158,17 +158,17 @@ keys once afterwards so both live and test payment notifications are registered.
 
 | Integration | Buttons in Stratek | Keys (Set up form) | Test mode | Status |
 |---|---|---|---|---|
-| [Mailchimp](https://mailchimp.com/developer/marketing/api/) | Add customer to Mailchimp | Mailchimp API key, Audience ID | -- | Coming soon |
-| [HubSpot](https://developers.hubspot.com/docs/api/overview) | Add customer to HubSpot | Private app access token | -- | Coming soon |
+| [Mailchimp](https://mailchimp.com/developer/marketing/api/list-members/) | Test Mailchimp, Add customer to Mailchimp (double opt-in) | Mailchimp API key, Audience ID, New contacts are (optional) | Live only | **Available** (v0.14.0) |
+| [HubSpot](https://developers.hubspot.com/docs/api/crm/contacts) | Test HubSpot, Add customer to HubSpot | Private app access token | Live only | **Available** (v0.14.0) |
 | [Meta Conversions API](https://developers.facebook.com/docs/marketing-api/conversions-api) | Test Meta Conversions API, Send sale to Meta Ads | Pixel / dataset ID, Conversions API access token, Graph API version (optional) | Test keys | **Available** |
 
 ### Automation
 
 | Integration | Buttons in Stratek | Keys (Set up form) | Test mode | Status |
 |---|---|---|---|---|
-| Webhook | Send sale to webhook | Webhook address (https://), Signing secret (optional) | -- | Coming soon |
-| [Zapier](https://zapier.com/apps/webhook/integrations) | Send sale to Zapier | Zapier catch hook URL | -- | Coming soon |
-| [Make](https://www.make.com/en/help/tools/webhooks) | Send sale to Make | Make webhook URL | -- | Coming soon |
+| Webhook | Test webhook, Send inventory to webhook, Send sale to webhook | Webhook address (https://), Signing secret (optional) | Live only | **Available** (v0.14.0) |
+| [Zapier](https://help.zapier.com/hc/en-us/articles/8496288690317) | Test Zapier, Send sale to Zapier | Zapier catch hook URL | Live only | **Available** (v0.14.0) |
+| [Make](https://www.make.com/en/help/tools/webhooks) | Test Make, Send sale to Make | Make webhook URL | Live only | **Available** (v0.14.0) |
 
 ### Using PayBridgeNP (available) -- the till & kiosk QR that sees payments
 
@@ -308,6 +308,30 @@ see the POS repo's `docs/proposals/online-store.md`), gated on PayBridgeNP
 (Fonepay QR on the order page, confirmed automatically) + Pathao (live quotes,
 booking), with pickup or delivery and a test mode that uses the test keys.
 To build one, see [docs/adding-an-integration.md](docs/adding-an-integration.md).
+
+## Sending sales elsewhere (v0.14.0+)
+
+**Webhook, Zapier, Make** send the same JSON when someone presses the button on a
+sale (or "Send inventory to webhook" on the Integrations tab):
+
+```json
+{ "type": "sale", "sentAt": "...", "mode": "live", "shop": "Chyau",
+  "sale": { "id": "42", "amount": 610, "currency": "NPR", "reference": "Online order #12",
+            "items": [{ "name": "Oyster pack", "price": 250, "qty": 2 }], "bill": null, "createdAt": "..." },
+  "customer": { "name": "Sita Sharma", "email": "...", "phone": "..." } }
+```
+
+`customer` is only there for online-store orders. With a **signing secret**, the
+Webhook adds `X-Stratek-Signature: t=<unix>,v1=<hex HMAC-SHA256 of "<t>.<body>">`
+-- check it and reject old timestamps. Zapier and Make addresses are checked to be
+on zapier.com / make.com. **Slack** posts a one-line sale summary. **Sparrow SMS**
+sends a short receipt to a Nepali mobile number (switch off IP whitelisting in
+Sparrow). **Google Sheets** uses a service account (share the sheet with its
+email): "Add sale" appends a row to the "Sales" tab (made for you), "Copy
+inventory" rewrites an "Inventory" tab. **Mailchimp** adds the customer as
+*pending* (they confirm by email) unless you set "New contacts are" to
+`subscribed`; **HubSpot** creates or updates the contact. For online-store
+orders Stratek fills in the customer's email, name and phone.
 
 ## Telegram (v0.13.0+)
 
