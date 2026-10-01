@@ -251,6 +251,16 @@ its Set up page.
   qrPayload, provider, refreshAfterSec, livemode }`; calling it again for the
   same sale refreshes the QR. Stratek calls it from the till (browser pass) or,
   for kiosks, from its server (pass with `src: "server"`, 2 minutes).
+- **Chatwoot (v0.25.0, `messaging`):** `onKeysSaved` checks `/api/v1/profile` and adds an
+  account webhook (`message_created`) to `/webhooks/chatwoot?key=<secret>` (replaced on every
+  save). Incoming, non-private messages -> `alertOwner` (telegram.js) to the linked owner, once per
+  conversation per 10 minutes, with a link to the conversation. Agent actions (placement `agent`):
+  `list_conversations`, `read_conversation`, `draft_reply` (private note). No send action.
+- **Postiz (v0.25.0, `marketing`):** `Authorization: <api key>` to `https://api.postiz.com/public/v1`
+  (or `POSTIZ_API_URL`). `draft_post` -> `POST /posts` with `type: 'draft'` (minimal settings per
+  network; Instagram / TikTok / YouTube need `media_url`, uploaded with `/upload-from-url`; Reddit
+  needs `subreddit`; `when` is Nepal time). `schedule_post` (`outbound: true`) ->
+  `PUT /posts/:id/status {status:'schedule'}`. `channels`, `list_posts`.
 - **Buy Now Pay Later (v0.24.0, category `subscriptions` = "Subscription management"):**
   an integration with `bnplProvider: true` offers a hidden action `bnpl_qr`
   (placement `bnpl`) taking `context.transaction` and returning `{ type: 'qr',
@@ -452,6 +462,9 @@ its Set up page.
   `tools/call`, up to 6 model calls / 30 outgoing calls per turn (free plan),
   then `needsContinue`. History (last 30 messages) and daily token use are kept
   in the integration's memory; tool results are marked as data, not instructions.
+  v0.24.1: OpenAI-compatible tool calls keep `extra_content` (Gemini's
+  `google.thought_signature`) on the call in history and echo it back; for Gemini,
+  an old step with no signature gets `skip_thought_signature_validator` on its first call.
 
 ## 6b. Storefront (v0.11.0+)
 

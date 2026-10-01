@@ -1,5 +1,5 @@
 {
- "version": "0.24.0",
+ "version": "0.25.0",
  "categories": {
   "system": "Connector",
   "payments": "Payments",
@@ -37,9 +37,7 @@
    "docsUrl": "https://github.com/carbonupdates/stratek-connectors#ai-employee",
    "actions": [
     "Test AI employee",
-    "Give the AI employee a task",
-    "AI employee conversation",
-    "New conversation"
+    "AI employee status"
    ],
    "secrets": [
     "AI provider",
@@ -1404,6 +1402,25 @@
    ]
   },
   {
+   "id": "chatwoot",
+   "name": "Chatwoot",
+   "category": "messaging",
+   "status": "available",
+   "description": "Customer messages from Facebook, Instagram, WhatsApp, Telegram and more in your Chatwoot: alerts on your Telegram, and your AI employee drafts replies as private notes. A person sends.",
+   "docsUrl": "https://developers.chatwoot.com/api-reference/introduction",
+   "actions": [
+    "Test Chatwoot",
+    "Open Chatwoot conversations",
+    "Read a Chatwoot conversation",
+    "Draft a reply (private note)"
+   ],
+   "secrets": [
+    "Chatwoot access token",
+    "Account ID",
+    "Chatwoot address (only if self-hosted)"
+   ]
+  },
+  {
    "id": "viber",
    "name": "Viber",
    "category": "messaging",
@@ -2158,6 +2175,25 @@
    ],
    "secrets": [
     "Private app access token"
+   ]
+  },
+  {
+   "id": "postiz",
+   "name": "Postiz",
+   "category": "marketing",
+   "status": "available",
+   "description": "Social posts on Facebook, Instagram, LinkedIn, TikTok, YouTube, Reddit and more through your Postiz account: your AI employee prepares drafts, a person schedules.",
+   "docsUrl": "https://docs.postiz.com/public-api/introduction",
+   "actions": [
+    "Test Postiz",
+    "Postiz channels",
+    "Draft a social post (Postiz)",
+    "Postiz posts (next 30 days)",
+    "Schedule Postiz draft"
+   ],
+   "secrets": [
+    "Postiz API key",
+    "Postiz API address (only if self-hosted)"
    ]
   },
   {

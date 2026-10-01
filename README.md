@@ -74,7 +74,10 @@ Amazon Supply Chain Services, which has no public API yet) in v0.18.0.
 scaffold by build wave, with who has to be approved (the business or Stratek). They are not in the table
 below yet; each moves into it when it is built.
 
-**v0.24.0: 65 built, 72 coming soon, 137 in total.** v0.24.0 adds the **Subscription
+**v0.25.0: 67 built, 72 coming soon, 139 in total.** v0.25.0 adds **Chatwoot** (customer inbox ->
+Telegram alerts, AI employee drafts replies as private notes) and **Postiz** (social posts: AI
+employee drafts, a person schedules); the AI employee now takes tasks on Telegram only (no
+dashboard chat). v0.24.1 fixed the AI employee with Gemini. v0.24.0 added the **Subscription
 management** category with Foneloan (Buy Now Pay Later). Wave 9 added 15 self-serve
 integrations and lists 49 more (wave 10) as Coming soon -- see
 [Not built yet](#not-built-yet-what-is-missing-and-why) below for every remaining one and
@@ -181,6 +184,7 @@ keys once afterwards so both live and test payment notifications are registered.
 | [Viber](https://developers.viber.com/docs/api/rest-bot-api/) | Link my Viber, Send test message, Post sale to Viber | Viber bot token | Live only | **Available** (v0.17.0) |
 | [Twilio](https://www.twilio.com/docs/messaging/api/message-resource) | Test Twilio, Send test SMS, Send receipt by SMS (or WhatsApp) | Account SID, Auth Token, From number / Messaging Service (+ WhatsApp sender) | Test credentials | **Available** (v0.23.0) |
 | [Resend](https://resend.com/docs/api-reference/emails/send-email) | Test Resend, Send test email, Email receipt | API key, From address on your verified domain (+ reply-to) | Live only | **Available** (v0.23.0) |
+| [Chatwoot](https://developers.chatwoot.com/api-reference/introduction) | Test Chatwoot; new customer message -> alert on your linked Telegram; AI employee: list / read conversations, draft a reply as a **private note** (no send -- a person replies) | Access token (administrator), account ID (+ address if self-hosted) | Live only | **Available** (v0.25.0) |
 | [Slack](https://api.slack.com/messaging/webhooks) | Test Slack, Post sale to Slack | Slack incoming webhook URL | Live only | **Available** (v0.14.0) |
 
 ### Accounting & tax
@@ -214,6 +218,7 @@ keys once afterwards so both live and test payment notifications are registered.
 |---|---|---|---|---|
 | [Mailchimp](https://mailchimp.com/developer/marketing/api/list-members/) | Test Mailchimp, Add customer to Mailchimp (double opt-in) | Mailchimp API key, Audience ID, New contacts are (optional) | Live only | **Available** (v0.14.0) |
 | [HubSpot](https://developers.hubspot.com/docs/api/crm/contacts) | Test HubSpot, Add customer to HubSpot | Private app access token | Live only | **Available** (v0.14.0) |
+| [Postiz](https://docs.postiz.com/public-api/introduction) | Test Postiz; AI employee: channels, **draft** posts (Facebook, Instagram, LinkedIn, TikTok, YouTube, Reddit...), list posts; **Schedule** (needs a person) | Postiz API key (+ API address if self-hosted) | Live only (drafts never publish) | **Available** (v0.25.0) |
 | [Meta Conversions API](https://developers.facebook.com/docs/marketing-api/conversions-api) | Test Meta Conversions API, Send sale to Meta Ads | Pixel / dataset ID, Conversions API access token, Graph API version (optional) | Test keys | **Available** |
 | [Google Analytics 4](https://developers.google.com/analytics/devguides/collection/protocol/ga4) | Test Google Analytics, Send sale to Google Analytics (purchase event) | Measurement ID, Measurement Protocol API secret | Validation only | **Available** (v0.23.0) |
 | [TikTok Events API](https://business-api.tiktok.com/portal/docs?id=1771100865818625) | Test TikTok Events, Send sale to TikTok Ads (hashed email / phone) | Pixel code, access token (+ test event code) | Test events | **Available** (v0.23.0) |
@@ -732,6 +737,17 @@ Stratek rule for agents: no cash, no settling, money actions wait for a person.
 The key and the conversation stay in this connector. Long jobs stop at a
 free-plan-safe size and continue when asked; a daily token limit caps the bill.
 Stratek's own API & MCP keys are separate and unchanged.
+
+**v0.25.0:** tasks come from **Telegram** only (the dashboard chat box is gone; the card shows
+On/Off, token use and Open Telegram). With **Chatwoot** and **Postiz** set up it can draft replies
+(private notes) and social posts; sending replies is a person's job and scheduling posts is an
+approval request.
+
+**v0.24.1 fix (Gemini):** Gemini thinking models return a *thought signature*
+on every tool call and refuse the next step without it ("Function call is missing a
+thought_signature"). The connector now keeps it and sends it back; chats saved
+before the fix keep working (Google's skip value on the old calls). Press
+**Update** on the connector card to get it.
 
 ## The online store on your own address (v0.11.0+)
 

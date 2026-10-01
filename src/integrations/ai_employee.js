@@ -1,8 +1,8 @@
 // ai_employee -- an AI "employee" that runs INSIDE this connector (the shop's
 // own Cloudflare), with the shop's own AI provider key (bring your own key).
 //
-// It works like a staff member: the owner gives it tasks on Stratek's
-// Integrations tab; it uses Stratek's tools (the same ones MCP agents get:
+// It works like a staff member: the owner gives it tasks on Telegram (v0.25.0;
+// Stratek's card only switches it on/off and shows token use); it uses Stratek's tools (the same ones MCP agents get:
 // menu, sales, reports, expenses, online orders, integrations...) through a
 // Stratek identity that Stratek gives this connector when the owner switches
 // it on. Every Stratek rule for agents applies to it: no cash, no settling,
@@ -14,7 +14,7 @@
 // Keys stay here; Stratek never sees them. Live keys only (AI providers have
 // no test environment). A daily token limit stops runaway bills.
 
-import { runAgentTurn, testModel, loadHistory, clearHistory, usageToday, dailyLimit, agentKey } from '../agent.js';
+import { testModel, loadHistory, usageToday, dailyLimit, agentKey } from '../agent.js';
 
 export default {
   id: 'ai_employee',
@@ -44,35 +44,15 @@ export default {
       },
     },
     {
-      // Hidden (placement 'agent'): Stratek's AI employee card calls it. A person only.
-      id: 'task',
-      label: 'Give the AI employee a task',
-      placement: ['agent'],
-      fields: [{ name: 'message', label: 'Task', type: 'text', required: true }],
-      async run({ env, store, fields, claims }) {
-        if (claims?.src !== 'session') throw Object.assign(new Error('Only a person signed in to Stratek can give the AI employee tasks.'), { status: 403 });
-        return runAgentTurn(env, store, { message: String(fields.message || ''), by: claims.actor || 'owner' });
-      },
-    },
-    {
-      id: 'history',
-      label: 'AI employee conversation',
+      // Hidden: Stratek's AI employee card (on/off, token use). Tasks come from
+      // Telegram (v0.25.0: the chat box in the dashboard was removed).
+      id: 'status',
+      label: 'AI employee status',
       placement: ['agent'],
       fields: [],
       async run({ env, store, claims }) {
-        if (claims?.src !== 'session') throw Object.assign(new Error('Dashboard only.'), { status: 403 });
-        return { type: 'agent', history: await loadHistory(store), usage: { today: await usageToday(store), limit: dailyLimit(env) }, linked: !!(await agentKey(store)) };
-      },
-    },
-    {
-      id: 'reset',
-      label: 'New conversation',
-      placement: ['agent'],
-      fields: [],
-      async run({ store, claims }) {
-        if (claims?.src !== 'session') throw Object.assign(new Error('Dashboard only.'), { status: 403 });
-        await clearHistory(store);
-        return { type: 'agent', history: [] };
+        if (claims?.src !== 'session' && claims?.src !== 'server') throw Object.assign(new Error('Dashboard only.'), { status: 403 });
+        return { type: 'agent', usage: { today: await usageToday(store), limit: dailyLimit(env) }, linked: !!(await agentKey(store)), messages: (await loadHistory(store)).length };
       },
     },
   ],

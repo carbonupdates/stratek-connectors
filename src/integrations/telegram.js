@@ -57,6 +57,20 @@ async function send(env, chatId, text, button) {
 
 async function owner(store) { return (await store.get('owner')) || null; }
 
+/**
+ * For other integrations in this connector (e.g. Chatwoot): send the linked
+ * owner a short alert. `tgStore` is the Telegram integration's store. Returns
+ * false (no error) when Telegram isn't set up or linked. A button may only
+ * point to an https address the integration built itself.
+ */
+export async function alertOwner(env, tgStore, text, button) {
+  if (!env.TELEGRAM_BOT_TOKEN) return false;
+  const o = await owner(tgStore);
+  if (!o) return false;
+  await send(env, o.chatId, text, button && /^https:\/\//.test(String(button.url || '')) ? button : null);
+  return true;
+}
+
 const HELP = 'This bot sends you Stratek alerts. You can also message it to give your AI employee a task, for example "Which paid online orders still need settling?".\n\nReply "continue" when it says it has more to do. /new starts a new conversation. Approvals always happen in the Stratek dashboard.';
 
 function sameText(a, b) {
