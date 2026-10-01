@@ -466,7 +466,7 @@ its Set up page.
 `npm run bundle` also writes `dist/catalogue.json` -- `{ version, categories,
 integrations: [{ id, name, category, status, description, docsUrl, actions:
 [labels], secrets: [labels] }] }`. Stratek's admin panel reads it from GitHub to
-build the "Availability for merchants" table, so a new integration appears
+build the "Integration Permissions" table (Stratek admin), so a new integration appears
 there as soon as it is pushed (switched off until an admin enables it).
 
 ## 8. Other routes

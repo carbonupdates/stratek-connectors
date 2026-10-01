@@ -48,7 +48,7 @@ export default {
 3. Set `status: 'available'`. The Set up form, the Ready badge and the buttons
    in Stratek then work by themselves -- no Stratek change needed.
 4. After release, a Stratek admin switches it on for the right shops in
-   Admin -> Integrations -> **Availability for merchants** (per shop currency,
+   Admin -> **Integration Permissions** (per shop currency,
    with a note). Until then no shop sees it.
 
 Tips: add a `settings` action without fields named "Test <name>" that checks
