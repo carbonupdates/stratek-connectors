@@ -1417,6 +1417,7 @@
    "secrets": [
     "Chatwoot access token",
     "Account ID",
+    "Customer Telegram bots (optional)",
     "Chatwoot address (only if self-hosted)"
    ]
   },

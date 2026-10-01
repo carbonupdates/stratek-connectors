@@ -184,7 +184,7 @@ keys once afterwards so both live and test payment notifications are registered.
 | [Viber](https://developers.viber.com/docs/api/rest-bot-api/) | Link my Viber, Send test message, Post sale to Viber | Viber bot token | Live only | **Available** (v0.17.0) |
 | [Twilio](https://www.twilio.com/docs/messaging/api/message-resource) | Test Twilio, Send test SMS, Send receipt by SMS (or WhatsApp) | Account SID, Auth Token, From number / Messaging Service (+ WhatsApp sender) | Test credentials | **Available** (v0.23.0) |
 | [Resend](https://resend.com/docs/api-reference/emails/send-email) | Test Resend, Send test email, Email receipt | API key, From address on your verified domain (+ reply-to) | Live only | **Available** (v0.23.0) |
-| [Chatwoot](https://developers.chatwoot.com/api-reference/introduction) | Test Chatwoot; new customer message -> alert on your linked Telegram; AI employee: list / read conversations, draft a reply as a **private note** (no send -- a person replies) | Access token (administrator), account ID (+ address if self-hosted) | Live only | **Available** (v0.25.0) |
+| [Chatwoot](https://developers.chatwoot.com/api-reference/introduction) | Test Chatwoot; new customer message -> alert on your linked Telegram; AI employee: list / read conversations, draft a reply as a **private note** (no send -- a person replies) | Access token (administrator), account ID, **customer Telegram bots** (optional, up to 5 tokens -- Stratek adds a Telegram inbox in Chatwoot for each; never the alert bot) (+ address if self-hosted) | Live only | **Available** (v0.25.0) |
 | [Slack](https://api.slack.com/messaging/webhooks) | Test Slack, Post sale to Slack | Slack incoming webhook URL | Live only | **Available** (v0.14.0) |
 
 ### Accounting & tax

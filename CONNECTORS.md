@@ -254,7 +254,9 @@ its Set up page.
 - **Chatwoot (v0.25.0, `messaging`):** `onKeysSaved` checks `/api/v1/profile` and adds an
   account webhook (`message_created`) to `/webhooks/chatwoot?key=<secret>` (replaced on every
   save). Incoming, non-private messages -> `alertOwner` (telegram.js) to the linked owner, once per
-  conversation per 10 minutes, with a link to the conversation. Agent actions (placement `agent`):
+  conversation per 10 minutes, with a link to the conversation. `CHATWOOT_TELEGRAM_BOTS` (optional,
+  up to 5 tokens): each new token -> Telegram `getMe` -> `POST /inboxes {name, channel:{type:'telegram',
+  bot_token}}` (Chatwoot sets that bot's webhook); refused if it equals `TELEGRAM_BOT_TOKEN`. Agent actions (placement `agent`):
   `list_conversations`, `read_conversation`, `draft_reply` (private note). No send action.
 - **Postiz (v0.25.0, `marketing`):** `Authorization: <api key>` to `https://api.postiz.com/public/v1`
   (or `POSTIZ_API_URL`). `draft_post` -> `POST /posts` with `type: 'draft'` (minimal settings per

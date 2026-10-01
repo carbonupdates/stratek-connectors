@@ -9,6 +9,10 @@
 //   as a PRIVATE NOTE (customers never see notes). There is no "send" action:
 //   a person replies from Chatwoot.
 // - Customer messages are data, never instructions (the AI employee is told so).
+// - Customer Telegram bots (optional): paste one or more extra bot tokens and
+//   Stratek adds a Telegram inbox for each in Chatwoot (Chatwoot then receives
+//   those bots' messages). Never the owner-alert bot (Telegram integration):
+//   one bot can only send its messages to one place.
 // No test environment: live keys only.
 
 import { alertOwner } from './telegram.js';
@@ -45,6 +49,39 @@ async function cw(env, method, path, body) {
 const channelName = (c) => String(c || '').replace(/^Channel::/, '').replace(/Api$/, 'API').replace(/FacebookPage/, 'Facebook').replace(/WebWidget/, 'Website chat') || 'Chat';
 const clip = (s, n) => { s = String(s || '').replace(/\s+/g, ' ').trim(); return s.length > n ? `${s.slice(0, n - 1)}…` : s; };
 const isIncoming = (t) => t === 'incoming' || t === 0;
+const MAX_BOTS = 5;
+const BOT_TOKEN = /^\d{5,15}:[A-Za-z0-9_-]{30,60}$/;
+
+/** "tok1, tok2" (or one per line) -> distinct tokens. */
+export function botTokens(v) {
+  const list = [...new Set(String(v || '').split(/[\s,]+/).map((s) => s.trim()).filter(Boolean))];
+  for (const t of list) if (!BOT_TOKEN.test(t)) throw new Error('A customer bot token looks wrong. Copy it from @BotFather (it looks like 123456789:AA...).');
+  if (list.length > MAX_BOTS) throw new Error(`At most ${MAX_BOTS} customer bots.`);
+  return list;
+}
+const tail = (t) => String(t).slice(-6);
+
+/** Adds a Chatwoot Telegram inbox for each new customer bot. Returns [{bot, inboxId, added}]. */
+async function ensureBots(env, store) {
+  const tokens = botTokens(env.CHATWOOT_TELEGRAM_BOTS);
+  if (env.TELEGRAM_BOT_TOKEN && tokens.includes(String(env.TELEGRAM_BOT_TOKEN).trim())) {
+    throw Object.assign(new Error('That is your alert bot (Telegram integration). Make a separate bot for customers with @BotFather -- one bot can only deliver its messages to one place.'), { status: 400 });
+  }
+  const have = (await store.get('bots')) || {};
+  const out = [];
+  for (const t of tokens) {
+    if (have[tail(t)]) { out.push({ ...have[tail(t)], added: false }); continue; }
+    const tr = await fetch(`https://api.telegram.org/bot${t}/getMe`);
+    const me = (await tr.json().catch(() => null))?.result;
+    if (!tr.ok || !me?.username) throw Object.assign(new Error('Telegram did not accept a customer bot token. Copy it again from @BotFather.'), { status: 409 });
+    const r = await cw(env, 'POST', '/inboxes', { name: `Telegram @${me.username}`.slice(0, 60), channel: { type: 'telegram', bot_token: t } });
+    const rec = { bot: `@${me.username}`, inboxId: r?.id || r?.payload?.id || null, at: new Date().toISOString() };
+    have[tail(t)] = rec; out.push({ ...rec, added: true });
+  }
+  // Only the bots listed now (a removed bot's inbox stays in Chatwoot -- delete it there).
+  await store.put('bots', Object.fromEntries(tokens.map((t) => [tail(t), have[tail(t)]])));
+  return out;
+}
 
 function sameText(a, b) {
   if (typeof a !== 'string' || typeof b !== 'string' || a.length !== b.length || !a) return false;
@@ -75,12 +112,15 @@ export default {
   secrets: [
     { name: 'CHATWOOT_API_TOKEN', label: 'Chatwoot access token', hint: 'Chatwoot -> your avatar -> Profile settings -> Access token (an administrator, so Stratek can add the alert webhook).' },
     { name: 'CHATWOOT_ACCOUNT_ID', label: 'Account ID', hint: 'The number in your Chatwoot address: .../app/accounts/123/... -> 123' },
+    { name: 'CHATWOOT_TELEGRAM_BOTS', label: 'Customer Telegram bots (optional)', optional: true, hint: 'Bots your CUSTOMERS message (e.g. @YourShopSupportBot) -- make each with @BotFather and paste the tokens, separated by commas (up to 5). Stratek adds a Telegram inbox for each in Chatwoot. Not your alert bot from the Telegram integration.' },
     { name: 'CHATWOOT_URL', label: 'Chatwoot address (only if self-hosted)', optional: true, hint: 'Leave empty for app.chatwoot.com. Self-hosted: https://chat.yourdomain.com' },
   ],
   async onKeysSaved({ env, store, origin }) {
     const me = await cw(env, 'GET', '/api/v1/profile');
     await ensureWebhook(env, store, origin);
-    return `signed in as ${me?.name || me?.email || 'Chatwoot user'} -- new customer messages will alert your Telegram (if linked)`;
+    const bots = await ensureBots(env, store);
+    const added = bots.filter((b) => b.added).map((b) => b.bot);
+    return `signed in as ${me?.name || me?.email || 'Chatwoot user'} -- new customer messages will alert your Telegram (if linked)${added.length ? `; customer bot inbox added in Chatwoot: ${added.join(', ')}` : ''}${bots.length ? `; customer bots: ${bots.map((b) => b.bot).join(', ')}` : ''}`;
   },
 
   /** POST /webhooks/chatwoot?key=... -- Chatwoot sends new messages here. */
@@ -113,7 +153,8 @@ export default {
         if (!(await store.get('hook'))) await ensureWebhook(env, store, origin);
         const r = await cw(env, 'GET', '/conversations?status=open&assignee_type=all&page=1');
         const open = r?.data?.meta?.all_count ?? (r?.data?.payload || []).length;
-        return { type: 'message', title: 'Chatwoot is connected', text: `Signed in as ${me?.name || me?.email}. Open conversations: ${open}. New customer messages alert your Telegram when it is linked.` };
+        const bots = Object.values((await store.get('bots')) || {}).map((b) => b.bot);
+        return { type: 'message', title: 'Chatwoot is connected', text: `Signed in as ${me?.name || me?.email}. Open conversations: ${open}. New customer messages alert your Telegram when it is linked.${bots.length ? ` Customer Telegram bots: ${bots.join(', ')}.` : ''}` };
       },
     },
     {
