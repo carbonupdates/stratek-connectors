@@ -1,5 +1,5 @@
 {
- "version": "0.23.0",
+ "version": "0.24.0",
  "categories": {
   "system": "Connector",
   "payments": "Payments",
@@ -12,7 +12,8 @@
   "commerce": "Online stores & marketplaces",
   "marketing": "Customers & marketing",
   "automation": "Automation",
-  "ai": "AI employee"
+  "ai": "AI employee",
+  "subscriptions": "Subscription management"
  },
  "integrations": [
   {
@@ -134,6 +135,21 @@
     "Fonepay secret key",
     "Fonepay API username",
     "Fonepay API password"
+   ]
+  },
+  {
+   "id": "foneloan",
+   "name": "Foneloan (Buy Now Pay Later)",
+   "category": "subscriptions",
+   "status": "available",
+   "description": "Buy Now Pay Later on EMI for sales from Rs 15,000: the customer scans your Foneloan QR, their bank pays you in full, they repay the bank in 3-12 months. For Foneloan partner shops.",
+   "docsUrl": "https://foneloan.com.np/",
+   "actions": [
+    "Check Foneloan QR",
+    "Buy Now Pay Later QR"
+   ],
+   "secrets": [
+    "Foneloan QR text"
    ]
   },
   {

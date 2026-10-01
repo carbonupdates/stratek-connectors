@@ -28,6 +28,7 @@ export const CATEGORIES = {
   marketing: 'Customers & marketing',
   automation: 'Automation',
   ai: 'AI employee',
+  subscriptions: 'Subscription management',
 };
 
 const has = (v) => typeof v === 'string' && v.trim() !== '';
@@ -87,6 +88,7 @@ export function manifest(keys, testKeys = {}) {
       docsUrl: i.docsUrl || null,
       color: i.color || null,           // button colour in Stratek
       qrProvider: !!i.qrProvider,       // can make the till/kiosk payment QR (see POS "Use for the till QR")
+      bnplProvider: !!i.bnplProvider,   // Buy Now Pay Later QR at the till/kiosk (see POS "Show Buy Now Pay Later")
       ready,                            // live keys complete
       testReady,                        // test keys complete
       test: { support: t.support, note: t.note || null },

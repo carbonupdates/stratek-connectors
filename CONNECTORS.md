@@ -113,7 +113,7 @@ CORS: only `Origin: <STRATEK_URL>` is allowed.
   - `charge`: under the payment QR right after charging
   - `settings`: only on the Integrations tab (e.g. Test connection)
   - hidden (never buttons; called by Stratek itself): `qr` (till/kiosk QR),
-    `health` (kiosk gate), `delivery` (Pathao `cities`, `zones`, `areas`, `quote`
+    `bnpl` (Buy Now Pay Later QR, v0.24.0), `health` (kiosk gate), `delivery` (Pathao `cities`, `zones`, `areas`, `quote`
     for the online store)
 - `fields[].type`: `text` | `tel` | `email` | `number`. A field named
   `codAmount` is pre-filled with the sale total.
@@ -251,6 +251,14 @@ its Set up page.
   qrPayload, provider, refreshAfterSec, livemode }`; calling it again for the
   same sale refreshes the QR. Stratek calls it from the till (browser pass) or,
   for kiosks, from its server (pass with `src: "server"`, 2 minutes).
+- **Buy Now Pay Later (v0.24.0, category `subscriptions` = "Subscription management"):**
+  an integration with `bnplProvider: true` offers a hidden action `bnpl_qr`
+  (placement `bnpl`) taking `context.transaction` and returning `{ type: 'qr',
+  qrPayload, provider, text, amountInQr, livemode }`. Stratek shows a "Buy Now
+  Pay Later" button at the till (browser pass) and kiosk (server pass) when the
+  shop ticked it and the sale is NPR and at least Rs 15,000; the action refuses
+  anything smaller too. No payment event: a person settles. Foneloan returns the
+  shop's pasted Foneloan QR unchanged.
 - **Health (kiosk gate):** a `qrProvider` integration also offers a hidden
   action `health` (placement `health`) returning `{ type: 'health', ready,
   livemode, webhookRegistered, webhookId }`. Stratek's kiosk needs live mode,

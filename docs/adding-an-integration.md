@@ -64,7 +64,10 @@ till/kiosk QR `qrProvider: true` plus a `till_qr` action (placement `qr`) and
 a `health` action (placement `health`, returns `{ livemode, webhookRegistered,
 webhookId }`) -- the kiosk gate needs it. Include `integration` and `webhookId`
 in the `payment.succeeded` event data. See
-CONNECTORS.md section 6 and `paybridgenp.js`.
+CONNECTORS.md section 6 and `paybridgenp.js`. A Buy Now Pay Later provider
+(category `subscriptions`) sets `bnplProvider: true` and offers a hidden
+`bnpl_qr` action (placement `bnpl`) that refuses sales under Rs 15,000 -- see
+`foneloan.js`.
 
 ## Test and live keys (every integration)
 

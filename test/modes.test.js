@@ -1358,3 +1358,26 @@ test('Wave 9 (0.23.0): self-serve BYOK -- n8n, GA4, TikTok Events, Resend, Twili
   for (const id of ['n8n', 'google_analytics', 'tiktok_events', 'resend', 'twilio', 'square', 'mollie', 'shippo', 'easypost', 'gelato', 'beds24', 'erpnext', 'odoo', 'bigcommerce', 'wix']) assert.equal(man.find((i) => i.id === id)?.status, 'available', id);
   for (const id of ['braintree', 'shipengine', 'prodigi', 'bigbuy', 'lodgify', 'discord', 'airtable', 'magento', 'klaviyo', 'pipedream']) assert.equal(man.find((i) => i.id === id)?.status, 'planned', id);
 });
+
+test('Subscription management (0.24.0): Foneloan Buy Now Pay Later QR, as is, from Rs 15,000', async () => {
+  const c = await paired();
+  const SAMPLE = '00020101021138160012com.foneloan5303524540719900.05802NP5918Oliz Store Pvt Ltd62200306OS00160506000230630422CD';
+  const sale = (amount, currency = 'NPR') => ({ context: { transaction: { id: 77, amount, currency, reference: 'Till' } } });
+  let man = await c.manifest();
+  const fl = man.find((i) => i.id === 'foneloan');
+  assert.equal(fl.category, 'subscriptions'); assert.equal(fl.bnplProvider, true); assert.equal(fl.status, 'available');
+  assert.deepEqual(fl.actions.find((a) => a.id === 'bnpl_qr').placement, ['bnpl'], 'hidden, never a button');
+  // a regular Fonepay QR is refused with a clear reason
+  let v = await c.save('foneloan', 'live', { FONELOAN_QR: '00020101021126330011fonepay.com0114222204001538835204599953035245802NP5908Shop One6009Kathmandu6304ABCD' });
+  assert.match(JSON.stringify(v), /check code|not a Foneloan QR/);
+  v = await c.save('foneloan', 'test', { FONELOAN_QR: SAMPLE });
+  assert.match(JSON.stringify(v), /Oliz Store Pvt Ltd.*fixed amount of Rs 19,900/);
+  assert.match((await c.act('foneloan', 'test', { mode: 'test' })).data.result.text, /store OS0016.*TEST QR/);
+  assert.match((await c.act('foneloan', 'bnpl_qr', { ...sale(14999), mode: 'test' })).error.message, /starts at Rs 15,000/);
+  assert.match((await c.act('foneloan', 'bnpl_qr', { ...sale(20000, 'USD'), mode: 'test' })).error.message, /NPR/);
+  let r = await c.act('foneloan', 'bnpl_qr', { ...sale(19900), mode: 'test' });
+  assert.equal(r.data.result.type, 'qr'); assert.equal(r.data.result.qrPayload, SAMPLE, 'shown exactly as entered');
+  assert.equal(r.data.result.livemode, false); assert.doesNotMatch(r.data.result.text, /fixed amount/);
+  r = await c.act('foneloan', 'bnpl_qr', { ...sale(25000), mode: 'test' });
+  assert.match(r.data.result.text, /fixed amount of Rs 19,900, not Rs 25,000/);
+});

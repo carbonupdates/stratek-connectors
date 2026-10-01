@@ -74,8 +74,9 @@ Amazon Supply Chain Services, which has no public API yet) in v0.18.0.
 scaffold by build wave, with who has to be approved (the business or Stratek). They are not in the table
 below yet; each moves into it when it is built.
 
-**v0.23.0: 64 built, 72 coming soon, 136 in total.** Wave 9 added 15 self-serve
-integrations and v0.23.0 lists 49 more (wave 10) as Coming soon -- see
+**v0.24.0: 65 built, 72 coming soon, 137 in total.** v0.24.0 adds the **Subscription
+management** category with Foneloan (Buy Now Pay Later). Wave 9 added 15 self-serve
+integrations and lists 49 more (wave 10) as Coming soon -- see
 [Not built yet](#not-built-yet-what-is-missing-and-why) below for every remaining one and
 why it isn't built.
 
@@ -216,6 +217,12 @@ keys once afterwards so both live and test payment notifications are registered.
 | [Meta Conversions API](https://developers.facebook.com/docs/marketing-api/conversions-api) | Test Meta Conversions API, Send sale to Meta Ads | Pixel / dataset ID, Conversions API access token, Graph API version (optional) | Test keys | **Available** |
 | [Google Analytics 4](https://developers.google.com/analytics/devguides/collection/protocol/ga4) | Test Google Analytics, Send sale to Google Analytics (purchase event) | Measurement ID, Measurement Protocol API secret | Validation only | **Available** (v0.23.0) |
 | [TikTok Events API](https://business-api.tiktok.com/portal/docs?id=1771100865818625) | Test TikTok Events, Send sale to TikTok Ads (hashed email / phone) | Pixel code, access token (+ test event code) | Test events | **Available** (v0.23.0) |
+
+### Subscription management (Buy Now Pay Later)
+
+| Integration | Buttons in Stratek | Keys (Set up form) | Test mode | Status |
+|---|---|---|---|---|
+| [Foneloan](https://foneloan.com.np/) | Check Foneloan QR; **Buy Now Pay Later** at the till & kiosk for sales from Rs 15,000 (tick on the row) | Foneloan QR text (from Foneloan / F1Soft -- Foneloan partner shops) | Any Foneloan QR, screens only | **Available** (v0.24.0) |
 
 ### Automation
 
@@ -462,6 +469,38 @@ or the company publishing an API.
 | [Amazon Supply Chain Services](https://supplychain.amazon.com/) | Manufacturing & fulfilment | Amazon's logistics network for any business: freight, storage and distribution. |
 | [Made-in-China.com](https://www.made-in-china.com/) | Suppliers & sourcing | Find verified Chinese manufacturers and send enquiries. |
 | [Foodmandu](https://foodmandu.com/) | Hotels & hospitality | Receive Foodmandu food-delivery orders (Nepal). |
+
+## Subscription management: Buy Now Pay Later with Foneloan (v0.24.0+)
+
+A new category, **Subscription management**: in Stratek's dashboard it sits
+with subscriptions, but for the customer it is simply **Buy Now Pay Later** --
+an EMI loan from their own bank. The bank pays the shop in full; the customer
+repays the bank in 3, 6, 9 or 12 months. Neither the shop nor Stratek lends.
+
+**Foneloan** (F1Soft's lending service, run by Nepali banks) -- for shops that
+are Foneloan partners. Foneloan has no public API, so this is bring-your-own-QR:
+
+1. Get your shop's Foneloan QR from Foneloan / F1Soft. It is an EMVCo QR whose
+   merchant account says `com.foneloan` (not your regular Fonepay QR).
+2. Integrations -> Subscription management -> **Foneloan** -> **Set up**: paste
+   the QR text (read it with any QR reader, e.g. zxing.org/w/decode; it starts
+   with `000201`). Saving checks the check code and that it is a Foneloan QR.
+   **Test keys:** any Foneloan QR you have, to try the screens -- never pay it.
+3. Press **Check Foneloan QR**, then tick **Show Buy Now Pay Later at the till &
+   kiosk (sales from Rs 15,000)**.
+
+At the till and kiosk, sales of **Rs 15,000 or more** (NPR) get a **Buy Now Pay
+Later** button next to the normal QR. It shows your Foneloan QR **exactly as you
+pasted it** (if the QR has a fixed amount that differs from the sale, the screen
+says so). Nothing reports the payment by itself: check that the bank paid you,
+then press **Settle**. The online store shows "Buy Now Pay Later from Rs 15,000"
+and, on orders from Rs 15,000, tells customers they can choose Buy Now Pay Later
+in a Foneloan partner bank's app when they scan the payment QR.
+
+Hidden action `bnpl_qr` (placement `bnpl`, never a button) takes
+`context.transaction` and refuses under Rs 15,000 or a non-NPR sale. Manifest
+flag `bnplProvider: true`. Foneloan-only QRs per item and 0% EMI campaigns (as on
+Hamrobazaar) need a Foneloan partnership; who pays for 0% EMI isn't public.
 
 ## Wave 9: self-serve BYOK (v0.23.0+)
 

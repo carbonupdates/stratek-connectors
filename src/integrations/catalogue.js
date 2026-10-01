@@ -6,6 +6,7 @@ import paypal from './paypal.js';
 import khalti from './khalti.js';
 import esewa from './esewa.js';
 import fonepay from './fonepay.js';
+import foneloan from './foneloan.js';
 import connectips from './connectips.js';
 import paybridgenp from './paybridgenp.js';
 import razorpay from './razorpay.js';
@@ -145,6 +146,7 @@ export const CATALOGUE = [
   khalti,
   esewa,
   fonepay,
+  foneloan,
   connectips,
   paybridgenp,
   razorpay,

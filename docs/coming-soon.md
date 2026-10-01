@@ -1,6 +1,6 @@
 # Integrations: finished, remaining and build waves
 
-**Tally (connector 0.23.0): 64 built, 72 coming soon, 136 in total** (the Connector itself not counted).
+**Tally (connector 0.24.0): 65 built, 72 coming soon, 137 in total** (the Connector itself not counted).
 
 Coming-soon ones are already in the catalogue as scaffolds (key fields and buttons drafted, `run` not built). To build one: follow `docs/adding-an-integration.md`, write each action, set `status: 'available'`, add a test, bump the version. Buttons only -- nothing runs by itself. Anything that spends money (labels, fulfilment, PCB and dropship orders, refunds) needs a person (AI agents can only ask).
 
@@ -26,6 +26,7 @@ Setting up the connector itself never needs anyone's approval.
 - **Wave 6 (0.20.0):** Printful, Printify, CJdropshipping
 - **Wave 7 (0.21.0):** Razorpay (UPI), Paytm, eBay, Amazon Seller
 - **Wave 8 (0.22.0):** Fonepay dynamic QR (direct), Yango Delivery
+- **Subscription management (0.24.0):** Foneloan -- Buy Now Pay Later QR at the till & kiosk from Rs 15,000 (bring your own Foneloan QR; the shop must be a Foneloan partner)
 - **Wave 9 (0.23.0):** Square, Mollie, Shippo, EasyPost, Gelato, Beds24, Twilio, Resend, ERPNext, Odoo, BigCommerce, Wix Stores, Google Analytics 4, TikTok Events API, n8n (all self-serve keys)
 
 ## Remaining (72)
