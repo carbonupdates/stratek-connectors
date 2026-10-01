@@ -52,10 +52,9 @@ and it would need a GitHub account per shop.)
 
 ## Integrations
 
-The catalogue below is what the connector knows. **Which of them a shop can
-use is decided by Stratek's admins** (Admin -> Integrations -> Availability, per
-shop currency -- e.g. NPR for shops in Nepal); a shop only sees and can use
-those, and the connector refuses the rest. **Available** ones can be set up
+The catalogue below is what the connector knows. **Every shop can use all of
+them** (Stratek's passes carry `int: '*'`; the connector still refuses anything
+a pass doesn't list, for older Stratek versions). **Available** ones can be set up
 today; **Coming soon** ones are scaffolds (buttons and key fields drafted,
 code not written yet) -- Stratek lists them but shows no buttons until a
 connector update makes them available. Key fields may change when each one is
@@ -231,12 +230,11 @@ keys once afterwards so both live and test payment notifications are registered.
 
 1. **In PayBridgeNP:** connect the shop's **Fonepay merchant account** (money goes
    there). Live Fonepay QRs need a PayBridgeNP **Pro** plan.
-2. Stratek admin enables PayBridgeNP for the shop (Availability, NPR).
-3. Integrations -> PayBridgeNP -> **Set up**: paste the secret key (`sk_test_...`
+2. Integrations -> PayBridgeNP -> **Set up**: paste the secret key (`sk_test_...`
    to try, `sk_live_...` for real; the key needs payment + webhook permissions).
    Saving it **registers payment notifications automatically** -- the Set up
    page says "payment notifications are switched on". Press **Test PayBridgeNP**.
-4. Tick **Use for the till & kiosk QR** on the PayBridgeNP row.
+3. Tick **Use for the till & kiosk QR** on the PayBridgeNP row.
 
 From then on:
 
@@ -282,11 +280,10 @@ and kiosk always use the live key.
 
 ### Using Pathao (available)
 
-1. Stratek admin enables Pathao for the shop (Availability, NPR).
-2. Integrations -> Pathao -> **Set up**: the **API base URL**, Client ID and
+1. Integrations -> Pathao -> **Set up**: the **API base URL**, Client ID and
    Client secret from Pathao Merchant -> Developer API (Merchant API
    Credentials), plus your Pathao merchant login email and password.
-3. Press **Test Pathao**: it signs in, lists your Pathao stores with their
+2. Press **Test Pathao**: it signs in, lists your Pathao stores with their
    IDs, and checks what the online store needs -- Pathao's city list and one
    sample delivery price ("live quotes work"). Put the right **Store ID** in
    Set up -- just the number (e.g. `130903`); Test Pathao says "Using store ID
@@ -294,14 +291,14 @@ and kiosk always use the live key.
    **Test keys:** Pathao's sandbox API address and test credentials; press
    **Test Pathao (test keys)** to check them. Test bookings go to Pathao's
    sandbox -- no rider is sent.
-4. **Send with Pathao** (red button) appears at the till right after **Charge
+3. **Send with Pathao** (red button) appears at the till right after **Charge
    total**, and on every sale's Details: recipient, phone, address, cash to
    collect, weight, note -> books the delivery. **Track Pathao delivery** (sale
    Details) shows its status.
-5. For the online store, Stratek uses Pathao's own city -> zone -> area lists
+4. For the online store, Stratek uses Pathao's own city -> zone -> area lists
    (cached for a day) and Pathao's price for each address, and books with that
    exact location.
-6. **Delivery notifications (v0.10.0+):** make up a long random **Webhook
+5. **Delivery notifications (v0.10.0+):** make up a long random **Webhook
    secret** and save it in Set up (Live keys and/or Test keys). The Set up page
    shows the **callback URL** (`<connector>/webhooks/pathao`, or
    `.../webhooks/pathao/test` for sandbox keys). In Pathao Merchant ->
@@ -757,4 +754,4 @@ Releasing a version (maintainers): change `src/`, bump the version in
   `catalogue.js`), `src/pages.js` (status and Set up pages), `src/auth.js`
   (pass checks), `src/state.js` (Durable Object), `scripts/bundle.mjs`
   (builds `dist/connector.json`, which Stratek installs, and
-  `dist/catalogue.json`, which Stratek's admin Availability table reads).
+  `dist/catalogue.json`, the published integration catalogue).

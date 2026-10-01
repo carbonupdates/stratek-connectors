@@ -465,9 +465,9 @@ its Set up page.
 
 `npm run bundle` also writes `dist/catalogue.json` -- `{ version, categories,
 integrations: [{ id, name, category, status, description, docsUrl, actions:
-[labels], secrets: [labels] }] }`. Stratek's admin panel reads it from GitHub to
-build the "Integration Permissions" table (Stratek admin), so a new integration appears
-there as soon as it is pushed (switched off until an admin enables it).
+[labels], secrets: [labels] }] }` -- the published catalogue. Stratek no longer
+restricts integrations per shop (passes carry `int: '*'`), so a new integration
+reaches every shop when it updates its connector.
 
 ## 8. Other routes
 
