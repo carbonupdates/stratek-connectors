@@ -493,9 +493,13 @@ At the till and kiosk, sales of **Rs 15,000 or more** (NPR) get a **Buy Now Pay
 Later** button next to the normal QR. It shows your Foneloan QR **exactly as you
 pasted it** (if the QR has a fixed amount that differs from the sale, the screen
 says so). Nothing reports the payment by itself: check that the bank paid you,
-then press **Settle**. The online store shows "Buy Now Pay Later from Rs 15,000"
-and, on orders from Rs 15,000, tells customers they can choose Buy Now Pay Later
-in a Foneloan partner bank's app when they scan the payment QR.
+then press **Settle**.
+
+Without any setup, Stratek also shows every customer a highlighted "you can pay
+in EMI if you qualify -- look for Buy Now Pay Later in your banking app" hint on
+any Fonepay QR for NPR sales of Rs 15,000 or more (till, customer display, kiosk,
+online store): eligible customers of Foneloan partner banks get that option on any
+Fonepay QR.
 
 Hidden action `bnpl_qr` (placement `bnpl`, never a button) takes
 `context.transaction` and refuses under Rs 15,000 or a non-NPR sale. Manifest
