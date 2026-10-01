@@ -73,6 +73,70 @@ import amazon_seller from './amazon_seller.js';
 import etsy from './etsy.js';
 import ebay from './ebay.js';
 import tiktok_shop from './tiktok_shop.js';
+import square from './square.js';
+import mollie from './mollie.js';
+import braintree from './braintree.js';
+import mercado_pago from './mercado_pago.js';
+import flutterwave from './flutterwave.js';
+import paystack from './paystack.js';
+import xendit from './xendit.js';
+import midtrans from './midtrans.js';
+import nowpayments from './nowpayments.js';
+import btcpay from './btcpay.js';
+import shippo from './shippo.js';
+import easypost from './easypost.js';
+import shipengine from './shipengine.js';
+import sendcloud from './sendcloud.js';
+import aftership from './aftership.js';
+import track17 from './track17.js';
+import gelato from './gelato.js';
+import prodigi from './prodigi.js';
+import lulu from './lulu.js';
+import bigbuy from './bigbuy.js';
+import beds24 from './beds24.js';
+import lodgify from './lodgify.js';
+import hostaway from './hostaway.js';
+import guesty from './guesty.js';
+import smoobu from './smoobu.js';
+import twilio from './twilio.js';
+import resend from './resend.js';
+import postmark from './postmark.js';
+import vonage from './vonage.js';
+import bird from './bird.js';
+import discord from './discord.js';
+import ms_teams from './ms_teams.js';
+import google_chat from './google_chat.js';
+import line from './line.js';
+import pushover from './pushover.js';
+import ntfy from './ntfy.js';
+import erpnext from './erpnext.js';
+import odoo from './odoo.js';
+import freshbooks from './freshbooks.js';
+import airtable from './airtable.js';
+import notion from './notion.js';
+import akaunting from './akaunting.js';
+import manager_io from './manager_io.js';
+import bigcommerce from './bigcommerce.js';
+import wix from './wix.js';
+import squarespace from './squarespace.js';
+import ecwid from './ecwid.js';
+import magento from './magento.js';
+import prestashop from './prestashop.js';
+import opencart from './opencart.js';
+import google_merchant from './google_merchant.js';
+import gumroad from './gumroad.js';
+import google_analytics from './google_analytics.js';
+import tiktok_events from './tiktok_events.js';
+import klaviyo from './klaviyo.js';
+import brevo from './brevo.js';
+import mailerlite from './mailerlite.js';
+import activecampaign from './activecampaign.js';
+import pipedrive from './pipedrive.js';
+import zoho_crm from './zoho_crm.js';
+import n8n from './n8n.js';
+import pipedream from './pipedream.js';
+import ifttt from './ifttt.js';
+import power_automate from './power_automate.js';
 
 export const CATALOGUE = [
   ai_employee,
@@ -91,6 +155,16 @@ export const CATALOGUE = [
   alipay,
   paytm,
   payoneer,
+  square,
+  mollie,
+  braintree,
+  mercado_pago,
+  flutterwave,
+  paystack,
+  xendit,
+  midtrans,
+  nowpayments,
+  btcpay,
   pathao,
   yango,
   pickndrop,
@@ -102,6 +176,12 @@ export const CATALOGUE = [
   easyship,
   shipstation,
   shiprocket,
+  shippo,
+  easypost,
+  shipengine,
+  sendcloud,
+  aftership,
+  track17,
   slant3d,
   amazon_mcf,
   amazon_scs,
@@ -110,10 +190,14 @@ export const CATALOGUE = [
   pcbway,
   printful,
   printify,
+  gelato,
+  prodigi,
+  lulu,
   alibaba,
   aliexpress,
   cj_dropshipping,
   made_in_china,
+  bigbuy,
   cloudbeds,
   mews,
   opera_cloud,
@@ -123,16 +207,39 @@ export const CATALOGUE = [
   airbnb,
   opentable,
   foodmandu,
+  beds24,
+  lodgify,
+  hostaway,
+  guesty,
+  smoobu,
   whatsapp,
   sparrow_sms,
   telegram,
   viber,
   slack,
+  twilio,
+  resend,
+  postmark,
+  vonage,
+  bird,
+  discord,
+  ms_teams,
+  google_chat,
+  line,
+  pushover,
+  ntfy,
   ird_cbms,
   quickbooks,
   xero,
   google_sheets,
   zoho_books,
+  erpnext,
+  odoo,
+  freshbooks,
+  airtable,
+  notion,
+  akaunting,
+  manager_io,
   shopify,
   woocommerce,
   daraz,
@@ -140,11 +247,32 @@ export const CATALOGUE = [
   etsy,
   ebay,
   tiktok_shop,
+  bigcommerce,
+  wix,
+  squarespace,
+  ecwid,
+  magento,
+  prestashop,
+  opencart,
+  google_merchant,
+  gumroad,
   meta_catalog,
   mailchimp,
   hubspot,
   meta_capi,
+  google_analytics,
+  tiktok_events,
+  klaviyo,
+  brevo,
+  mailerlite,
+  activecampaign,
+  pipedrive,
+  zoho_crm,
   webhook,
   zapier,
   make,
+  n8n,
+  pipedream,
+  ifttt,
+  power_automate,
 ];

@@ -126,4 +126,5 @@ units), `_hooks.js` (customerOf(), sale payloads, https-only URLs), `_nepal.js`
 (BS dates, hosted form / result pages, emitPaid), `_oauth.js` (Connect buttons,
 token refresh), `_sync.js` (inventory push, 20 per press) and `_ship.js`
 (delivery form, pickup address, SKU lists, labels, one shipment per sale,
-cached access tokens). Anything that spends money sets `outbound: true`.
+cached access tokens) and `_receipt.js` (receipt text / HTML for SMS and email).
+Anything that spends money sets `outbound: true`.

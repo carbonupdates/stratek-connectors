@@ -51,6 +51,7 @@ const w5Calls = [];
 const w6Calls = [];
 const w7Calls = []; const w7State = {};
 const w8Calls = []; const w8State = {};
+const w9Calls = []; const w9State = {};
 const hookCalls = []; const smsCalls = []; const gCalls = []; const gTabs = ['Sheet1']; const mcCalls = []; const hsCalls = [];
 globalThis.fetch = async (input, init) => {
   const req = input instanceof Request ? input : new Request(input, init);
@@ -140,6 +141,79 @@ globalThis.fetch = async (input, init) => {
     if (p.endsWith('/claims/create')) return Response.json({ id: 'claim-77', status: 'new', version: 1 });
     if (p.endsWith('/claims/info')) { w8State.infos = (w8State.infos || 0) + 1; return Response.json(w8State.infos === 1 ? { id: 'claim-77', status: 'estimating', version: 1 } : w8State.accepted ? { id: 'claim-77', status: 'performer_found', performer_info: { courier_name: 'Ali', car_model: 'Toyota' } } : { id: 'claim-77', status: 'ready_for_approval', version: 2, pricing: { offer: { price: '4.20' }, currency: 'AED' } }); }
     if (p.endsWith('/claims/accept')) { w8State.accepted = true; return Response.json({ id: 'claim-77', status: 'accepted' }); }
+  }
+  if (['n8n.example.com', 'www.google-analytics.com', 'business-api.tiktok.com', 'api.resend.com', 'api.twilio.com', 'connect.squareupsandbox.com', 'api.mollie.com', 'api.goshippo.com', 'api.easypost.com', 'order.gelatoapis.com', 'beds24.com', 'erp.example.com', 'chyau.odoo.com', 'api.bigcommerce.com', 'www.wixapis.com'].includes(u.host)) {
+    const raw = req.method === 'GET' ? '' : await req.clone().text(); let jb = null; try { jb = raw ? JSON.parse(raw) : null; } catch { jb = Object.fromEntries(new URLSearchParams(raw)); }
+    const p = u.pathname; w9Calls.push({ host: u.host, method: req.method, path: p + u.search, body: jb, raw, headers: Object.fromEntries(req.headers) });
+    const J = (x, s = 200) => Response.json(x, { status: s });
+    switch (u.host) {
+      case 'n8n.example.com': return req.headers.get('x-stratek-key') === 'k1' ? J({ ok: true }) : J({ message: 'Authorization data is wrong!' }, 403);
+      case 'www.google-analytics.com': return p.startsWith('/debug/') ? J({ validationMessages: jb.events[0].params.currency ? [] : [] }) : new Response(null, { status: 204 });
+      case 'business-api.tiktok.com': return J({ code: req.headers.get('access-token') === 'tt' ? 0 : 40001, message: req.headers.get('access-token') === 'tt' ? 'OK' : 'Access token invalid' });
+      case 'api.resend.com': if (p === '/domains') return J({ data: [{ name: 'chyau.com', status: 'verified' }] }); return J({ id: 'em_1' });
+      case 'api.twilio.com': if (p.endsWith('.json') && req.method === 'GET') return J({ friendly_name: 'Chyau', status: 'active', type: 'Full' }); return J({ sid: 'SM1', to: jb.To, status: 'queued' }, 201);
+      case 'connect.squareupsandbox.com':
+        if (p === '/v2/locations') return J({ locations: [{ id: 'L1', name: 'Main', status: 'ACTIVE', currency: 'USD' }] });
+        if (p === '/v2/online-checkout/payment-links') return J({ payment_link: { id: 'PL1', url: 'https://square.link/u/abc', order_id: 'O1' } });
+        if (p === '/v2/orders/O1') return J({ order: w9State.sqPaid ? { id: 'O1', state: 'OPEN', total_money: { amount: 1250, currency: 'USD' }, net_amount_due_money: { amount: 0 }, tenders: [{ id: 'T1', payment_id: 'PAY1' }] } : { id: 'O1', state: 'DRAFT', total_money: { amount: 1250 } } });
+        if (p === '/v2/refunds') return J({ refund: { id: 'R1', status: 'PENDING' } });
+        break;
+      case 'api.mollie.com':
+        if (p === '/v2/methods') return J({ _embedded: { methods: [{ description: 'iDEAL' }, { description: 'Card' }] } });
+        if (p === '/v2/payments' && req.method === 'POST') return J({ id: 'tr_ABC123', mode: 'test', status: 'open', _links: { checkout: { href: 'https://www.mollie.com/checkout/select-method/ABC' } } }, 201);
+        if (p === '/v2/payments/tr_ABC123') return J({ id: 'tr_ABC123', mode: 'test', status: w9State.moPaid ? 'paid' : 'open', method: 'ideal', amount: { currency: 'EUR', value: '12.50' } });
+        break;
+      case 'api.goshippo.com':
+        if (p === '/shipments') return J({ rates: [{ object_id: 'r2', provider: 'UPS', servicelevel: { name: 'Ground' }, amount: '9.10', currency: 'USD', estimated_days: 3 }, { object_id: 'r1', provider: 'USPS', servicelevel: { name: 'Priority Mail' }, amount: '7.20', currency: 'USD', estimated_days: 2 }] }, 201);
+        if (p === '/transactions') return J({ status: 'SUCCESS', tracking_number: '9205500000000000000001', label_url: 'https://shippo-delivery.s3.amazonaws.com/label.pdf' }, 201);
+        return J({ tracking_status: { status: 'TRANSIT', status_details: 'In transit', location: { city: 'Chicago' } } });
+      case 'api.easypost.com':
+        if (p === '/v2/shipments') return J({ id: 'shp_1', rates: [{ id: 'rate_b', carrier: 'FedEx', service: 'Ground', rate: '11.00', currency: 'USD' }, { id: 'rate_a', carrier: 'USPS', service: 'Priority', rate: '8.00', currency: 'USD', delivery_days: 2 }] });
+        if (p === '/v2/shipments/shp_1/buy') return J({ tracking_code: 'EZ1000000001', postage_label: { label_url: 'https://easypost-files.s3.amazonaws.com/label.png', label_pdf_url: 'https://easypost-files.s3.amazonaws.com/label.pdf' }, tracker: { id: 'trk_1', public_url: 'https://track.easypost.com/x' } });
+        return J({ status: 'in_transit', tracking_details: [{ message: 'Departed', tracking_location: { city: 'Memphis' } }] });
+      case 'order.gelatoapis.com':
+        if (p === '/v4/orders:quote') return J({ quotes: [{ fulfillmentCountry: 'IN', products: [{ price: 4.5, currency: 'USD' }], shipmentMethods: [{ name: 'Express', price: 9 }, { name: 'Standard', price: 3.2, minDeliveryDays: 3, maxDeliveryDays: 6 }] }] });
+        if (p === '/v4/orders') return J({ id: 'gel-1', fulfillmentStatus: 'created' });
+        return J({ id: 'gel-1', fulfillmentStatus: 'shipped', shipment: { shipmentMethodName: 'Standard', packages: [{ trackingCode: 'GT1', trackingUrl: 'https://t.gelato.com/GT1' }] } });
+      case 'beds24.com':
+        if (p === '/api/v2/authentication/setup') return req.headers.get('code') === 'INV1' ? J({ token: 'b24tok', expiresIn: 86400, refreshToken: 'b24ref' }) : J({ success: false, error: 'Invalid code' }, 400);
+        if (p === '/api/v2/authentication/token') return J({ token: 'b24tok2', expiresIn: 86400 });
+        if (p === '/api/v2/properties') return J({ data: [{ name: 'Himalaya Homestay', roomTypes: [{ id: 10, name: 'Double', units: [{ id: 1, name: '101' }, { id: 2, name: '102' }] }] }] });
+        if (p === '/api/v2/bookings' && req.method === 'GET') return J({ data: u.searchParams.get('filter') === 'arrivals' ? [{ id: 9, firstName: 'Li', lastName: 'Wei', status: 'confirmed' }] : [{ id: 7, firstName: 'Anna', lastName: 'Berg', roomId: 10, unitId: 2, status: 'confirmed' }, { id: 8, firstName: 'Old', lastName: 'Guest', roomId: 10, unitId: 1, status: 'cancelled' }] });
+        if (p === '/api/v2/bookings') return J([{ success: true, modified: { id: 7 } }]);
+        break;
+      case 'erp.example.com':
+        if (p.endsWith('get_logged_user')) return J({ message: 'api@chyau.com' });
+        if (p === '/api/resource/Customer/Walk-in%20Customer') return J({ data: { name: 'Walk-in Customer' } });
+        if (p === '/api/resource/Item/STRATEK-SALE') return J({ exc_type: 'DoesNotExistError' }, 404);
+        if (p === '/api/resource/Item') return J({ data: { name: 'STRATEK-SALE' } });
+        if (p === '/api/resource/Sales%20Invoice') return J({ data: { name: 'ACC-SINV-2026-00007', grand_total: jb.items.reduce((s, i) => s + i.qty * i.rate, 0) } });
+        break;
+      case 'chyau.odoo.com': {
+        const { service, method, args } = jb.params;
+        if (service === 'common' && method === 'version') return J({ result: { server_version: '18.0' } });
+        if (service === 'common' && method === 'authenticate') return J({ result: args[2] === 'odoo-key' ? 2 : false });
+        const [, , , model, m, a] = args;
+        if (model === 'res.partner' && m === 'search') return J({ result: [] });
+        if (model === 'res.partner' && m === 'create') return J({ result: 41 });
+        if (model === 'account.move' && m === 'create') return J({ result: 501 });
+        if (model === 'account.move' && m === 'action_post') return J({ result: true });
+        return J({ error: { message: 'unexpected', data: { message: `${model}.${m}` } } });
+      }
+      case 'api.bigcommerce.com':
+        if (p.endsWith('/v2/store')) return J({ name: 'Chyau Store', currency: 'USD' });
+        if (p.endsWith('/v3/catalog/products') && req.method === 'POST') return J({ data: { id: 111 + w9Calls.filter((x) => x.host === 'api.bigcommerce.com' && x.method === 'POST').length } });
+        if (p.includes('/v3/catalog/products/')) return J({ data: { id: Number(p.split('/').pop()) } });
+        if (p.endsWith('/v2/orders')) return J([{ id: 100, status: 'Awaiting Fulfillment', currency_code: 'USD', total_inc_tax: '21.00' }]);
+        break;
+      case 'www.wixapis.com':
+        if (p === '/stores/v3/products/query') return J({ products: [], pagingMetadata: { count: 0 } });
+        if (p === '/stores/v3/products-with-inventory' && req.method === 'POST') return J({ product: { id: `wx-${jb.product.variantsInfo.variants[0].sku}` } });
+        if (p.startsWith('/stores/v3/products/wx-')) return J({ product: { id: p.split('/').pop().split('?')[0], revision: '3', variantsInfo: { variants: [{ id: 'var-1' }] } } });
+        if (p.startsWith('/stores/v3/products-with-inventory/')) return J({ product: { id: 'x' } });
+        if (p === '/ecom/v1/orders/search') return J({ orders: [{ number: '10001', paymentStatus: 'PAID', priceSummary: { total: { formattedAmount: '$21.00' } } }] });
+        break;
+    }
   }
   if (u.host === 'express.api.dhl.com') { dhCalls.push({ method: req.method, path: u.pathname + u.search, body, auth: req.headers.get('Authorization') }); if (u.pathname.endsWith('/rates')) return Response.json({ products: [{ productName: 'EXPRESS WORLDWIDE', totalPrice: [{ currencyType: 'BILLC', priceCurrency: 'NPR', price: 7420 }], deliveryCapabilities: { estimatedDeliveryDateAndTime: '2026-10-04T23:59:00' } }] }); if (u.pathname.endsWith('/shipments')) return Response.json({ shipmentTrackingNumber: '1234567890', documents: [{ typeCode: 'label', content: btoa('%PDF-1.4 fake') }] }); return Response.json({ shipments: [{ status: 'transit', events: [{ description: 'Processed at KATHMANDU', date: '2026-10-02' }] }] }); }
   if (u.host === 'api.printful.com' || u.host === 'api.printify.com' || u.host === 'developers.cjdropshipping.com') {
@@ -1131,4 +1205,156 @@ test('Wave 8 (0.22.0): Fonepay dynamic QR (direct) and Yango Delivery', async ()
   const man = await c.manifest();
   for (const id of ['fonepay', 'yango']) assert.equal(man.find((i) => i.id === id).status, 'available', id);
   for (const id of ['pickndrop', 'indrive', 'amazon_scs']) assert.equal(man.find((i) => i.id === id).status, 'planned', id);
+});
+
+test('Wave 9 (0.23.0): self-serve BYOK -- n8n, GA4, TikTok Events, Resend, Twilio, Square, Mollie, Shippo, EasyPost, Gelato, Beds24, ERPNext, Odoo, BigCommerce, Wix', async () => {
+  const c = await paired();
+  const now = Math.floor(Date.now() / 1000);
+  const apiKeyPass = () => pass({ iss: STRATEK, aud: 'conn-1', sub: 'merchant:1', iat: now, exp: now + 60, src: 'api_key' });
+  const usd = { context: { transaction: { id: 120, amount: 12.5, currency: 'USD', reference: 'Online order #40', items: [{ id: 3, sku: 'MUG-01', name: 'Mug', price: 5, qty: 2 }], bill: { vat: 2.5 }, createdAt: '2026-10-01 07:00:00' }, customer: { name: 'Jane Doe', email: 'jane@x.com', phone: '+12125550111' } } };
+  const eur = { context: { transaction: { ...usd.context.transaction, id: 121, currency: 'EUR' } } };
+  const menuCtx = { context: { menu: { currency: 'USD', items: [{ id: 1, sku: 'OYS-250', name: 'Oyster pack', price: 3, available: true, description: 'Fresh', photo: 'https://strateknepal.com/media/menu/1.jpg' }, { id: 2, name: 'Shiitake', price: 5, available: false }] } } };
+  const to = { recipientAddress: '5 Park Ave', recipientCity: 'New York', recipientState: 'NY', recipientPostalCode: '10016', country: 'US', weight: 1 };
+  const shipper = (P) => ({ [`${P}_SHIPPER_NAME`]: 'Chyau Bio', [`${P}_SHIPPER_PHONE`]: '+9779800000000', [`${P}_SHIPPER_ADDRESS`]: 'Jhamsikhel', [`${P}_SHIPPER_CITY`]: 'Lalitpur', [`${P}_SHIPPER_POSTAL_CODE`]: '44700' });
+  const calls = (host, path) => w9Calls.filter((x) => x.host === host && (!path || x.path.includes(path)));
+  let r; let b;
+  // ── n8n (header auth) ──
+  await c.save('n8n', 'live', { N8N_WEBHOOK_URL: 'https://n8n.example.com/webhook/abc', N8N_HEADER_NAME: 'X-Stratek-Key', N8N_HEADER_VALUE: 'k1' });
+  assert.match((await c.act('n8n', 'test')).data.result.title, /received/);
+  r = await c.act('n8n', 'send', usd, await apiKeyPass()); assert.equal(r.success, true);
+  assert.equal(calls('n8n.example.com').at(-1).body.sale.id, '120');
+  assert.equal((await c.act('n8n', 'send_inventory', menuCtx)).data.result.text, '2 items sent.');
+  // ── Google Analytics 4 ──
+  await c.save('google_analytics', 'live', { GA4_MEASUREMENT_ID: 'G-ABC123', GA4_API_SECRET: 'sec' });
+  assert.match((await c.act('google_analytics', 'test')).data.result.text, /G-ABC123 accepted/);
+  r = await c.act('google_analytics', 'send_purchase', usd);
+  b = calls('www.google-analytics.com', '/mp/collect').filter((x) => !x.path.startsWith('/debug')).at(-1);
+  assert.match(b.path, /measurement_id=G-ABC123&api_secret=sec/); assert.equal(b.body.events[0].name, 'purchase'); assert.equal(b.body.events[0].params.transaction_id, 'stratek-120'); assert.equal(b.body.events[0].params.items[0].quantity, 2);
+  assert.match((await c.act('google_analytics', 'send_purchase', usd)).data.result.title, /Already sent/);
+  await c.save('google_analytics', 'test', { GA4_MEASUREMENT_ID: 'G-ABC123', GA4_API_SECRET: 'sec' });
+  assert.match((await c.act('google_analytics', 'send_purchase', { ...usd, mode: 'test' })).data.result.title, /test mode/, 'test mode only validates');
+  // ── TikTok Events ──
+  await c.save('tiktok_events', 'live', { TIKTOK_PIXEL_CODE: 'C1PIX', TIKTOK_ACCESS_TOKEN: 'tt' });
+  assert.match((await c.act('tiktok_events', 'test')).data.result.text, /TEST00000/);
+  r = await c.act('tiktok_events', 'send_purchase', usd);
+  b = calls('business-api.tiktok.com').at(-1).body;
+  assert.equal(b.event_source_id, 'C1PIX'); assert.equal(b.data[0].event, 'Purchase'); assert.match(b.data[0].user.email, /^[0-9a-f]{64}$/, 'email hashed'); assert.equal(b.test_event_code, undefined);
+  // ── Resend ──
+  await c.save('resend', 'live', { RESEND_API_KEY: 're_x', RESEND_FROM: 'Chyau <receipts@chyau.com>' });
+  assert.match((await c.act('resend', 'test')).data.result.text, /chyau.com \(verified\)/);
+  r = await c.act('resend', 'send_receipt', usd);
+  b = calls('api.resend.com', '/emails').at(-1);
+  assert.deepEqual(b.body.to, ['jane@x.com']); assert.match(b.body.html, /Mug/); assert.match(b.body.html, /VAT/); assert.equal(b.headers['idempotency-key'], 'receipt-120');
+  // ── Twilio ──
+  await c.save('twilio', 'live', { TWILIO_ACCOUNT_SID: 'AC' + 'a'.repeat(32), TWILIO_AUTH_TOKEN: 'tok', TWILIO_FROM: '+15005550006' });
+  assert.match((await c.act('twilio', 'test')).data.result.text, /Chyau \(active\)/);
+  r = await c.act('twilio', 'send_receipt', { ...usd, fields: { phone: '9800000001' } });
+  b = calls('api.twilio.com', '/Messages.json').at(-1).body;
+  assert.equal(b.To, '+9779800000001', 'Nepali mobile gets +977'); assert.equal(b.From, '+15005550006'); assert.match(b.Body, /receipt #120/);
+  assert.match((await c.act('twilio', 'send_receipt', { ...usd, fields: { whatsapp: 'yes' } })).error.message, /WhatsApp sender/);
+  // ── Square (sandbox) ──
+  await c.save('square', 'test', { SQUARE_ACCESS_TOKEN: 'EAAA' });
+  assert.match((await c.act('square', 'test', { mode: 'test' })).data.result.text, /Main \(USD\)/);
+  r = await c.act('square', 'payment_link', { ...usd, mode: 'test' });
+  assert.equal(r.data.result.qrPayload, 'https://square.link/u/abc');
+  b = calls('connect.squareupsandbox.com', 'payment-links')[0];
+  assert.equal(b.body.quick_pay.price_money.amount, 1250); assert.equal(b.body.quick_pay.location_id, 'L1'); assert.ok(b.headers['square-version']);
+  assert.match((await c.act('square', 'check', { ...usd, mode: 'test' })).data.result.status, /Waiting/);
+  w9State.sqPaid = true; stratekEvents.length = 0;
+  assert.match((await c.act('square', 'check', { ...usd, mode: 'test' })).data.result.status, /Paid/);
+  assert.equal(stratekEvents.length, 1); assert.equal(stratekEvents[0].body.data.amount, 12.5); assert.equal(stratekEvents[0].body.data.providerRef, 'PAY1');
+  assert.equal((await c.act('square', 'refund', { ...usd, mode: 'test', fields: {} }, await apiKeyPass())).error.code, 'APPROVAL_REQUIRED');
+  r = await c.act('square', 'refund', { ...usd, mode: 'test', fields: { amount: 5 } });
+  assert.equal(calls('connect.squareupsandbox.com', '/v2/refunds')[0].body.amount_money.amount, 500);
+  // ── Mollie (webhook -> status check) ──
+  await c.save('mollie', 'test', { MOLLIE_API_KEY: 'test_abc' });
+  assert.match((await c.act('mollie', 'test', { mode: 'test' })).data.result.text, /TEST key.*iDEAL/);
+  r = await c.act('mollie', 'payment_link', { ...eur, mode: 'test' });
+  assert.equal(r.data.result.qrPayload, 'https://www.mollie.com/checkout/select-method/ABC');
+  b = calls('api.mollie.com', '/v2/payments').find((x) => x.method === 'POST').body;
+  assert.deepEqual(b.amount, { currency: 'EUR', value: '12.50' }); assert.match(b.webhookUrl, /\/webhooks\/mollie\/test$/);
+  w9State.moPaid = true; stratekEvents.length = 0;
+  let res = await go(c.env, '/webhooks/mollie/test', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'id=tr_ABC123' });
+  assert.equal(res.status, 200); assert.equal(stratekEvents.length, 1); assert.equal(stratekEvents[0].body.data.currency, 'EUR');
+  assert.match((await c.act('mollie', 'check', { ...eur, mode: 'test' })).data.result.status, /Paid/); assert.equal(stratekEvents.length, 1, 'reported once');
+  res = await go(c.env, '/webhooks/mollie/test', { method: 'POST', body: 'id=tr_UNKNOWN9' }); assert.equal(res.status, 200); assert.equal(stratekEvents.length, 1, 'unknown payment ignored');
+  // ── Shippo ──
+  await c.save('shippo', 'test', { SHIPPO_TOKEN: 'shippo_test_x', ...shipper('SHIPPO') });
+  assert.match((await c.act('shippo', 'quote', { ...usd, mode: 'test', fields: to })).data.result.text, /^USPS Priority Mail: USD 7.20/);
+  assert.equal(calls('api.goshippo.com', '/shipments')[0].headers.authorization, 'ShippoToken shippo_test_x');
+  assert.ok(calls('api.goshippo.com', '/shipments')[0].body.customs_declaration, 'international -> customs');
+  assert.equal((await c.act('shippo', 'create_shipment', { ...usd, mode: 'test', fields: to }, await apiKeyPass())).error.code, 'APPROVAL_REQUIRED');
+  r = await c.act('shippo', 'create_shipment', { ...usd, mode: 'test', fields: { ...to, service: 'ups ground' } });
+  assert.equal(calls('api.goshippo.com', '/transactions')[0].body.rate, 'r2', 'picked service'); assert.equal(r.data.result.url, 'https://shippo-delivery.s3.amazonaws.com/label.pdf');
+  assert.match((await c.act('shippo', 'track', { ...usd, mode: 'test' })).data.result.text, /Chicago/);
+  assert.match(calls('api.goshippo.com', '/tracks/')[0].path, /\/tracks\/ups\/9205500000000000000001/);
+  // ── EasyPost ──
+  await c.save('easypost', 'test', { EASYPOST_API_KEY: 'EZTK', ...shipper('EASYPOST') });
+  r = await c.act('easypost', 'create_shipment', { ...usd, mode: 'test', fields: to });
+  assert.equal(r.success, true, JSON.stringify(r)); assert.deepEqual(calls('api.easypost.com', '/buy')[0].body, { rate: { id: 'rate_a' } }, 'cheapest');
+  b = calls('api.easypost.com', '/v2/shipments')[0].body.shipment;
+  assert.equal(b.parcel.weight, 35.3, 'kg -> oz'); assert.equal(b.customs_info.customs_items[0].quantity, 2);
+  assert.match((await c.act('easypost', 'track', { ...usd, mode: 'test' })).data.result.text, /Memphis/);
+  // ── Gelato ──
+  await c.save('gelato', 'live', { GELATO_API_KEY: 'gk' });
+  const gf = { ...to, skus: 'flat_a4 x2', fileUrl: 'https://cdn.chyau.com/poster.pdf' };
+  assert.match((await c.act('gelato', 'quote', { ...usd, fields: gf })).data.result.text, /Products USD 4.50 \+ Standard 3.2 \(3-6 days\), printed in IN/);
+  assert.match((await c.act('gelato', 'quote', { ...usd, fields: { ...gf, fileUrl: 'http://x' } })).error.message, /https/);
+  r = await c.act('gelato', 'confirm_order', { ...usd, fields: gf });
+  b = calls('order.gelatoapis.com', '/v4/orders').find((x) => x.method === 'POST' && x.path === '/v4/orders').body;
+  assert.equal(b.orderType, 'order'); assert.equal(b.items[0].productUid, 'flat_a4'); assert.equal(b.items[0].quantity, 2); assert.equal(b.shippingAddress.firstName, 'Jane');
+  assert.match((await c.act('gelato', 'track', usd)).data.result.text, /GT1/);
+  // ── Beds24 (invite code -> refresh token on save) ──
+  await c.save('beds24', 'live', { BEDS24_INVITE_CODE: 'INV1' });
+  assert.equal(c.env._map.get('data:beds24:auth').refreshToken, 'b24ref');
+  assert.match((await c.act('beds24', 'test')).data.result.text, /Himalaya Homestay/);
+  assert.match((await c.act('beds24', 'in_house')).data.result.text, /^102 Anna Berg$/, 'cancelled booking left out');
+  assert.match((await c.act('beds24', 'arrivals')).data.result.text, /Li Wei/);
+  assert.equal((await c.act('beds24', 'post_to_room', { ...usd, fields: { roomOrGuest: '102' } }, await apiKeyPass())).error.code, 'APPROVAL_REQUIRED');
+  r = await c.act('beds24', 'post_to_room', { ...usd, fields: { roomOrGuest: '102' } });
+  assert.equal(r.success, true, JSON.stringify(r));
+  b = calls('beds24.com', '/api/v2/bookings').find((x) => x.method === 'POST').body;
+  assert.equal(b[0].id, 7); assert.equal(b[0].invoiceItems[0].qty, 2); assert.equal(b[0].invoiceItems[1].amount, 2.5, 'VAT line');
+  // ── ERPNext ──
+  await c.save('erpnext', 'live', { ERPNEXT_URL: 'https://erp.example.com', ERPNEXT_API_KEY: 'k', ERPNEXT_API_SECRET: 's' });
+  assert.match((await c.act('erpnext', 'test')).data.result.text, /api@chyau.com/);
+  assert.equal(calls('erp.example.com')[0].headers.authorization, 'token k:s');
+  r = await c.act('erpnext', 'send_sale', { context: { transaction: usd.context.transaction } });
+  assert.match(r.data.result.text, /ACC-SINV-2026-00007 \(draft\) for USD 12.5/);
+  b = calls('erp.example.com', 'Sales%20Invoice')[0].body;
+  assert.equal(b.customer, 'Walk-in Customer'); assert.equal(b.docstatus, 0); assert.equal(b.items[0].item_code, 'STRATEK-SALE'); assert.equal(b.items.length, 2);
+  assert.equal(calls('erp.example.com', '/api/resource/Item').filter((x) => x.method === 'POST').length, 1, 'service item created once');
+  assert.match((await c.act('erpnext', 'send_sale', usd)).data.result.title, /Already/);
+  // ── Odoo ──
+  await c.save('odoo', 'live', { ODOO_URL: 'https://chyau.odoo.com', ODOO_LOGIN: 'api@chyau.com', ODOO_API_KEY: 'odoo-key', ODOO_POST: 'yes' });
+  assert.match((await c.act('odoo', 'test')).data.result.text, /Odoo 18.0, database chyau, user ID 2/);
+  r = await c.act('odoo', 'send_sale', usd);
+  assert.match(r.data.result.text, /Invoice ID 501 \(posted\)/);
+  const mv = calls('chyau.odoo.com').find((x) => x.body.params.args[4] === 'create' && x.body.params.args[3] === 'account.move').body.params.args[5][0];
+  assert.equal(mv.move_type, 'out_invoice'); assert.equal(mv.partner_id, 41); assert.equal(mv.invoice_line_ids[0][2].quantity, 2);
+  // ── BigCommerce ──
+  await c.save('bigcommerce', 'live', { BIGCOMMERCE_STORE_HASH: 'abc123xyz', BIGCOMMERCE_ACCESS_TOKEN: 'bct' });
+  assert.match((await c.act('bigcommerce', 'test')).data.result.text, /"Chyau Store" \(USD\)/);
+  r = await c.act('bigcommerce', 'sync_menu', menuCtx, await apiKeyPass());
+  assert.match(r.data.result.text, /2 added/);
+  b = calls('api.bigcommerce.com', '/v3/catalog/products')[0];
+  assert.equal(b.headers['x-auth-token'], 'bct'); assert.equal(b.body.sku, 'OYS-250'); assert.equal(b.body.type, 'physical');
+  r = await c.act('bigcommerce', 'sync_menu', { context: { menu: { items: [{ ...menuCtx.context.menu.items[0], price: 4 }, menuCtx.context.menu.items[1]] } } });
+  assert.match(r.data.result.text, /1 updated/); assert.equal(calls('api.bigcommerce.com').filter((x) => x.method === 'PUT').length, 1);
+  assert.match((await c.act('bigcommerce', 'orders')).data.result.text, /#100 Awaiting Fulfillment USD 21.00/);
+  // ── Wix Stores (Catalog V3) ──
+  await c.save('wix', 'live', { WIX_API_KEY: 'IST.x', WIX_SITE_ID: 'site-1' });
+  assert.match((await c.act('wix', 'test')).data.result.text, /reachable/);
+  r = await c.act('wix', 'sync_menu', menuCtx);
+  assert.match(r.data.result.text, /2 added/);
+  b = calls('www.wixapis.com', '/stores/v3/products-with-inventory')[0];
+  assert.equal(b.headers['wix-site-id'], 'site-1'); assert.equal(b.headers.authorization, 'IST.x'); assert.equal(b.body.product.variantsInfo.variants[0].price.actualPrice.amount, '3.00');
+  r = await c.act('wix', 'sync_menu', { context: { menu: { items: [{ ...menuCtx.context.menu.items[0], price: 4 }, menuCtx.context.menu.items[1]] } } });
+  const pt = calls('www.wixapis.com').find((x) => x.method === 'PATCH').body.product;
+  assert.equal(pt.revision, '3'); assert.equal(pt.variantsInfo.variants[0].id, 'var-1'); assert.equal(pt.variantsInfo.variants[0].price.actualPrice.amount, '4.00');
+  assert.match((await c.act('wix', 'orders')).data.result.text, /#10001 PAID \$21.00/);
+  // ── catalogue ──
+  const man = await c.manifest();
+  for (const id of ['n8n', 'google_analytics', 'tiktok_events', 'resend', 'twilio', 'square', 'mollie', 'shippo', 'easypost', 'gelato', 'beds24', 'erpnext', 'odoo', 'bigcommerce', 'wix']) assert.equal(man.find((i) => i.id === id)?.status, 'available', id);
+  for (const id of ['braintree', 'shipengine', 'prodigi', 'bigbuy', 'lodgify', 'discord', 'airtable', 'magento', 'klaviyo', 'pipedream']) assert.equal(man.find((i) => i.id === id)?.status, 'planned', id);
 });

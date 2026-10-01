@@ -75,6 +75,11 @@ Amazon Supply Chain Services, which has no public API yet) in v0.18.0.
 scaffold by build wave, with who has to be approved (the business or Stratek). They are not in the table
 below yet; each moves into it when it is built.
 
+**v0.23.0: 64 built, 72 coming soon, 136 in total.** Wave 9 added 15 self-serve
+integrations and v0.23.0 lists 49 more (wave 10) as Coming soon -- see
+[Not built yet](#not-built-yet-what-is-missing-and-why) below for every remaining one and
+why it isn't built.
+
 ### AI agents and money (v0.9.0+)
 
 Agents connected to Stratek (API keys, MCP) can run safe actions -- tests,
@@ -124,6 +129,8 @@ keys once afterwards so both live and test payment notifications are registered.
 | [PayBridgeNP](https://docs.paybridgenp.com/api-reference/overview) | Till, kiosk & online store payment QR (auto-detects payment), Test PayBridgeNP, Check online payment, Refund online payment (needs a person) | PayBridgeNP secret key | Test keys (Fonepay = real money) | **Available** |
 | [Razorpay (UPI)](https://razorpay.com/docs/api/payments/payment-links/) | Test Razorpay, Pay with UPI / card (Razorpay) (QR, payment detected by webhook or check), Check Razorpay payment, Refund Razorpay payment (needs a person) | Key ID, key secret (+ webhook secret) | Test keys (rzp_test_) | **Available** (v0.21.0, INR) |
 | [Paytm](https://business.paytm.com/docs/api/create-link-api) | Test Paytm, Pay with Paytm / UPI (QR), Check Paytm payment | Paytm MID, merchant key | Staging MID/key | **Available** (v0.21.0, INR) |
+| [Square](https://developer.squareup.com/docs/checkout-api/quick-pay-checkout) | Test Square, Pay by card (Square) (QR), Check Square payment, Refund Square payment (needs a person) | Access token (+ location ID) | Sandbox token | **Available** (v0.23.0) |
+| [Mollie](https://docs.mollie.com/reference/create-payment) | Test Mollie, Pay with Mollie (QR; paid automatically via Mollie webhook), Check Mollie payment, Refund Mollie payment (needs a person) | API key | test_ key | **Available** (v0.23.0) |
 | [Coinbase (crypto)](https://docs.cdp.coinbase.com/coinbase-business/) | Test Coinbase, Pay with crypto (Coinbase), Check crypto payment, Refund crypto payment (needs a person) | CDP API key ID / name, CDP API private key (Ed25519, base64) | Live only | **Available** |
 
 ### Delivery & rides
@@ -140,6 +147,8 @@ keys once afterwards so both live and test payment notifications are registered.
 | [Aramex](https://www.aramex.com/us/en/developers-solution-center) | Get Aramex rate, Ship with Aramex (needs a person; Aramex label link), Track Aramex shipment | API username + password, account number, PIN, entity (+ country), shipper address | Test credentials | **Available** (v0.18.0) |
 | [Easyship](https://developers.easyship.com/) | Compare Easyship rates, Ship with Easyship (needs a person; buys the label), Track Easyship shipment | Easyship API token, shipper address (+ email, HS code) | Sandbox token | **Available** (v0.18.0) |
 | [Shiprocket](https://apidocs.shiprocket.in/) | Check Shiprocket couriers, Ship with Shiprocket (needs a person; INR sales only), Track Shiprocket shipment | API user email + password, pickup location nickname, pickup PIN code | Live only | **Available** (v0.18.0) |
+| [Shippo](https://docs.goshippo.com/shippoapi/public-api/) | Get Shippo rates, Ship with Shippo (needs a person; cheapest or chosen service; label link), Track Shippo shipment | API token, shipper address (+ email, HS code) | shippo_test_ token | **Available** (v0.23.0) |
+| [EasyPost](https://docs.easypost.com/) | Get EasyPost rates, Ship with EasyPost (needs a person; label link), Track EasyPost shipment | API key, shipper address (+ HS code) | Test key | **Available** (v0.23.0) |
 
 ### Manufacturing & fulfilment
 
@@ -151,6 +160,7 @@ keys once afterwards so both live and test payment notifications are registered.
 | [Amazon Multi-Channel Fulfillment](https://developer-docs.amazon.com/sp-api/docs/fulfillment-outbound-api) | Preview Amazon fulfillment, Fulfil with Amazon (MCF) (needs a person), Track Amazon fulfillment | Login with Amazon client ID + secret, SP-API refresh token, marketplace ID (+ region) | SP-API sandbox | **Available** (v0.18.0) |
 | [Printful](https://developers.printful.com/docs/) | Test Printful, Price Printful order, Confirm Printful order (needs a person), Track Printful order | Private token (+ store ID) | Live only (pricing is free) | **Available** (v0.20.0) |
 | [Printify](https://developers.printify.com/) | Test Printify, Printify shipping price, Confirm Printify order (needs a person), Track Printify order | Personal access token, shop ID | Live only | **Available** (v0.20.0) |
+| [Gelato](https://dashboard.gelato.com/docs/) | Price Gelato order, Confirm Gelato order (needs a person), Track Gelato order | API key (+ billing currency) | Live only (price is free) | **Available** (v0.23.0) |
 | [CJdropshipping](https://developers.cjdropshipping.com/) | Test CJ, Find CJ products, Price CJ order (unpaid order), Confirm CJ order (needs a person; pays from CJ balance), Track CJ order | CJ API key (+ default shipping method, warehouse country) | Live only | **Available** (v0.20.0) |
 
 ### Hotels & hospitality
@@ -159,6 +169,7 @@ keys once afterwards so both live and test payment notifications are registered.
 |---|---|---|---|---|
 | [Cloudbeds](https://developers.cloudbeds.com/) | Test Cloudbeds, Guests in house, Today's arrivals, Charge to room (needs a person) | Property API key, Property ID | Live only | **Available** (v0.19.0) |
 | [Oracle OPERA Cloud](https://docs.oracle.com/en/industries/hospitality/integration-platform/) | Test OPERA Cloud, Charge to room (needs a person) | OHIP gateway URL, app key, client ID + secret, enterprise ID, hotel ID, outlet transaction code (+ cashier ID) | OHIP sandbox | **Available** (v0.19.0) |
+| [Beds24](https://wiki.beds24.com/index.php/Category:API_V2) | Test Beds24, Guests in house, Today's arrivals, Charge to room (needs a person) | Invite code (swapped for lasting access on save) | Live only | **Available** (v0.23.0) |
 
 ### Messages & notifications
 
@@ -168,6 +179,8 @@ keys once afterwards so both live and test payment notifications are registered.
 | [Sparrow SMS](https://docs.sparrowsms.com/sms/documentation/) | Test Sparrow SMS (credits), Send test SMS, Send receipt by SMS | Sparrow SMS token, Sender identity (From) | Live only | **Available** (v0.14.0) |
 | [Telegram](https://core.telegram.org/bots/api) | Owner alerts from Stratek, chat with the AI employee, Post sale to Telegram, Send test message | Telegram bot token | Live only | **Available** (v0.13.0) |
 | [Viber](https://developers.viber.com/docs/api/rest-bot-api/) | Link my Viber, Send test message, Post sale to Viber | Viber bot token | Live only | **Available** (v0.17.0) |
+| [Twilio](https://www.twilio.com/docs/messaging/api/message-resource) | Test Twilio, Send test SMS, Send receipt by SMS (or WhatsApp) | Account SID, Auth Token, From number / Messaging Service (+ WhatsApp sender) | Test credentials | **Available** (v0.23.0) |
+| [Resend](https://resend.com/docs/api-reference/emails/send-email) | Test Resend, Send test email, Email receipt | API key, From address on your verified domain (+ reply-to) | Live only | **Available** (v0.23.0) |
 | [Slack](https://api.slack.com/messaging/webhooks) | Test Slack, Post sale to Slack | Slack incoming webhook URL | Live only | **Available** (v0.14.0) |
 
 ### Accounting & tax
@@ -179,6 +192,8 @@ keys once afterwards so both live and test payment notifications are registered.
 | [Xero](https://developer.xero.com/documentation/api/accounting/invoices) | Connect Xero (OAuth), Test Xero, Send sale to Xero (approved invoice) | Xero app client ID + secret (+ sales account, scopes) | Live only (Demo Company) | **Available** (v0.17.0) |
 | [Google Sheets](https://developers.google.com/workspace/sheets/api/guides/concepts) | Test Google Sheets, Copy inventory to Google Sheet, Add sale to Google Sheet | Service account key (JSON), Sheet link or ID, Tab for sales (optional) | Live only | **Available** (v0.14.0) |
 | [Zoho Books](https://www.zoho.com/books/api/v3/) | Connect Zoho Books (OAuth), Test Zoho Books, Send sale to Zoho Books (invoice) | Zoho client ID + secret (+ data centre, organization ID) | Live only | **Available** (v0.17.0) |
+| [ERPNext](https://docs.frappe.io/framework/user/en/api/rest) | Test ERPNext, Send sale to ERPNext (Sales Invoice, draft or submitted) | Site URL, API key + secret (+ company, walk-in customer, item group, submit) | Live only | **Available** (v0.23.0) |
+| [Odoo](https://www.odoo.com/documentation/18.0/developer/reference/external_api.html) | Test Odoo, Send sale to Odoo (customer invoice, draft or posted) | Odoo URL, login, API key (+ database, walk-in customer, post) | Live only | **Available** (v0.23.0) |
 
 ### Online stores & marketplaces
 
@@ -190,6 +205,8 @@ keys once afterwards so both live and test payment notifications are registered.
 | [Meta Catalog (Facebook & Instagram Shop)](https://developers.facebook.com/docs/marketing-api/catalog-batch/) | Test Meta Catalog, Sync menu to Facebook/Instagram Shop | Catalog ID, System user access token, Shop web address (optional), Graph API version (optional) | Test keys | **Available** |
 | [eBay](https://developer.ebay.com/api-docs/sell/inventory/overview.html) | Test eBay, Sync inventory to eBay (details, stock, price with a factor), Latest eBay orders | App client ID + secret, seller refresh token (+ default stock, price factor) | Sandbox keys | **Available** (v0.21.0) |
 | [Amazon Seller](https://developer-docs.amazon.com/sp-api/docs/listings-items-api-v2021-08-01-reference) | Test Amazon Seller, Sync stock to Amazon (price with a factor), Latest Amazon orders | LWA client ID + secret, refresh token, seller ID, marketplace ID (+ region, stock, price factor, currency) | SP-API sandbox | **Available** (v0.21.0) |
+| [BigCommerce](https://developer.bigcommerce.com/docs/rest-catalog/products) | Test BigCommerce, Sync inventory to BigCommerce, Latest BigCommerce orders | Store hash, access token | Live only | **Available** (v0.23.0) |
+| [Wix Stores](https://dev.wix.com/docs/rest/business-solutions/stores/catalog-v3/products-v3/introduction) | Test Wix, Sync inventory to Wix (Catalog V3), Latest Wix orders | API key, site ID | Live only | **Available** (v0.23.0) |
 
 ### Customers & marketing
 
@@ -198,6 +215,8 @@ keys once afterwards so both live and test payment notifications are registered.
 | [Mailchimp](https://mailchimp.com/developer/marketing/api/list-members/) | Test Mailchimp, Add customer to Mailchimp (double opt-in) | Mailchimp API key, Audience ID, New contacts are (optional) | Live only | **Available** (v0.14.0) |
 | [HubSpot](https://developers.hubspot.com/docs/api/crm/contacts) | Test HubSpot, Add customer to HubSpot | Private app access token | Live only | **Available** (v0.14.0) |
 | [Meta Conversions API](https://developers.facebook.com/docs/marketing-api/conversions-api) | Test Meta Conversions API, Send sale to Meta Ads | Pixel / dataset ID, Conversions API access token, Graph API version (optional) | Test keys | **Available** |
+| [Google Analytics 4](https://developers.google.com/analytics/devguides/collection/protocol/ga4) | Test Google Analytics, Send sale to Google Analytics (purchase event) | Measurement ID, Measurement Protocol API secret | Validation only | **Available** (v0.23.0) |
+| [TikTok Events API](https://business-api.tiktok.com/portal/docs?id=1771100865818625) | Test TikTok Events, Send sale to TikTok Ads (hashed email / phone) | Pixel code, access token (+ test event code) | Test events | **Available** (v0.23.0) |
 
 ### Automation
 
@@ -206,6 +225,7 @@ keys once afterwards so both live and test payment notifications are registered.
 | Webhook | Test webhook, Send inventory to webhook, Send sale to webhook | Webhook address (https://), Signing secret (optional) | Live only | **Available** (v0.14.0) |
 | [Zapier](https://help.zapier.com/hc/en-us/articles/8496288690317) | Test Zapier, Send sale to Zapier | Zapier catch hook URL | Live only | **Available** (v0.14.0) |
 | [Make](https://www.make.com/en/help/tools/webhooks) | Test Make, Send sale to Make | Make webhook URL | Live only | **Available** (v0.14.0) |
+| [n8n](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.webhook/) | Test n8n, Send inventory to n8n, Send sale to n8n | Webhook URL (+ Header Auth name / value) | Live only | **Available** (v0.23.0) |
 
 ### Using PayBridgeNP (available) -- the till & kiosk QR that sees payments
 
@@ -345,6 +365,132 @@ see the POS repo's `docs/proposals/online-store.md`), gated on PayBridgeNP
 (Fonepay QR on the order page, confirmed automatically) + Pathao (live quotes,
 booking), with pickup or delivery and a test mode that uses the test keys.
 To build one, see [docs/adding-an-integration.md](docs/adding-an-integration.md).
+
+## Not built yet: what is missing and why
+
+Stratek lists these as **Coming soon** (no buttons until a connector update builds them).
+The full plan with approval notes is in [docs/coming-soon.md](docs/coming-soon.md).
+**72 remaining** -- 49 self-serve ones (wave 10) can be built now; the other 23 wait on
+someone outside: the provider approving the business, Stratek becoming a certified partner,
+or the company publishing an API.
+
+#### Self-serve key (wave 10 -- buildable now) (49)
+
+| Integration | Category | What it would do |
+|---|---|---|
+| [Braintree](https://developer.paypal.com/braintree/docs) | Payments | Cards and PayPal through Braintree (PayPal company). |
+| [Mercado Pago](https://www.mercadopago.com/developers) | Payments | Latin America: payment links and QR through Mercado Pago. |
+| [Flutterwave](https://developer.flutterwave.com/) | Payments | Africa: cards, mobile money and bank transfer links through Flutterwave. |
+| [Paystack](https://paystack.com/docs/api/) | Payments | Africa: cards, bank and mobile money payments through Paystack. |
+| [Xendit](https://docs.xendit.co/) | Payments | Southeast Asia: QR (QRIS, PromptPay...), e-wallets and virtual accounts through Xendit. |
+| [Midtrans](https://docs.midtrans.com/) | Payments | Indonesia: QRIS, GoPay, cards and bank transfer through Midtrans. |
+| [NOWPayments](https://documenter.getpostman.com/view/7907941/2s93JusNJt) | Payments | Crypto checkout in 300+ coins through NOWPayments. |
+| [BTCPay Server](https://docs.btcpayserver.org/API/Greenfield/v1/) | Payments | Bitcoin payments through your own BTCPay Server (no middleman). |
+| [ShipEngine](https://www.shipengine.com/docs/) | Delivery, shipping & rides | Rates, labels and tracking across many carriers through ShipEngine. |
+| [Sendcloud](https://api.sendcloud.dev/) | Delivery, shipping & rides | Europe: shipping labels, returns and tracking through Sendcloud. |
+| [AfterShip Tracking](https://www.aftership.com/docs/tracking) | Delivery, shipping & rides | Track any parcel from 1,000+ carriers in one place. |
+| [17TRACK](https://api.17track.net/en/doc) | Delivery, shipping & rides | Track any parcel worldwide with 17TRACK. |
+| [Prodigi](https://www.prodigi.com/print-api/docs/) | Manufacturing & fulfilment | Print-on-demand art prints, canvas and photo products through Prodigi. |
+| [Lulu Print API](https://api.lulu.com/docs/) | Manufacturing & fulfilment | Print and ship books and booklets on demand through Lulu. |
+| [BigBuy](https://api.bigbuy.eu/rest/doc) | Suppliers & sourcing | European dropship wholesaler: catalogue, orders and tracking through BigBuy. |
+| [Lodgify](https://docs.lodgify.com/) | Hotels & hospitality | Holiday rentals: bookings and charges in Lodgify. |
+| [Hostaway](https://api.hostaway.com/documentation) | Hotels & hospitality | Holiday rentals: reservations and extra charges in Hostaway. |
+| [Guesty](https://open-api-docs.guesty.com/) | Hotels & hospitality | Rental operators: reservations and charges in Guesty. |
+| [Smoobu](https://docs.smoobu.com/) | Hotels & hospitality | Holiday rentals: reservations and extras in Smoobu. |
+| [Postmark](https://postmarkapp.com/developer) | Messages & notifications | Email receipts to customers through Postmark. |
+| [Vonage SMS](https://developer.vonage.com/en/messaging/sms/overview) | Messages & notifications | SMS receipts worldwide through Vonage. |
+| [Bird (MessageBird)](https://docs.bird.com/api) | Messages & notifications | SMS and WhatsApp receipts through Bird. |
+| [Discord](https://discord.com/developers/docs/resources/webhook) | Messages & notifications | Sale and staff alerts to a Discord channel. |
+| [Microsoft Teams](https://learn.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/add-incoming-webhook) | Messages & notifications | Sale and staff alerts to a Teams channel. |
+| [Google Chat](https://developers.google.com/workspace/chat/quickstart/webhooks) | Messages & notifications | Sale and staff alerts to a Google Chat space. |
+| [LINE](https://developers.line.biz/en/docs/messaging-api/) | Messages & notifications | Owner alerts and customer receipts on LINE (Japan, Thailand, Taiwan). |
+| [Pushover](https://pushover.net/api) | Messages & notifications | Push alerts to the owner's phone. |
+| [ntfy](https://docs.ntfy.sh/publish/) | Messages & notifications | Free push alerts to the owner's phone (ntfy.sh or your own server). |
+| [FreshBooks](https://www.freshbooks.com/api/start) | Accounting & tax | Send sales to FreshBooks as invoices. |
+| [Airtable](https://airtable.com/developers/web/api/introduction) | Accounting & tax | Log each sale as a row in an Airtable base you own. |
+| [Notion](https://developers.notion.com/) | Accounting & tax | Log each sale in a Notion database. |
+| [Akaunting](https://akaunting.com/hc/docs/developers/api) | Accounting & tax | Send sales to Akaunting (free accounting app). |
+| [Manager.io](https://www.manager.io/api) | Accounting & tax | Send sales to Manager.io (Cloud or Server edition). |
+| [Squarespace Commerce](https://developers.squarespace.com/commerce-apis/overview) | Online stores & marketplaces | Keep Squarespace stock in step with Stratek, and see the latest orders. |
+| [Ecwid by Lightspeed](https://api-docs.ecwid.com/) | Online stores & marketplaces | Keep an Ecwid store in step with Stratek, and see the latest orders. |
+| [Magento / Adobe Commerce](https://developer.adobe.com/commerce/webapi/rest/) | Online stores & marketplaces | Keep a Magento store in step with Stratek, and see the latest orders. |
+| [PrestaShop](https://devdocs.prestashop-project.org/8/webservice/) | Online stores & marketplaces | Keep a PrestaShop store in step with Stratek, and see the latest orders. |
+| [OpenCart](https://docs.opencart.com/) | Online stores & marketplaces | Keep an OpenCart store in step with Stratek, and see the latest orders. |
+| [Google Merchant Center](https://developers.google.com/merchant/api) | Online stores & marketplaces | Show your products on Google Shopping (free listings). |
+| [Gumroad](https://gumroad.com/api) | Online stores & marketplaces | Digital products: see Gumroad sales next to Stratek. |
+| [Klaviyo](https://developers.klaviyo.com/) | Customers & marketing | Add customers to Klaviyo and send sale events for your email / SMS flows. |
+| [Brevo](https://developers.brevo.com/) | Customers & marketing | Add customers to Brevo lists and send email receipts. |
+| [MailerLite](https://developers.mailerlite.com/) | Customers & marketing | Add customers to MailerLite groups. |
+| [ActiveCampaign](https://developers.activecampaign.com/) | Customers & marketing | Add customers to ActiveCampaign lists. |
+| [Pipedrive](https://developers.pipedrive.com/docs/api/v1) | Customers & marketing | Add customers and deals to Pipedrive. |
+| [Zoho CRM](https://www.zoho.com/crm/developer/docs/api/v7/) | Customers & marketing | Add customers to Zoho CRM. |
+| [Pipedream](https://pipedream.com/docs/workflows/building-workflows/triggers/) | Automation | Send sales to Pipedream workflows. |
+| [IFTTT](https://ifttt.com/maker_webhooks) | Automation | Send sales to IFTTT applets (Webhooks service). |
+| [Microsoft Power Automate](https://learn.microsoft.com/en-us/power-automate/) | Automation | Send sales to Power Automate flows (Microsoft 365). |
+
+#### Business must be approved by the provider (10)
+
+| Integration | Category | What it would do |
+|---|---|---|
+| [IME Pay](https://www.imepay.com.np/) | Payments | IME Pay wallet checkout (Nepal). |
+| [Prabhu Pay](https://prabhupay.com/) | Payments | Prabhu Pay wallet checkout (Nepal). |
+| [WeChat Pay](https://pay.weixin.qq.com/wiki/doc/api_external/en/index.shtml) | Payments | WeChat Pay for Chinese visitors (cross-border). |
+| [Alipay+ (direct)](https://docs.alipayplus.com/) | Payments | Alipay+ wallets for visitors, as their own checkout (Fonepay QRs already accept Alipay+). |
+| [JLCPCB](https://api.jlcpcb.com/) | Manufacturing & fulfilment | Order PCBs, PCB assembly (SMT), stencils and 3D prints from JLCPCB (China). |
+| [PCBWay](https://api-partner.pcbway.com/) | Manufacturing & fulfilment | Quote and order PCBs and assembly from PCBWay (China). |
+| [Alibaba.com](https://openapi.alibaba.com/) | Suppliers & sourcing | Find suppliers and products on Alibaba.com and track your sourcing orders. |
+| [AliExpress dropshipping](https://openservice.aliexpress.com/) | Suppliers & sourcing | Import AliExpress products into your inventory and place dropshipping orders. |
+| [Daraz](https://open.daraz.com/) | Online stores & marketplaces | Daraz seller orders and stock (Nepal, South Asia). |
+| [Etsy](https://developers.etsy.com/) | Online stores & marketplaces | Sell handmade and craft products on Etsy: listings and orders. |
+
+#### Stratek must apply as a software partner (8)
+
+| Integration | Category | What it would do |
+|---|---|---|
+| [Payoneer](https://developer.payoneer.com/) | Payments | Request payments from international clients with Payoneer. |
+| [Mews](https://mews-systems.gitbook.io/connector-api/) | Hotels & hospitality | Hotel PMS: post sales to a guest's bill and see guests in house. |
+| [SiteMinder](https://developer.siteminder.com/) | Hotels & hospitality | Channel manager: keep room availability and rates in sync across booking sites. |
+| [Booking.com](https://connect.booking.com/) | Hotels & hospitality | See Booking.com reservations for your property. |
+| [Expedia Group](https://developers.expediagroup.com/supply/lodging) | Hotels & hospitality | See Expedia and Hotels.com reservations for your property. |
+| [Airbnb](https://www.airbnb.com/partner) | Hotels & hospitality | See Airbnb bookings for your listings. |
+| [OpenTable](https://platform.opentable.com/) | Hotels & hospitality | Restaurant table reservations from OpenTable. |
+| [TikTok Shop](https://partner.tiktokshop.com/docv2) | Online stores & marketplaces | Sell through TikTok Shop: products and orders. |
+
+#### No public API yet (5)
+
+| Integration | Category | What it would do |
+|---|---|---|
+| [Pick & Drop](https://pickndropnepal.com/) | Delivery, shipping & rides | Pick & Drop Nepal courier deliveries. |
+| [inDrive](null) | Delivery, shipping & rides | inDrive courier deliveries. |
+| [Amazon Supply Chain Services](https://supplychain.amazon.com/) | Manufacturing & fulfilment | Amazon's logistics network for any business: freight, storage and distribution. |
+| [Made-in-China.com](https://www.made-in-china.com/) | Suppliers & sourcing | Find verified Chinese manufacturers and send enquiries. |
+| [Foodmandu](https://foodmandu.com/) | Hotels & hospitality | Receive Foodmandu food-delivery orders (Nepal). |
+
+## Wave 9: self-serve BYOK (v0.23.0+)
+
+Fifteen integrations a business sets up alone -- make an account, copy a key, paste it in
+Set up; no app review and no partner approval:
+
+- **Payments -- Square, Mollie:** "Pay with ..." under the payment QR (a card / payment
+  link as a QR). Mollie tells the connector itself (the connector then asks Mollie for the
+  real status); "Check" works for both. Paid sales are marked **Paid online** once; a person
+  settles; refunds need a person.
+- **Shipping -- Shippo, EasyPost:** one account, many carriers. "Get rates" lists them; "Ship
+  with ..." buys the cheapest label, or the service you type (e.g. "USPS Priority"), so it
+  needs a person. International parcels get a customs declaration from the sale items.
+- **Print-on-demand -- Gelato:** printed close to the customer in 30+ countries. Type Gelato
+  product UIDs (or use them as SKUs) and the print file address; price is free, confirming
+  needs a person.
+- **Hotels -- Beds24:** paste a Beds24 invite code; saving swaps it for lasting access. Charge
+  to room by room or guest name (needs a person), guests in house, arrivals.
+- **Messages -- Twilio, Resend:** SMS / WhatsApp receipts (Twilio) and email receipts from
+  your own domain (Resend); phone and email come from online-store orders.
+- **Accounting -- ERPNext, Odoo:** each sale becomes one invoice (draft by default) with a
+  VAT / service / rounding line so totals match Stratek.
+- **Online stores -- BigCommerce, Wix:** inventory sync (20 per press) and latest orders.
+- **Marketing -- Google Analytics 4, TikTok Events:** send sales as purchases, like Meta
+  Conversions API (TikTok gets hashed email / phone).
+- **Automation -- n8n:** sale / inventory JSON to an n8n webhook, with optional Header Auth.
 
 ## Wave 8: Fonepay direct and Yango (v0.22.0+)
 
@@ -527,6 +673,12 @@ only) links that one Telegram account; every other chat is ignored. Stratek
 decides when an alert is due and asks the connector to send it; the token
 never leaves the connector. Approvals stay in the Stratek dashboard -- alerts
 only link there.
+
+**Stratek HQ uses it too (no update needed):** Stratek's own HQ connector can
+have a Telegram bot for admin alerts (Stratek Admin -> Setup -> Command Center:
+new signups, shop problems, subscriptions, daily HQ summary). Same `link` /
+`alert` actions; the server pass is for `admin:hq`. If HQ's Telegram isn't
+linked, Stratek emails its admins instead.
 
 ## AI employee (v0.12.0+)
 

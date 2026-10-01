@@ -1,5 +1,5 @@
 {
- "version": "0.22.0",
+ "version": "0.23.0",
  "categories": {
   "system": "Connector",
   "payments": "Payments",
@@ -313,6 +313,172 @@
    ]
   },
   {
+   "id": "square",
+   "name": "Square",
+   "category": "payments",
+   "status": "available",
+   "description": "Card payments through Square payment links (for businesses in Square's countries).",
+   "docsUrl": "https://developer.squareup.com/docs/checkout-api/quick-pay-checkout",
+   "actions": [
+    "Test Square",
+    "Pay by card (Square)",
+    "Check Square payment",
+    "Refund Square payment"
+   ],
+   "secrets": [
+    "Square access token",
+    "Location ID"
+   ]
+  },
+  {
+   "id": "mollie",
+   "name": "Mollie",
+   "category": "payments",
+   "status": "available",
+   "description": "Cards, iDEAL, Bancontact, Apple Pay and more through Mollie (Europe).",
+   "docsUrl": "https://docs.mollie.com/reference/create-payment",
+   "actions": [
+    "Test Mollie",
+    "Pay with Mollie",
+    "Check Mollie payment",
+    "Refund Mollie payment"
+   ],
+   "secrets": [
+    "Mollie API key"
+   ]
+  },
+  {
+   "id": "braintree",
+   "name": "Braintree",
+   "category": "payments",
+   "status": "planned",
+   "description": "Cards and PayPal through Braintree (PayPal company).",
+   "docsUrl": "https://developer.paypal.com/braintree/docs",
+   "actions": [
+    "Pay with Braintree",
+    "Check Braintree payment",
+    "Refund Braintree payment"
+   ],
+   "secrets": [
+    "Merchant ID",
+    "Public key",
+    "Private key"
+   ]
+  },
+  {
+   "id": "mercado_pago",
+   "name": "Mercado Pago",
+   "category": "payments",
+   "status": "planned",
+   "description": "Latin America: payment links and QR through Mercado Pago.",
+   "docsUrl": "https://www.mercadopago.com/developers",
+   "actions": [
+    "Pay with Mercado Pago",
+    "Check Mercado Pago payment",
+    "Refund Mercado Pago payment"
+   ],
+   "secrets": [
+    "Access token"
+   ]
+  },
+  {
+   "id": "flutterwave",
+   "name": "Flutterwave",
+   "category": "payments",
+   "status": "planned",
+   "description": "Africa: cards, mobile money and bank transfer links through Flutterwave.",
+   "docsUrl": "https://developer.flutterwave.com/",
+   "actions": [
+    "Pay with Flutterwave",
+    "Check Flutterwave payment",
+    "Refund Flutterwave payment"
+   ],
+   "secrets": [
+    "Secret key"
+   ]
+  },
+  {
+   "id": "paystack",
+   "name": "Paystack",
+   "category": "payments",
+   "status": "planned",
+   "description": "Africa: cards, bank and mobile money payments through Paystack.",
+   "docsUrl": "https://paystack.com/docs/api/",
+   "actions": [
+    "Pay with Paystack",
+    "Check Paystack payment",
+    "Refund Paystack payment"
+   ],
+   "secrets": [
+    "Secret key"
+   ]
+  },
+  {
+   "id": "xendit",
+   "name": "Xendit",
+   "category": "payments",
+   "status": "planned",
+   "description": "Southeast Asia: QR (QRIS, PromptPay...), e-wallets and virtual accounts through Xendit.",
+   "docsUrl": "https://docs.xendit.co/",
+   "actions": [
+    "Pay with Xendit",
+    "Check Xendit payment",
+    "Refund Xendit payment"
+   ],
+   "secrets": [
+    "Secret key"
+   ]
+  },
+  {
+   "id": "midtrans",
+   "name": "Midtrans",
+   "category": "payments",
+   "status": "planned",
+   "description": "Indonesia: QRIS, GoPay, cards and bank transfer through Midtrans.",
+   "docsUrl": "https://docs.midtrans.com/",
+   "actions": [
+    "Pay with Midtrans",
+    "Check Midtrans payment",
+    "Refund Midtrans payment"
+   ],
+   "secrets": [
+    "Server key"
+   ]
+  },
+  {
+   "id": "nowpayments",
+   "name": "NOWPayments",
+   "category": "payments",
+   "status": "planned",
+   "description": "Crypto checkout in 300+ coins through NOWPayments.",
+   "docsUrl": "https://documenter.getpostman.com/view/7907941/2s93JusNJt",
+   "actions": [
+    "Pay with NOWPayments",
+    "Check NOWPayments payment"
+   ],
+   "secrets": [
+    "API key",
+    "IPN secret"
+   ]
+  },
+  {
+   "id": "btcpay",
+   "name": "BTCPay Server",
+   "category": "payments",
+   "status": "planned",
+   "description": "Bitcoin payments through your own BTCPay Server (no middleman).",
+   "docsUrl": "https://docs.btcpayserver.org/API/Greenfield/v1/",
+   "actions": [
+    "Pay with BTCPay Server",
+    "Check BTCPay Server payment"
+   ],
+   "secrets": [
+    "BTCPay Server URL (https)",
+    "Store ID",
+    "API key"
+   ]
+  },
+  {
    "id": "pathao",
    "name": "Pathao",
    "category": "delivery",
@@ -553,6 +719,116 @@
    ]
   },
   {
+   "id": "shippo",
+   "name": "Shippo",
+   "category": "delivery",
+   "status": "available",
+   "description": "Rates, labels and tracking across 40+ carriers with one Shippo account.",
+   "docsUrl": "https://docs.goshippo.com/shippoapi/public-api/",
+   "actions": [
+    "Get Shippo rates",
+    "Ship with Shippo",
+    "Track Shippo shipment"
+   ],
+   "secrets": [
+    "Shippo API token",
+    "Shipper (your business) name",
+    "Shipper phone",
+    "Shipper street address",
+    "Shipper city",
+    "Shipper state / province code",
+    "Shipper postal code",
+    "Shipper country code",
+    "Shipper email",
+    "HS code of what you usually ship"
+   ]
+  },
+  {
+   "id": "easypost",
+   "name": "EasyPost",
+   "category": "delivery",
+   "status": "available",
+   "description": "Rates, labels and tracking across 100+ carriers with one EasyPost account.",
+   "docsUrl": "https://docs.easypost.com/",
+   "actions": [
+    "Get EasyPost rates",
+    "Ship with EasyPost",
+    "Track EasyPost shipment"
+   ],
+   "secrets": [
+    "EasyPost API key",
+    "Shipper (your business) name",
+    "Shipper phone",
+    "Shipper street address",
+    "Shipper city",
+    "Shipper state / province code",
+    "Shipper postal code",
+    "Shipper country code",
+    "HS code of what you usually ship"
+   ]
+  },
+  {
+   "id": "shipengine",
+   "name": "ShipEngine",
+   "category": "delivery",
+   "status": "planned",
+   "description": "Rates, labels and tracking across many carriers through ShipEngine.",
+   "docsUrl": "https://www.shipengine.com/docs/",
+   "actions": [
+    "Get ShipEngine rates",
+    "Ship with ShipEngine",
+    "Track ShipEngine shipment"
+   ],
+   "secrets": [
+    "API key"
+   ]
+  },
+  {
+   "id": "sendcloud",
+   "name": "Sendcloud",
+   "category": "delivery",
+   "status": "planned",
+   "description": "Europe: shipping labels, returns and tracking through Sendcloud.",
+   "docsUrl": "https://api.sendcloud.dev/",
+   "actions": [
+    "Get Sendcloud rates",
+    "Ship with Sendcloud",
+    "Track Sendcloud shipment"
+   ],
+   "secrets": [
+    "Public key",
+    "Secret key"
+   ]
+  },
+  {
+   "id": "aftership",
+   "name": "AfterShip Tracking",
+   "category": "delivery",
+   "status": "planned",
+   "description": "Track any parcel from 1,000+ carriers in one place.",
+   "docsUrl": "https://www.aftership.com/docs/tracking",
+   "actions": [
+    "Track with AfterShip Tracking"
+   ],
+   "secrets": [
+    "API key"
+   ]
+  },
+  {
+   "id": "track17",
+   "name": "17TRACK",
+   "category": "delivery",
+   "status": "planned",
+   "description": "Track any parcel worldwide with 17TRACK.",
+   "docsUrl": "https://api.17track.net/en/doc",
+   "actions": [
+    "Track with 17TRACK"
+   ],
+   "secrets": [
+    "Security key"
+   ]
+  },
+  {
    "id": "slant3d",
    "name": "Slant 3D",
    "category": "fulfilment",
@@ -695,6 +971,56 @@
    ]
   },
   {
+   "id": "gelato",
+   "name": "Gelato",
+   "category": "fulfilment",
+   "status": "available",
+   "description": "Print-on-demand printed close to the customer in 30+ countries (Gelato).",
+   "docsUrl": "https://dashboard.gelato.com/docs/",
+   "actions": [
+    "Price Gelato order",
+    "Confirm Gelato order",
+    "Track Gelato order"
+   ],
+   "secrets": [
+    "Gelato API key",
+    "Currency Gelato bills you in"
+   ]
+  },
+  {
+   "id": "prodigi",
+   "name": "Prodigi",
+   "category": "fulfilment",
+   "status": "planned",
+   "description": "Print-on-demand art prints, canvas and photo products through Prodigi.",
+   "docsUrl": "https://www.prodigi.com/print-api/docs/",
+   "actions": [
+    "Price Prodigi order",
+    "Confirm Prodigi order",
+    "Track Prodigi order"
+   ],
+   "secrets": [
+    "API key"
+   ]
+  },
+  {
+   "id": "lulu",
+   "name": "Lulu Print API",
+   "category": "fulfilment",
+   "status": "planned",
+   "description": "Print and ship books and booklets on demand through Lulu.",
+   "docsUrl": "https://api.lulu.com/docs/",
+   "actions": [
+    "Price Lulu Print API order",
+    "Confirm Lulu Print API order",
+    "Track Lulu Print API order"
+   ],
+   "secrets": [
+    "Client key",
+    "Client secret"
+   ]
+  },
+  {
    "id": "alibaba",
    "name": "Alibaba.com",
    "category": "sourcing",
@@ -761,6 +1087,22 @@
    ],
    "secrets": [
     "Made-in-China API key"
+   ]
+  },
+  {
+   "id": "bigbuy",
+   "name": "BigBuy",
+   "category": "sourcing",
+   "status": "planned",
+   "description": "European dropship wholesaler: catalogue, orders and tracking through BigBuy.",
+   "docsUrl": "https://api.bigbuy.eu/rest/doc",
+   "actions": [
+    "Price BigBuy order",
+    "Confirm BigBuy order",
+    "Track BigBuy order"
+   ],
+   "secrets": [
+    "API key"
    ]
   },
   {
@@ -912,6 +1254,85 @@
    ]
   },
   {
+   "id": "beds24",
+   "name": "Beds24",
+   "category": "hospitality",
+   "status": "available",
+   "description": "Charge a sale to a guest's booking in Beds24 (hotels, guesthouses, homestays), and see who is in house.",
+   "docsUrl": "https://wiki.beds24.com/index.php/Category:API_V2",
+   "actions": [
+    "Test Beds24",
+    "Guests in house",
+    "Today's arrivals",
+    "Charge to room (Beds24)"
+   ],
+   "secrets": [
+    "Beds24 invite code"
+   ]
+  },
+  {
+   "id": "lodgify",
+   "name": "Lodgify",
+   "category": "hospitality",
+   "status": "planned",
+   "description": "Holiday rentals: bookings and charges in Lodgify.",
+   "docsUrl": "https://docs.lodgify.com/",
+   "actions": [
+    "Charge to booking (Lodgify)",
+    "Guests in house (Lodgify)"
+   ],
+   "secrets": [
+    "API key"
+   ]
+  },
+  {
+   "id": "hostaway",
+   "name": "Hostaway",
+   "category": "hospitality",
+   "status": "planned",
+   "description": "Holiday rentals: reservations and extra charges in Hostaway.",
+   "docsUrl": "https://api.hostaway.com/documentation",
+   "actions": [
+    "Charge to booking (Hostaway)",
+    "Guests in house (Hostaway)"
+   ],
+   "secrets": [
+    "Account ID",
+    "API key"
+   ]
+  },
+  {
+   "id": "guesty",
+   "name": "Guesty",
+   "category": "hospitality",
+   "status": "planned",
+   "description": "Rental operators: reservations and charges in Guesty.",
+   "docsUrl": "https://open-api-docs.guesty.com/",
+   "actions": [
+    "Charge to booking (Guesty)",
+    "Guests in house (Guesty)"
+   ],
+   "secrets": [
+    "Client ID",
+    "Client secret"
+   ]
+  },
+  {
+   "id": "smoobu",
+   "name": "Smoobu",
+   "category": "hospitality",
+   "status": "planned",
+   "description": "Holiday rentals: reservations and extras in Smoobu.",
+   "docsUrl": "https://docs.smoobu.com/",
+   "actions": [
+    "Charge to booking (Smoobu)",
+    "Guests in house (Smoobu)"
+   ],
+   "secrets": [
+    "API key"
+   ]
+  },
+  {
    "id": "whatsapp",
    "name": "WhatsApp Business",
    "category": "messaging",
@@ -995,6 +1416,187 @@
    ],
    "secrets": [
     "Slack incoming webhook URL"
+   ]
+  },
+  {
+   "id": "twilio",
+   "name": "Twilio",
+   "category": "messaging",
+   "status": "available",
+   "description": "SMS and WhatsApp receipts and alerts worldwide (Twilio).",
+   "docsUrl": "https://www.twilio.com/docs/messaging/api/message-resource",
+   "actions": [
+    "Test Twilio",
+    "Send test SMS",
+    "Send receipt by SMS"
+   ],
+   "secrets": [
+    "Account SID",
+    "Auth Token",
+    "From number or sender ID",
+    "Messaging Service SID",
+    "WhatsApp sender"
+   ]
+  },
+  {
+   "id": "resend",
+   "name": "Resend",
+   "category": "messaging",
+   "status": "available",
+   "description": "Email receipts to customers from your own domain (Resend).",
+   "docsUrl": "https://resend.com/docs/api-reference/emails/send-email",
+   "actions": [
+    "Test Resend",
+    "Send test email",
+    "Email receipt"
+   ],
+   "secrets": [
+    "Resend API key",
+    "From address",
+    "Reply-to address"
+   ]
+  },
+  {
+   "id": "postmark",
+   "name": "Postmark",
+   "category": "messaging",
+   "status": "planned",
+   "description": "Email receipts to customers through Postmark.",
+   "docsUrl": "https://postmarkapp.com/developer",
+   "actions": [
+    "Test Postmark",
+    "Send receipt with Postmark"
+   ],
+   "secrets": [
+    "Server token",
+    "From address"
+   ]
+  },
+  {
+   "id": "vonage",
+   "name": "Vonage SMS",
+   "category": "messaging",
+   "status": "planned",
+   "description": "SMS receipts worldwide through Vonage.",
+   "docsUrl": "https://developer.vonage.com/en/messaging/sms/overview",
+   "actions": [
+    "Test Vonage SMS",
+    "Send receipt with Vonage SMS"
+   ],
+   "secrets": [
+    "API key",
+    "API secret",
+    "Sender ID / number"
+   ]
+  },
+  {
+   "id": "bird",
+   "name": "Bird (MessageBird)",
+   "category": "messaging",
+   "status": "planned",
+   "description": "SMS and WhatsApp receipts through Bird.",
+   "docsUrl": "https://docs.bird.com/api",
+   "actions": [
+    "Test Bird (MessageBird)",
+    "Send receipt with Bird (MessageBird)"
+   ],
+   "secrets": [
+    "Access key",
+    "Workspace ID",
+    "Channel ID"
+   ]
+  },
+  {
+   "id": "discord",
+   "name": "Discord",
+   "category": "messaging",
+   "status": "planned",
+   "description": "Sale and staff alerts to a Discord channel.",
+   "docsUrl": "https://discord.com/developers/docs/resources/webhook",
+   "actions": [
+    "Test Discord",
+    "Post sale to Discord"
+   ],
+   "secrets": [
+    "Discord webhook URL"
+   ]
+  },
+  {
+   "id": "ms_teams",
+   "name": "Microsoft Teams",
+   "category": "messaging",
+   "status": "planned",
+   "description": "Sale and staff alerts to a Teams channel.",
+   "docsUrl": "https://learn.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/add-incoming-webhook",
+   "actions": [
+    "Test Microsoft Teams",
+    "Post sale to Microsoft Teams"
+   ],
+   "secrets": [
+    "Teams workflow webhook URL"
+   ]
+  },
+  {
+   "id": "google_chat",
+   "name": "Google Chat",
+   "category": "messaging",
+   "status": "planned",
+   "description": "Sale and staff alerts to a Google Chat space.",
+   "docsUrl": "https://developers.google.com/workspace/chat/quickstart/webhooks",
+   "actions": [
+    "Test Google Chat",
+    "Post sale to Google Chat"
+   ],
+   "secrets": [
+    "Google Chat webhook URL"
+   ]
+  },
+  {
+   "id": "line",
+   "name": "LINE",
+   "category": "messaging",
+   "status": "planned",
+   "description": "Owner alerts and customer receipts on LINE (Japan, Thailand, Taiwan).",
+   "docsUrl": "https://developers.line.biz/en/docs/messaging-api/",
+   "actions": [
+    "Test LINE",
+    "Post sale to LINE"
+   ],
+   "secrets": [
+    "Channel access token",
+    "Your LINE user ID"
+   ]
+  },
+  {
+   "id": "pushover",
+   "name": "Pushover",
+   "category": "messaging",
+   "status": "planned",
+   "description": "Push alerts to the owner's phone.",
+   "docsUrl": "https://pushover.net/api",
+   "actions": [
+    "Test Pushover",
+    "Post sale to Pushover"
+   ],
+   "secrets": [
+    "Application token",
+    "User key"
+   ]
+  },
+  {
+   "id": "ntfy",
+   "name": "ntfy",
+   "category": "messaging",
+   "status": "planned",
+   "description": "Free push alerts to the owner's phone (ntfy.sh or your own server).",
+   "docsUrl": "https://docs.ntfy.sh/publish/",
+   "actions": [
+    "Test ntfy",
+    "Post sale to ntfy"
+   ],
+   "secrets": [
+    "Topic URL (https)",
+    "Access token (optional)"
    ]
   },
   {
@@ -1087,6 +1689,130 @@
     "Zoho client secret",
     "Zoho data centre",
     "Organization ID"
+   ]
+  },
+  {
+   "id": "erpnext",
+   "name": "ERPNext",
+   "category": "accounting",
+   "status": "available",
+   "description": "Send sales to ERPNext / Frappe as Sales Invoices (draft or submitted).",
+   "docsUrl": "https://docs.frappe.io/framework/user/en/api/rest",
+   "actions": [
+    "Test ERPNext",
+    "Send sale to ERPNext"
+   ],
+   "secrets": [
+    "ERPNext site address",
+    "API key",
+    "API secret",
+    "Company",
+    "Walk-in customer name",
+    "Item group for the \"Stratek sale\" item",
+    "Submit invoices (yes / no)"
+   ]
+  },
+  {
+   "id": "odoo",
+   "name": "Odoo",
+   "category": "accounting",
+   "status": "available",
+   "description": "Send sales to Odoo as customer invoices (draft or posted).",
+   "docsUrl": "https://www.odoo.com/documentation/18.0/developer/reference/external_api.html",
+   "actions": [
+    "Test Odoo",
+    "Send sale to Odoo"
+   ],
+   "secrets": [
+    "Odoo address",
+    "Database name",
+    "Login (email)",
+    "API key",
+    "Walk-in customer name",
+    "Post invoices (yes / no)"
+   ]
+  },
+  {
+   "id": "freshbooks",
+   "name": "FreshBooks",
+   "category": "accounting",
+   "status": "planned",
+   "description": "Send sales to FreshBooks as invoices.",
+   "docsUrl": "https://www.freshbooks.com/api/start",
+   "actions": [
+    "Test FreshBooks",
+    "Send sale to FreshBooks"
+   ],
+   "secrets": [
+    "App client ID",
+    "App client secret"
+   ]
+  },
+  {
+   "id": "airtable",
+   "name": "Airtable",
+   "category": "accounting",
+   "status": "planned",
+   "description": "Log each sale as a row in an Airtable base you own.",
+   "docsUrl": "https://airtable.com/developers/web/api/introduction",
+   "actions": [
+    "Test Airtable",
+    "Send sale to Airtable"
+   ],
+   "secrets": [
+    "Personal access token",
+    "Base ID",
+    "Table name"
+   ]
+  },
+  {
+   "id": "notion",
+   "name": "Notion",
+   "category": "accounting",
+   "status": "planned",
+   "description": "Log each sale in a Notion database.",
+   "docsUrl": "https://developers.notion.com/",
+   "actions": [
+    "Test Notion",
+    "Send sale to Notion"
+   ],
+   "secrets": [
+    "Internal integration token",
+    "Database ID"
+   ]
+  },
+  {
+   "id": "akaunting",
+   "name": "Akaunting",
+   "category": "accounting",
+   "status": "planned",
+   "description": "Send sales to Akaunting (free accounting app).",
+   "docsUrl": "https://akaunting.com/hc/docs/developers/api",
+   "actions": [
+    "Test Akaunting",
+    "Send sale to Akaunting"
+   ],
+   "secrets": [
+    "Akaunting URL (https)",
+    "Email",
+    "Password",
+    "Company ID"
+   ]
+  },
+  {
+   "id": "manager_io",
+   "name": "Manager.io",
+   "category": "accounting",
+   "status": "planned",
+   "description": "Send sales to Manager.io (Cloud or Server edition).",
+   "docsUrl": "https://www.manager.io/api",
+   "actions": [
+    "Test Manager.io",
+    "Send sale to Manager.io"
+   ],
+   "secrets": [
+    "Business API URL (https)",
+    "Access token"
    ]
   },
   {
@@ -1219,6 +1945,156 @@
    ]
   },
   {
+   "id": "bigcommerce",
+   "name": "BigCommerce",
+   "category": "commerce",
+   "status": "available",
+   "description": "Keep a BigCommerce store in step with your Stratek inventory, and see its latest orders.",
+   "docsUrl": "https://developer.bigcommerce.com/docs/rest-catalog/products",
+   "actions": [
+    "Test BigCommerce",
+    "Sync inventory to BigCommerce",
+    "Latest BigCommerce orders"
+   ],
+   "secrets": [
+    "Store hash",
+    "Access token"
+   ]
+  },
+  {
+   "id": "wix",
+   "name": "Wix Stores",
+   "category": "commerce",
+   "status": "available",
+   "description": "Keep a Wix Store in step with your Stratek inventory, and see its latest orders.",
+   "docsUrl": "https://dev.wix.com/docs/rest/business-solutions/stores/catalog-v3/products-v3/introduction",
+   "actions": [
+    "Test Wix",
+    "Sync inventory to Wix",
+    "Latest Wix orders"
+   ],
+   "secrets": [
+    "Wix API key",
+    "Site ID"
+   ]
+  },
+  {
+   "id": "squarespace",
+   "name": "Squarespace Commerce",
+   "category": "commerce",
+   "status": "planned",
+   "description": "Keep Squarespace stock in step with Stratek, and see the latest orders.",
+   "docsUrl": "https://developers.squarespace.com/commerce-apis/overview",
+   "actions": [
+    "Test Squarespace Commerce",
+    "Sync inventory to Squarespace Commerce",
+    "Latest Squarespace Commerce orders"
+   ],
+   "secrets": [
+    "API key"
+   ]
+  },
+  {
+   "id": "ecwid",
+   "name": "Ecwid by Lightspeed",
+   "category": "commerce",
+   "status": "planned",
+   "description": "Keep an Ecwid store in step with Stratek, and see the latest orders.",
+   "docsUrl": "https://api-docs.ecwid.com/",
+   "actions": [
+    "Test Ecwid by Lightspeed",
+    "Sync inventory to Ecwid by Lightspeed",
+    "Latest Ecwid by Lightspeed orders"
+   ],
+   "secrets": [
+    "Store ID",
+    "Secret token"
+   ]
+  },
+  {
+   "id": "magento",
+   "name": "Magento / Adobe Commerce",
+   "category": "commerce",
+   "status": "planned",
+   "description": "Keep a Magento store in step with Stratek, and see the latest orders.",
+   "docsUrl": "https://developer.adobe.com/commerce/webapi/rest/",
+   "actions": [
+    "Test Magento / Adobe Commerce",
+    "Sync inventory to Magento / Adobe Commerce",
+    "Latest Magento / Adobe Commerce orders"
+   ],
+   "secrets": [
+    "Store URL (https)",
+    "Integration access token"
+   ]
+  },
+  {
+   "id": "prestashop",
+   "name": "PrestaShop",
+   "category": "commerce",
+   "status": "planned",
+   "description": "Keep a PrestaShop store in step with Stratek, and see the latest orders.",
+   "docsUrl": "https://devdocs.prestashop-project.org/8/webservice/",
+   "actions": [
+    "Test PrestaShop",
+    "Sync inventory to PrestaShop",
+    "Latest PrestaShop orders"
+   ],
+   "secrets": [
+    "Store URL (https)",
+    "Webservice key"
+   ]
+  },
+  {
+   "id": "opencart",
+   "name": "OpenCart",
+   "category": "commerce",
+   "status": "planned",
+   "description": "Keep an OpenCart store in step with Stratek, and see the latest orders.",
+   "docsUrl": "https://docs.opencart.com/",
+   "actions": [
+    "Test OpenCart",
+    "Sync inventory to OpenCart",
+    "Latest OpenCart orders"
+   ],
+   "secrets": [
+    "Store URL (https)",
+    "API username",
+    "API key"
+   ]
+  },
+  {
+   "id": "google_merchant",
+   "name": "Google Merchant Center",
+   "category": "commerce",
+   "status": "planned",
+   "description": "Show your products on Google Shopping (free listings).",
+   "docsUrl": "https://developers.google.com/merchant/api",
+   "actions": [
+    "Test Google Merchant Center",
+    "Sync products to Google"
+   ],
+   "secrets": [
+    "Merchant Center ID",
+    "Service account key (JSON)"
+   ]
+  },
+  {
+   "id": "gumroad",
+   "name": "Gumroad",
+   "category": "commerce",
+   "status": "planned",
+   "description": "Digital products: see Gumroad sales next to Stratek.",
+   "docsUrl": "https://gumroad.com/api",
+   "actions": [
+    "Test Gumroad",
+    "Latest Gumroad sales"
+   ],
+   "secrets": [
+    "Access token"
+   ]
+  },
+  {
    "id": "meta_catalog",
    "name": "Meta Catalog (Facebook & Instagram Shop)",
    "category": "commerce",
@@ -1286,6 +2162,134 @@
    ]
   },
   {
+   "id": "google_analytics",
+   "name": "Google Analytics 4",
+   "category": "marketing",
+   "status": "available",
+   "description": "Send Stratek sales to Google Analytics 4 as purchases (Measurement Protocol).",
+   "docsUrl": "https://developers.google.com/analytics/devguides/collection/protocol/ga4",
+   "actions": [
+    "Test Google Analytics",
+    "Send sale to Google Analytics"
+   ],
+   "secrets": [
+    "Measurement ID",
+    "Measurement Protocol API secret"
+   ]
+  },
+  {
+   "id": "tiktok_events",
+   "name": "TikTok Events API",
+   "category": "marketing",
+   "status": "available",
+   "description": "Send each sale to TikTok Ads as a Purchase event so ad results are measured.",
+   "docsUrl": "https://business-api.tiktok.com/portal/docs?id=1771100865818625",
+   "actions": [
+    "Test TikTok Events",
+    "Send sale to TikTok Ads"
+   ],
+   "secrets": [
+    "Pixel code",
+    "Events API access token"
+   ]
+  },
+  {
+   "id": "klaviyo",
+   "name": "Klaviyo",
+   "category": "marketing",
+   "status": "planned",
+   "description": "Add customers to Klaviyo and send sale events for your email / SMS flows.",
+   "docsUrl": "https://developers.klaviyo.com/",
+   "actions": [
+    "Test Klaviyo",
+    "Add customer to Klaviyo",
+    "Send sale to Klaviyo"
+   ],
+   "secrets": [
+    "Private API key",
+    "List ID (optional)"
+   ]
+  },
+  {
+   "id": "brevo",
+   "name": "Brevo",
+   "category": "marketing",
+   "status": "planned",
+   "description": "Add customers to Brevo lists and send email receipts.",
+   "docsUrl": "https://developers.brevo.com/",
+   "actions": [
+    "Test Brevo",
+    "Add customer to Brevo"
+   ],
+   "secrets": [
+    "API key",
+    "List ID"
+   ]
+  },
+  {
+   "id": "mailerlite",
+   "name": "MailerLite",
+   "category": "marketing",
+   "status": "planned",
+   "description": "Add customers to MailerLite groups.",
+   "docsUrl": "https://developers.mailerlite.com/",
+   "actions": [
+    "Test MailerLite",
+    "Add customer to MailerLite"
+   ],
+   "secrets": [
+    "API token",
+    "Group ID (optional)"
+   ]
+  },
+  {
+   "id": "activecampaign",
+   "name": "ActiveCampaign",
+   "category": "marketing",
+   "status": "planned",
+   "description": "Add customers to ActiveCampaign lists.",
+   "docsUrl": "https://developers.activecampaign.com/",
+   "actions": [
+    "Test ActiveCampaign",
+    "Add customer to ActiveCampaign"
+   ],
+   "secrets": [
+    "Account API URL",
+    "API key"
+   ]
+  },
+  {
+   "id": "pipedrive",
+   "name": "Pipedrive",
+   "category": "marketing",
+   "status": "planned",
+   "description": "Add customers and deals to Pipedrive.",
+   "docsUrl": "https://developers.pipedrive.com/docs/api/v1",
+   "actions": [
+    "Test Pipedrive",
+    "Add customer to Pipedrive"
+   ],
+   "secrets": [
+    "API token"
+   ]
+  },
+  {
+   "id": "zoho_crm",
+   "name": "Zoho CRM",
+   "category": "marketing",
+   "status": "planned",
+   "description": "Add customers to Zoho CRM.",
+   "docsUrl": "https://www.zoho.com/crm/developer/docs/api/v7/",
+   "actions": [
+    "Test Zoho CRM",
+    "Add customer to Zoho CRM"
+   ],
+   "secrets": [
+    "Client ID",
+    "Client secret"
+   ]
+  },
+  {
    "id": "webhook",
    "name": "Webhook",
    "category": "automation",
@@ -1330,6 +2334,70 @@
    ],
    "secrets": [
     "Make webhook URL"
+   ]
+  },
+  {
+   "id": "n8n",
+   "name": "n8n",
+   "category": "automation",
+   "status": "available",
+   "description": "Send sales and inventory to an n8n workflow (cloud or self-hosted).",
+   "docsUrl": "https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.webhook/",
+   "actions": [
+    "Test n8n",
+    "Send inventory to n8n",
+    "Send sale to n8n"
+   ],
+   "secrets": [
+    "n8n webhook URL",
+    "Header name (Header Auth)",
+    "Header value (Header Auth)"
+   ]
+  },
+  {
+   "id": "pipedream",
+   "name": "Pipedream",
+   "category": "automation",
+   "status": "planned",
+   "description": "Send sales to Pipedream workflows.",
+   "docsUrl": "https://pipedream.com/docs/workflows/building-workflows/triggers/",
+   "actions": [
+    "Test Pipedream",
+    "Send sale to Pipedream"
+   ],
+   "secrets": [
+    "Pipedream trigger URL"
+   ]
+  },
+  {
+   "id": "ifttt",
+   "name": "IFTTT",
+   "category": "automation",
+   "status": "planned",
+   "description": "Send sales to IFTTT applets (Webhooks service).",
+   "docsUrl": "https://ifttt.com/maker_webhooks",
+   "actions": [
+    "Test IFTTT",
+    "Send sale to IFTTT"
+   ],
+   "secrets": [
+    "Webhooks key",
+    "Event name"
+   ]
+  },
+  {
+   "id": "power_automate",
+   "name": "Microsoft Power Automate",
+   "category": "automation",
+   "status": "planned",
+   "description": "Send sales to Power Automate flows (Microsoft 365).",
+   "docsUrl": "https://learn.microsoft.com/en-us/power-automate/",
+   "actions": [
+    "Test Microsoft Power Automate",
+    "Send sale to Microsoft Power Automate"
+   ],
+   "secrets": [
+    "Flow HTTP trigger URL"
    ]
   }
  ]

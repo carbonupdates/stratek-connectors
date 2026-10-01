@@ -272,6 +272,29 @@ its Set up page.
   `webhookSetup: { where, what }` so its Set up page shows the callback URL.
 - `color` (e.g. `'#e4202a'`) colours an integration's buttons in Stratek.
 
+## 6a-11. Wave 9 self-serve integrations + wave 10 scaffolds (v0.23.0+)
+
+- Payments: `square` (payment links `quick_pay`, order check -> `payment.succeeded`, refunds),
+  `mollie` (payments with a per-payment `webhookUrl`; the webhook only carries `id`, so the
+  connector fetches the payment before emitting).
+- Shipping: `shippo` (`POST /shipments` rates + inline customs, `POST /transactions`),
+  `easypost` (`POST /shipments`, `/buy`, ounces). Both pick the cheapest rate unless a
+  service is typed; `create_shipment` is outbound.
+- `gelato` (orders:quote / orders, product UIDs + print file URL), `beds24` (invite code ->
+  refresh token in `onKeysSaved`, 24 h tokens cached; `POST /bookings` with `invoiceItems`;
+  reuses `matchGuest()` / `folioLines()` from `cloudbeds.js`).
+- `twilio`, `resend` share `_receipt.js` (`receiptText()`, `receiptHtml()`); Resend sends an
+  `Idempotency-Key` per sale.
+- `erpnext` (token key:secret; ensures customer + a STRATEK-SALE service item; Sales Invoice
+  draft or submitted), `odoo` (JSON-RPC `execute_kw`; `account.move` out_invoice, optional
+  `action_post`).
+- `bigcommerce` (v3 catalog products, v2 orders), `wix` (Catalog V3 products-with-inventory,
+  update with the product revision; eCommerce orders search) -- both use `_sync.js`.
+- `google_analytics` (Measurement Protocol; test mode = debug endpoint only),
+  `tiktok_events` (Events API 1.3, hashed email / phone, test event code), `n8n` (webhook +
+  optional header auth).
+- 49 wave-10 scaffolds (status `planned`) -- self-serve keys, listed in docs/coming-soon.md.
+
 ## 6a-10. Fonepay direct and Yango (v0.22.0+)
 
 - `fonepay`: `thirdPartyDynamicQrDownload` / `thirdPartyDynamicQrGetStatus` on
@@ -400,6 +423,10 @@ its Set up page.
   hidden (placement `agent`): `link` / `unlink` (session pass only), `status`
   (session or server), `alert` (**server pass only** -- Stratek's alerts;
   the button URL must start with the Stratek address).
+- Stratek HQ (owner `admin:hq`) uses the same integration on its own connector for
+  admin alerts (Command Center, Stratek migration 0024). Stratek signs a server pass
+  with `sub: admin:hq`, `int: '*'`; nothing changes in the connector. Messages to
+  the HQ bot get the "AI employee is off" reply.
 
 ## 6a. AI employee (v0.12.0+)
 
