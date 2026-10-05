@@ -41,6 +41,8 @@ import { matchStorefront, serveStorefront, cleanStorefront } from './storefront.
 import { CONNECTOR_VERSION } from './version.js';
 import { publicEventKey, emitEvent, keyPair } from './events.js';
 import { oauthStartLink, oauthStart, oauthCallback } from './integrations/_oauth.js';
+import { receiveMail } from './integrations/business_email.js';
+import { ownerMessage } from './integrations/telegram.js';
 
 export { ConnectorState };
 
@@ -473,7 +475,8 @@ export async function handle(request, env) {
       // Integrations read their keys from env as usual; Set up form keys are merged in.
       // `store`: a small per-integration memory (e.g. which payment session belongs to which sale).
       const store = integrationStore(db, found.integration, mode);
-      const result = await found.action.run({ env: { ...env, ...keys, STRATEK_MODE: mode }, claims, fields, context: body?.context || {}, origin: url.origin, store, mode, emit: (event) => emitEvent(db, { ...event, mode }), oauthLink: () => oauthStartLink({ db, integration: found.integration, mode, origin: url.origin }) });
+      const storeFor = (id) => integrationStore(db, findIntegration(id), mode);
+      const result = await found.action.run({ env: { ...env, ...keys, STRATEK_MODE: mode }, claims, fields, storeFor, context: body?.context || {}, origin: url.origin, store, mode, emit: (event) => emitEvent(db, { ...event, mode }), oauthLink: () => oauthStartLink({ db, integration: found.integration, mode, origin: url.origin }) });
       if (result && typeof result === 'object' && mode === 'test') result.testMode = true;
       return okJson(env, request, { result });
     } catch (err) {
@@ -484,4 +487,18 @@ export async function handle(request, env) {
   return failJson(env, request, 'Not found', 404, 'NOT_FOUND');
 }
 
-export default { fetch: (request, env) => handle(request, env) };
+/**
+ * v0.26.0: Cloudflare Email Routing hands mail for the shop's business address
+ * to this Worker. Only the business_email integration handles it (live keys).
+ */
+export async function handleEmail(message, env) {
+  const db = store(env);
+  const integration = findIntegration('business_email');
+  const { keys } = await loadKeys(env, db, 'live');
+  if (!integration || !isReady(integration, keys, 'live')) { message.setReject?.('This address is not set up.'); return { rejected: true }; }
+  const e = { ...env, ...keys, STRATEK_MODE: 'live' };
+  const tgStore = integrationStore(db, findIntegration('telegram'), 'live');
+  return receiveMail({ message, env: e, store: integrationStore(db, integration, 'live'), tg: (text, inline) => ownerMessage(e, tgStore, text, inline) });
+}
+
+export default { fetch: (request, env) => handle(request, env), email: (message, env) => handleEmail(message, env) };

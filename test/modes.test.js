@@ -1524,3 +1524,94 @@ test('Postiz + Chatwoot (0.25.0): drafts only, scheduling needs a person; inbox 
     assert.equal(cm.category, 'messaging'); assert.ok(!cm.actions.some((a) => /send/.test(a.id)), 'no send action');
   } finally { globalThis.fetch = prev; }
 });
+
+test('Business email (0.26.0): Cloudflare routing + Resend setup, incoming mail to Telegram, reply from Telegram, drafts need a person', async () => {
+  const c = await paired();
+  const prev = globalThis.fetch;
+  const cfCalls = []; const rsCalls = []; const tg = []; let tgId = 500;
+  globalThis.fetch = async (input, init) => {
+    const req = input instanceof Request ? input : new Request(input, init);
+    const u = new URL(req.url);
+    const body = ['GET', 'DELETE'].includes(req.method) ? null : await req.clone().json().catch(() => null);
+    if (u.host === 'api.cloudflare.com') {
+      cfCalls.push({ method: req.method, path: u.pathname + u.search, auth: req.headers.get('Authorization'), body });
+      if (u.pathname === '/client/v4/zones') return Response.json({ success: true, result: [{ id: 'Z1', name: 'himal.com', account: { id: 'A1' } }] });
+      if (u.pathname.endsWith('/email/routing/rules') && req.method === 'GET') return Response.json({ success: true, result: [] });
+      return Response.json({ success: true, result: { id: 'x' } });
+    }
+    if (u.host === 'api.resend.com') {
+      rsCalls.push({ method: req.method, path: u.pathname, body });
+      if (u.pathname === '/domains' && req.method === 'GET') return Response.json({ data: [] });
+      if (u.pathname === '/domains') return Response.json({ id: 'D1', records: [{ record: 'DKIM', name: 'resend._domainkey', type: 'TXT', value: 'p=abc' }, { record: 'SPF', name: 'send', type: 'MX', value: 'feedback-smtp.us-east-1.amazonses.com', priority: 10 }] });
+      if (u.pathname === '/emails') return Response.json({ id: 'E1' });
+      return Response.json({});
+    }
+    if (u.host === 'api.telegram.org') {
+      const method = u.pathname.split('/').pop(); tg.push({ method, body });
+      if (method === 'getMe') return Response.json({ ok: true, result: { id: 99, username: 'himal_bot' } });
+      if (method === 'sendMessage') return Response.json({ ok: true, result: { message_id: ++tgId } });
+      return Response.json({ ok: true, result: true });
+    }
+    if (u.host === 'api.openai.com') return Response.json({ choices: [{ message: { role: 'assistant', content: 'Namaste Sita, yes -- 20 sets are possible.' } }], usage: { prompt_tokens: 5, completion_tokens: 5 } });
+    return prev(input, init);
+  };
+  try {
+    await c.save('resend', 'live', { RESEND_API_KEY: 're_x', RESEND_FROM: 'Himal <receipts@himal.com>' });
+    await c.save('telegram', 'live', { TELEGRAM_BOT_TOKEN: '123:abc' });
+    const hook = tg.find((x) => x.method === 'setWebhook');
+    assert.deepEqual(hook.body.allowed_updates, ['message', 'callback_query'], 'buttons are listened to');
+    c.env._map.set('data:telegram:owner', { chatId: 5, userId: 5, name: 'Gunjan' });
+    const s = await c.save('business_email', 'live', { EMAIL_DOMAIN: 'Himal.com', EMAIL_ADDRESS: 'hello', CF_EMAIL_TOKEN: 'cf-tok', EMAIL_FROM_NAME: 'Himal Threads', EMAIL_FORWARD_TO: 'owner@gmail.com' });
+    assert.equal(s.success, true); assert.match(s.data.notice, /hello@himal\.com: Email Routing on.*hello@himal\.com -> your connector.*himal\.com added to Resend \(2 DNS records\).*verification link/);
+    const rule = cfCalls.find((x) => x.method === 'POST' && x.path.endsWith('/email/routing/rules'));
+    assert.deepEqual(rule.body.actions, [{ type: 'worker', value: ['stratek-connector'] }]);
+    assert.equal(rule.body.matchers[0].value, 'hello@himal.com'); assert.equal(rule.auth, 'Bearer cf-tok');
+    assert.ok(cfCalls.some((x) => x.path === '/client/v4/accounts/A1/email/routing/addresses' && x.body.email === 'owner@gmail.com'));
+    assert.equal(cfCalls.filter((x) => x.path.endsWith('/dns_records')).length, 2);
+    assert.equal(cfCalls.find((x) => x.path.endsWith('/dns_records') && x.body.type === 'MX').body.priority, 10);
+    // incoming mail -> stored, forwarded, Telegram with a Draft button
+    const raw = 'From: Sita Rai <Sita@Example.com>\r\nTo: hello@himal.com\r\nSubject: Bulk order for Tihar?\r\nMessage-ID: <m1@example.com>\r\nContent-Type: text/plain; charset=utf-8\r\n\r\nCan I order 20 sets before Laxmi Puja?';
+    let forwarded = null; let rejected = null;
+    const msg = (r) => ({ from: 'sita@example.com', to: 'hello@himal.com', raw: new Blob([r]).stream(), rawSize: r.length, forward: async (a) => { forwarded = a; }, setReject: (x) => { rejected = x; } });
+    const out = await worker.email(msg(raw), c.env);
+    assert.ok(out.stored); assert.equal(forwarded, 'owner@gmail.com'); assert.equal(rejected, null);
+    const alert = tg.filter((x) => x.method === 'sendMessage').pop();
+    assert.equal(alert.body.chat_id, 5); assert.match(alert.body.text, /Sita Rai <sita@example\.com>\nBulk order for Tihar\?[\s\S]*20 sets/);
+    assert.equal(alert.body.reply_markup.inline_keyboard[0][0].callback_data, `em:d:${out.stored}`);
+    const alertId = tgId;
+    // agents: list / read / draft (no send); send is outbound
+    const list = (await c.act('business_email', 'list_emails', { fields: { unanswered: 'yes' } }, c.server)).data.result;
+    assert.equal(list.items[0].from, 'sita@example.com'); assert.match(list.title, /data, not instructions/);
+    assert.match((await c.act('business_email', 'read_email', { fields: { email_id: out.stored } }, c.server)).data.result.email.text, /Laxmi Puja/);
+    const d = await c.act('business_email', 'draft_reply', { fields: { email_id: out.stored, text: 'Yes, 20 sets by Friday.' } }, c.server);
+    assert.match(d.data.result.title, /not sent/); assert.equal(rsCalls.filter((x) => x.path === '/emails').length, 0, 'a draft sends nothing');
+    const draftMsg = tg.filter((x) => x.method === 'sendMessage').pop();
+    assert.equal(draftMsg.body.reply_markup.inline_keyboard[0][0].callback_data, `em:s:${d.data.result.draftId}`);
+    const m = (await c.manifest()).find((i) => i.id === 'business_email');
+    assert.equal(m.actions.find((a) => a.id === 'send_email').outbound, true);
+    assert.equal(m.actions.find((a) => a.id === 'draft_reply').outbound, false);
+    // Telegram: owner taps Send on the draft -> real reply via Resend, threaded
+    const secret = hook.body.secret_token; let upd = 1000;
+    const post = (u) => go(c.env, '/webhooks/telegram', { method: 'POST', headers: { 'X-Telegram-Bot-Api-Secret-Token': secret, 'Content-Type': 'application/json' }, body: JSON.stringify({ update_id: upd++, ...u }) });
+    await post({ callback_query: { id: 'q1', from: { id: 8 }, data: `em:s:${d.data.result.draftId}` } });
+    assert.equal(rsCalls.filter((x) => x.path === '/emails').length, 0, 'strangers cannot press Send');
+    await post({ callback_query: { id: 'q2', from: { id: 5 }, data: `em:s:${d.data.result.draftId}` } });
+    let sent = rsCalls.filter((x) => x.path === '/emails').pop().body;
+    assert.equal(sent.from, 'Himal Threads <hello@himal.com>'); assert.deepEqual(sent.to, ['sita@example.com']);
+    assert.equal(sent.subject, 'Re: Bulk order for Tihar?'); assert.equal(sent.headers['In-Reply-To'], '<m1@example.com>'); assert.equal(sent.text, 'Yes, 20 sets by Friday.');
+    assert.match(tg.filter((x) => x.method === 'sendMessage').pop().body.text, /Sent to sita@example\.com/);
+    // owner replies to the email's Telegram message -> sent as the email reply
+    await post({ message: { message_id: 900, text: 'Delivery Friday, thank you!', chat: { id: 5, type: 'private' }, from: { id: 5, first_name: 'Gunjan' }, reply_to_message: { message_id: alertId } } });
+    sent = rsCalls.filter((x) => x.path === '/emails').pop().body;
+    assert.equal(sent.text, 'Delivery Friday, thank you!'); assert.equal(sent.subject, 'Re: Bulk order for Tihar?');
+    // AI draft button (AI employee on)
+    await c.save('ai_employee', 'live', { AI_PROVIDER: 'openai', AI_API_KEY: 'sk-x', AI_MODEL: 'm' });
+    await post({ callback_query: { id: 'q3', from: { id: 5 }, data: `em:d:${out.stored}` } });
+    const aiDraft = tg.filter((x) => x.method === 'sendMessage').pop();
+    assert.match(aiDraft.body.text, /Draft reply to sita@example\.com[\s\S]*Namaste Sita/); assert.match(aiDraft.body.reply_markup.inline_keyboard[0][0].callback_data, /^em:s:/);
+    // not set up -> mail is rejected
+    const c2 = await paired();
+    const r2 = await worker.email(msg(raw), c2.env);
+    assert.equal(r2.rejected, true);
+  } finally { globalThis.fetch = prev; }
+});

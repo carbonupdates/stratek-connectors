@@ -258,6 +258,20 @@ its Set up page.
   up to 5 tokens): each new token -> Telegram `getMe` -> `POST /inboxes {name, channel:{type:'telegram',
   bot_token}}` (Chatwoot sets that bot's webhook); refused if it equals `TELEGRAM_BOT_TOKEN`. Agent actions (placement `agent`):
   `list_conversations`, `read_conversation`, `draft_reply` (private note). No send action.
+- **Business email (v0.26.0, `messaging`, `business_email`):** inbound = Cloudflare Email Routing ->
+  the Worker's `email(message, env)` export (`handleEmail` in index.js; rejects when the integration
+  isn't ready). `_mime.js` parses the raw message (first 512 KB: headers, RFC 2047 words, multipart,
+  base64 / quoted-printable, HTML stripped). `receiveMail` stores it (`mail` list, 50 / 30 days,
+  text <= 8000 chars), forwards to `EMAIL_FORWARD_TO` if set, and sends the owner a Telegram message
+  (`ownerMessage`) with button `em:d:<id>`; `tgmap` maps Telegram message_id -> mail id. Setup in
+  `onKeysSaved` (`setupMailbox`, token `CF_EMAIL_TOKEN`): zone lookup, `POST email/routing/dns`,
+  rule `literal to = <address>` -> `worker [CONNECTOR_SCRIPT || 'stratek-connector']`, account
+  destination address for the Gmail copy, Resend `POST /domains` + DNS records into the zone +
+  `/verify`. Outbound = Resend `/emails` with `In-Reply-To` / `References` (`RESEND_API_KEY` from
+  the Resend integration). Telegram (`allowed_updates` now includes `callback_query`): owner reply
+  to a mapped message -> `sendMail`; `em:d` -> `writeEmailDraft` (agent.js, one model call, no
+  tools) -> draft card `em:s` / `em:x`. Actions: `test` (settings), `status`, `list_emails`,
+  `read_email`, `draft_reply` (agent), `send_email` (agent, `outbound: true`).
 - **Postiz (v0.25.0, `marketing`):** `Authorization: <api key>` to `https://api.postiz.com/public/v1`
   (or `POSTIZ_API_URL`). `draft_post` -> `POST /posts` with `type: 'draft'` (minimal settings per
   network; Instagram / TikTok / YouTube need `media_url`, uploaded with `/upload-from-url`; Reddit

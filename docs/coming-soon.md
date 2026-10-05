@@ -1,6 +1,6 @@
 # Integrations: finished, remaining and build waves
 
-**Tally (connector 0.25.0): 67 built, 72 coming soon, 139 in total** (the Connector itself not counted).
+**Tally (connector 0.26.0): 68 built, 72 coming soon, 140 in total** (the Connector itself not counted).
 
 Coming-soon ones are already in the catalogue as scaffolds (key fields and buttons drafted, `run` not built). To build one: follow `docs/adding-an-integration.md`, write each action, set `status: 'available'`, add a test, bump the version. Buttons only -- nothing runs by itself. Anything that spends money (labels, fulfilment, PCB and dropship orders, refunds) needs a person (AI agents can only ask).
 

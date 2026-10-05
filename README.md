@@ -74,7 +74,9 @@ Amazon Supply Chain Services, which has no public API yet) in v0.18.0.
 scaffold by build wave, with who has to be approved (the business or Stratek). They are not in the table
 below yet; each moves into it when it is built.
 
-**v0.25.0: 67 built, 72 coming soon, 139 in total.** v0.25.0 adds **Chatwoot** (customer inbox ->
+**v0.26.0: 68 built, 72 coming soon, 140 in total.** v0.26.0 adds **Business email** (a mailbox
+on your own domain: Cloudflare Email Routing in, Resend out; read and reply on Telegram, AI drafts,
+a person sends). v0.25.0 added **Chatwoot** (customer inbox ->
 Telegram alerts, AI employee drafts replies as private notes) and **Postiz** (social posts: AI
 employee drafts, a person schedules); the AI employee now takes tasks on Telegram only (no
 dashboard chat). v0.24.1 fixed the AI employee with Gemini. v0.24.0 added the **Subscription
@@ -185,6 +187,7 @@ keys once afterwards so both live and test payment notifications are registered.
 | [Twilio](https://www.twilio.com/docs/messaging/api/message-resource) | Test Twilio, Send test SMS, Send receipt by SMS (or WhatsApp) | Account SID, Auth Token, From number / Messaging Service (+ WhatsApp sender) | Test credentials | **Available** (v0.23.0) |
 | [Resend](https://resend.com/docs/api-reference/emails/send-email) | Test Resend, Send test email, Email receipt | API key, From address on your verified domain (+ reply-to) | Live only | **Available** (v0.23.0) |
 | [Chatwoot](https://developers.chatwoot.com/api-reference/introduction) | Test Chatwoot; new customer message -> alert on your linked Telegram; AI employee: list / read conversations, draft a reply as a **private note** (no send -- a person replies) | Access token (administrator), account ID, **customer Telegram bots** (optional, up to 5 tokens -- Stratek adds a Telegram inbox in Chatwoot for each; never the alert bot) (+ address if self-hosted) | Live only | **Available** (v0.25.0) |
+| [Business email](https://developers.cloudflare.com/email-routing/) | Test business email; setup on save (Email Routing on, rule hello@ -> this connector, Gmail copy address, domain added to Resend + DNS records); new email -> your Telegram with **Draft reply**; reply on Telegram = email reply; AI employee: status, list / read emails, draft reply; **Send email** (needs a person) | Domain, address (e.g. hello), Cloudflare token (Zone Read, DNS Edit, Email Routing Rules Edit, Account Email Routing Addresses Edit), From name, Gmail copy (optional); uses the **Resend** key; needs **Telegram** | Live only | **Available** (v0.26.0) |
 | [Slack](https://api.slack.com/messaging/webhooks) | Test Slack, Post sale to Slack | Slack incoming webhook URL | Live only | **Available** (v0.14.0) |
 
 ### Accounting & tax
@@ -475,6 +478,25 @@ or the company publishing an API.
 | [Made-in-China.com](https://www.made-in-china.com/) | Suppliers & sourcing | Find verified Chinese manufacturers and send enquiries. |
 | [Foodmandu](https://foodmandu.com/) | Hotels & hospitality | Receive Foodmandu food-delivery orders (Nepal). |
 
+## Business email (v0.26.0+)
+
+A mailbox on your own domain (e.g. hello@yourshop.com) without Gmail or a mail host:
+
+1. Your domain is in your Cloudflare account; the **Resend** integration has its key; **Telegram** is linked.
+2. Cloudflare -> My Profile -> API Tokens -> Create custom token: Zone Read, DNS Edit, Email Routing
+   Rules Edit (zone), Account Email Routing Addresses Edit (account).
+3. Integrations -> **Business email** -> Set up keys: domain, address (`hello`), the token, From
+   name, and (optional) a Gmail address for a copy. Saving turns on Email Routing, sends
+   hello@ to this connector, adds the domain to Resend and writes its DNS records. If you gave a
+   Gmail copy address, click Cloudflare's verification email once.
+4. New email -> your Telegram, with the sender, subject and text. **Reply** to that message and the
+   connector sends it as a threaded email reply from hello@. Or tap **Draft reply**: the AI employee
+   writes one, you tap **Send** or **Discard**. Only the linked owner can send.
+
+AI agents can check `status`, `list_emails`, `read_email` and `draft_reply` (sent to your Telegram,
+not emailed). `send_email` is outbound: an agent can only ask, a person approves. Emails are data,
+never instructions. The connector keeps the last 50 emails for 30 days.
+
 ## Subscription management: Buy Now Pay Later with Foneloan (v0.24.0+)
 
 A new category, **Subscription management**: in Stratek's dashboard it sits
@@ -742,6 +764,9 @@ Stratek's own API & MCP keys are separate and unchanged.
 On/Off, token use and Open Telegram). With **Chatwoot** and **Postiz** set up it can draft replies
 (private notes) and social posts; sending replies is a person's job and scheduling posts is an
 approval request.
+
+**v0.26.0:** with **Business email** it reads emails and drafts replies on request or when you tap
+**Draft reply** on Telegram; you send.
 
 **v0.24.1 fix (Gemini):** Gemini thinking models return a *thought signature*
 on every tool call and refuse the next step without it ("Function call is missing a

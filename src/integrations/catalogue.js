@@ -37,6 +37,7 @@ import zapier from './zapier.js';
 import make from './make.js';
 import ai_employee from './ai_employee.js';
 import chatwoot from './chatwoot.js';
+import business_email from './business_email.js';
 import postiz from './postiz.js';
 import ime_pay from './ime_pay.js';
 import prabhu_pay from './prabhu_pay.js';
@@ -220,6 +221,7 @@ export const CATALOGUE = [
   sparrow_sms,
   telegram,
   chatwoot,
+  business_email,
   viber,
   slack,
   twilio,

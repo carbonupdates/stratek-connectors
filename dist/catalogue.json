@@ -1,5 +1,5 @@
 {
- "version": "0.25.0",
+ "version": "0.26.0",
  "categories": {
   "system": "Connector",
   "payments": "Payments",
@@ -1419,6 +1419,29 @@
     "Account ID",
     "Customer Telegram bots (optional)",
     "Chatwoot address (only if self-hosted)"
+   ]
+  },
+  {
+   "id": "business_email",
+   "name": "Business email",
+   "category": "messaging",
+   "status": "available",
+   "description": "A mailbox on your own domain (e.g. hello@yourshop.com): emails arrive on your Telegram (and Gmail if you like), you reply from Telegram, and your AI employee can draft replies. Uses Cloudflare Email Routing + your Resend key.",
+   "docsUrl": "https://github.com/carbonupdates/stratek-connectors#business-email",
+   "actions": [
+    "Check business email",
+    "Business email status",
+    "Recent emails",
+    "Read an email",
+    "Draft a reply",
+    "Send email"
+   ],
+   "secrets": [
+    "Your domain",
+    "Address name",
+    "Cloudflare token for email",
+    "Sender name",
+    "Also copy to (Gmail)"
    ]
   },
   {

@@ -17,7 +17,8 @@
 // - "Post sale to Telegram" (sale details) sends a short sale summary.
 // Live only: Telegram has no test environment. Alerts from Test mode say TEST.
 
-import { runAgentTurn, clearHistory, agentKey } from '../agent.js';
+import { runAgentTurn, clearHistory, agentKey, writeEmailDraft } from '../agent.js';
+import { mailForTelegramMessage, sendMail, saveDraft, takeDraft, getMail, draftCard, draftButtons } from './business_email.js';
 
 const MAX_TEXT = 3900; // Telegram allows 4096 characters per message
 
@@ -43,8 +44,8 @@ async function ensureBot(env, store, origin, force = false) {
   if (have && !force && have.token4 === String(env.TELEGRAM_BOT_TOKEN).slice(-4)) return have;
   const me = await tg(env, 'getMe');
   const secret = hex(24);
-  await tg(env, 'setWebhook', { url: `${origin}/webhooks/telegram`, secret_token: secret, allowed_updates: ['message'], drop_pending_updates: true });
-  const bot = { id: me.id, username: me.username, name: me.first_name, token4: String(env.TELEGRAM_BOT_TOKEN).slice(-4), secret, at: new Date().toISOString() };
+  await tg(env, 'setWebhook', { url: `${origin}/webhooks/telegram`, secret_token: secret, allowed_updates: ['message', 'callback_query'], drop_pending_updates: true });
+  const bot = { id: me.id, username: me.username, name: me.first_name, token4: String(env.TELEGRAM_BOT_TOKEN).slice(-4), secret, cb: true, at: new Date().toISOString() };
   await store.put('bot', bot);
   return bot;
 }
@@ -63,6 +64,44 @@ async function owner(store) { return (await store.get('owner')) || null; }
  * false (no error) when Telegram isn't set up or linked. A button may only
  * point to an https address the integration built itself.
  */
+/**
+ * v0.26.0: a message to the linked owner with optional inline buttons
+ * ([[{text, callback_data}]]). Returns Telegram's message (with message_id) or null.
+ */
+export async function ownerMessage(env, tgStore, text, inline) {
+  if (!env.TELEGRAM_BOT_TOKEN) return null;
+  const o = await owner(tgStore);
+  if (!o) return null;
+  const body = { chat_id: o.chatId, text: clip(text), disable_web_page_preview: true };
+  if (Array.isArray(inline) && inline.length) body.reply_markup = { inline_keyboard: inline };
+  return tg(env, 'sendMessage', body);
+}
+
+/** Owner's buttons on business-email messages: em:d:<mail> draft, em:s:<draft> send, em:x:<draft> discard. */
+async function emailButton(env, storeFor, chatId, data) {
+  const mailStore = storeFor('business_email');
+  const [, act, id] = data.split(':');
+  if (act === 'd') {
+    const mail = await getMail(mailStore, id);
+    if (!mail) return send(env, chatId, 'That email is no longer kept (30 days).');
+    await tg(env, 'sendChatAction', { chat_id: chatId, action: 'typing' }).catch(() => {});
+    let text;
+    try { text = await writeEmailDraft(env, storeFor('ai_employee'), mail); }
+    catch (err) { return send(env, chatId, `No draft: ${err.message}\nReply to the email's message to answer it yourself.`); }
+    const did = await saveDraft(mailStore, mail.id, text, 'ai_employee');
+    return tg(env, 'sendMessage', { chat_id: chatId, text: clip(draftCard(mail, text)), reply_markup: { inline_keyboard: draftButtons(did) } });
+  }
+  if (act === 's' || act === 'x') {
+    const d = await takeDraft(mailStore, id);
+    if (!d) return send(env, chatId, 'That draft was already sent or discarded.');
+    if (act === 'x') return send(env, chatId, 'Draft discarded.');
+    const mail = await getMail(mailStore, d.mailId);
+    try { const r = await sendMail(env, mailStore, { text: d.text, reply: mail, to: mail?.from }); return send(env, chatId, `✅ Sent to ${r.to}.`); }
+    catch (err) { await saveDraft(mailStore, d.mailId, d.text, d.by); return send(env, chatId, `Not sent: ${err.message}`); }
+  }
+  return null;
+}
+
 export async function alertOwner(env, tgStore, text, button) {
   if (!env.TELEGRAM_BOT_TOKEN) return false;
   const o = await owner(tgStore);
@@ -71,7 +110,7 @@ export async function alertOwner(env, tgStore, text, button) {
   return true;
 }
 
-const HELP = 'This bot sends you Stratek alerts. You can also message it to give your AI employee a task, for example "Which paid online orders still need settling?".\n\nReply "continue" when it says it has more to do. /new starts a new conversation. Approvals always happen in the Stratek dashboard.';
+const HELP = 'This bot sends you Stratek alerts and your business emails (reply to an email\'s message to answer it). You can also message it to give your AI employee a task, for example "Which paid online orders still need settling?".\n\nReply "continue" when it says it has more to do. /new starts a new conversation. Approvals always happen in the Stratek dashboard.';
 
 function sameText(a, b) {
   if (typeof a !== 'string' || typeof b !== 'string' || a.length !== b.length || !a) return false;
@@ -121,6 +160,16 @@ export default {
     const last = Number(await store.get('last_update')) || 0;
     if (!Number.isInteger(u?.update_id) || u.update_id <= last) return { duplicate: true };
     await store.put('last_update', u.update_id);
+    // Bots linked before v0.26.0: also listen for button taps.
+    if (!bot.cb) { await tg(env, 'setWebhook', { url: `${new URL(request.url).origin}/webhooks/telegram`, secret_token: bot.secret, allowed_updates: ['message', 'callback_query'] }).catch(() => {}); await store.put('bot', { ...bot, cb: true }); }
+    const cq = u.callback_query;
+    if (cq) {
+      const lo = await owner(store);
+      await tg(env, 'answerCallbackQuery', { callback_query_id: cq.id }).catch(() => {});
+      if (!lo || cq.from?.id !== lo.userId || typeof cq.data !== 'string') return { ignored: 'not the linked account' };
+      if (cq.data.startsWith('em:')) { await emailButton(env, storeFor, lo.chatId, cq.data); return { button: true }; }
+      return { ignored: true };
+    }
     const m = u.message;
     if (!m || typeof m.text !== 'string' || m.chat?.type !== 'private' || !m.from) return { ignored: true };
     const text = m.text.trim().slice(0, 4000);
@@ -139,6 +188,16 @@ export default {
     // Everyone else is ignored (no reply, so the bot doesn't reveal anything).
     if (!linked || linked.userId !== m.from.id || linked.chatId !== m.chat.id) return { ignored: 'not the linked account' };
     if (text === '/start' || text === '/help') { await send(env, m.chat.id, HELP); return { help: true }; }
+    // Replying to a business email's message sends that text as the email reply (v0.26.0).
+    if (m.reply_to_message?.message_id) {
+      const mailStore = storeFor('business_email');
+      const mail = await mailForTelegramMessage(mailStore, m.reply_to_message.message_id);
+      if (mail) {
+        try { const r = await sendMail(env, mailStore, { text, reply: mail, to: mail.from }); await send(env, m.chat.id, `✅ Sent to ${r.to}.`); }
+        catch (err) { await send(env, m.chat.id, `Not sent: ${err.message}`); }
+        return { emailReply: true };
+      }
+    }
     const aiStore = storeFor('ai_employee');
     if (text === '/new') { await clearHistory(aiStore); await send(env, m.chat.id, 'New conversation started. What should I do?'); return { reset: true }; }
     await chatWithAiEmployee(env, aiStore, m.chat.id, who, text);
